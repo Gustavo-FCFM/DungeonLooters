@@ -339,10 +339,15 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
 - [ ] **Partir los dos archivos grandes** (ASC 2 095 líneas, GameplayAbility 2 447) en `partial class` por tema.
 
 *En el núcleo (soporte):*
-- [ ] **Efectos que quitan efectos**: limpiar (tus debuffs) y purgar (los buffs del enemigo). Un campo en el GE: "Quita
-      efectos con estos tags". Hoy solo por código (`RemoveEffectsWithTag`).
-- [ ] **Inmunidades por tag en el GE**: "No se aplica si el objetivo tiene…" / "Solo si tiene…". Hoy la condición vive en la
-      entrada de la habilidad, no en el efecto.
+- [x] **Efectos que quitan efectos** (17 de noviembre): sección "Quitar efectos e inmunidad" del GE. "Al aplicarse, quita":
+      nada / debuffs (limpiar) / buffs (purgar) / los dos; "quita los que dan estos tags"; "Cuántos quita (0 = todos)", los más
+      nuevos primero. Nunca quita cooldowns, pasivas de la clase ni lo marcado "No se puede quitar".
+- [x] **Inmunidades por tag en el GE** (17 de noviembre): "No se aplica si el objetivo tiene…", "Solo se aplica si tiene…" y
+      "Mientras dura, inmune a los que dan [tags]" (al ponerse quita los que ya tenía). La inmunidad reconoce a un efecto por
+      los tags que DA. El depurador muestra las inmunidades activas; el validador avisa de tags que nadie da y de inmunidades
+      en efectos instantáneos. Probado sin Play (limpiar, purgar con tope, inmunidad, condiciones).
+  - [ ] Usarlo en un efecto real y verlo en Play (por ejemplo, una limpieza para el Clérigo). Ojo: para hacer a alguien
+        inmune al veneno del zombi, ese veneno tiene que dar un tag de veneno (hoy no da ninguno).
 - [ ] **Efectos encadenados**: "Al terminar, aplica…" / "Si se lo quitan antes, aplica…" (una marca que explota al expirar).
 - [ ] **Duración infinita explícita** y **quitar al recibir daño / al moverse / al usar una habilidad**.
 - [ ] **Niveles con curvas** en habilidades y efectos (un mismo GE con 10/15/20 de daño según el nivel).

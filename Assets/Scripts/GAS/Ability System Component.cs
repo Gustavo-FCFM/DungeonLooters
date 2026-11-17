@@ -659,6 +659,13 @@ public class AbilitySystemComponent : MonoBehaviour
     {
         if (effect == null) return;
 
+        // Condiciones por tag e inmunidades (ver "Quitar efectos e inmunidad" del GE): antes que nada, así un efecto
+        // que no entra tampoco empuja, ni quita, ni nada.
+        if (!PassesApplicationTags(effect) || IsImmuneTo(effect)) return;
+
+        // Limpiar / purgar / quitar por tag, y lo que ya tenía y ahora es inmune: lo quita al aplicarse.
+        RemoveOnApply(effect, durationOverride > 0f ? durationOverride : effect.Duration);
+
         // Repeler / atraer: pasa en el instante de aplicarse, aparte de lo que haga el
         // efecto con sus modificadores (ver TryApplyKnockback).
         if (effect.KnockbackDistance > 0f) TryApplyKnockback(effect, source);
@@ -769,6 +776,7 @@ public class AbilitySystemComponent : MonoBehaviour
             ActiveGameplayEffect newEffect = new ActiveGameplayEffect(effect, finalDuration, source);
             newEffect.SourceAbility = DamageContext;   // para el resumen de muerte: los ticks saben de qué habilidad son
             ActiveEffects.Add(newEffect);
+            CountImmunities(effect, +1);
 
             // El escudo se otorga ANTES que los demás modificadores: si el mismo
             // efecto también sube MaxHealth (ej. Enfurecer), no queremos que eso
@@ -1553,7 +1561,89 @@ public class AbilitySystemComponent : MonoBehaviour
 
         foreach (EGameplayTag tag in effect.Definition.GrantedTags) RemoveTag(tag);
         ActiveEffects.Remove(effect);
+        CountImmunities(effect.Definition, -1);
         OnActiveEffectRemovedCallback?.Invoke(effect.Definition);
+    }
+
+    // =========================================================
+    // QUITAR EFECTOS E INMUNIDAD (17 de noviembre de 2026)
+    // =========================================================
+
+    // Tags a los que este personaje es inmune ahora, con cuántos efectos activos lo hacen inmune (dos fuentes = 2).
+    private readonly Dictionary<EGameplayTag, int> _immunities = new Dictionary<EGameplayTag, int>();
+    public IReadOnlyDictionary<EGameplayTag, int> DebugImmunities => _immunities;
+
+    private bool PassesApplicationTags(GameplayEffect effect)
+    {
+        if (effect.BlockedIfTargetHas != null)
+            foreach (EGameplayTag tag in effect.BlockedIfTargetHas)
+                if (tag != EGameplayTag.None && HasTag(tag)) return false;
+        if (effect.RequiresTargetTags != null)
+            foreach (EGameplayTag tag in effect.RequiresTargetTags)
+                if (tag != EGameplayTag.None && !HasTag(tag)) return false;
+        return true;
+    }
+
+    // ¿Da este efecto algún tag al que el personaje es inmune? (Lo que no se puede quitar, tampoco se bloquea.)
+    private bool IsImmuneTo(GameplayEffect effect)
+    {
+        if (_immunities.Count == 0 || effect.CannotBeRemoved || effect.GrantedTags == null) return false;
+        foreach (EGameplayTag tag in effect.GrantedTags)
+            if (_immunities.TryGetValue(tag, out int n) && n > 0) return true;
+        return false;
+    }
+
+    private void CountImmunities(GameplayEffect effect, int delta)
+    {
+        if (effect.GrantsImmunityTo == null) return;
+        foreach (EGameplayTag tag in effect.GrantsImmunityTo)
+        {
+            if (tag == EGameplayTag.None) continue;
+            int n = (_immunities.TryGetValue(tag, out int c) ? c : 0) + delta;
+            if (n > 0) _immunities[tag] = n; else _immunities.Remove(tag);
+        }
+    }
+
+    // Lo que un efecto le quita al personaje al aplicarse: por tipo (limpiar/purgar), por tags, y lo que ya tenía de
+    // aquello a lo que ahora será inmune. Los más nuevos primero, hasta "Cuántos quita".
+    private void RemoveOnApply(GameplayEffect effect, float duration)
+    {
+        bool byKind = effect.RemoveOnApply != GameplayEffect.ERemoveKind.Nothing;
+        bool byTags = effect.RemoveEffectsWithTags != null && effect.RemoveEffectsWithTags.Count > 0;
+        bool byImmunity = duration > 0f && effect.GrantsImmunityTo != null && effect.GrantsImmunityTo.Count > 0;
+        if (!byKind && !byTags && !byImmunity) return;
+
+        int removed = 0;
+        for (int i = ActiveEffects.Count - 1; i >= 0; i--)
+        {
+            if (i >= ActiveEffects.Count) continue;
+            ActiveGameplayEffect active = ActiveEffects[i];
+            GameplayEffect other = active.Definition;
+            if (other == null || other == effect || !CanBeRemoved(other)) continue;
+
+            bool kindMatch = (effect.RemoveOnApply == GameplayEffect.ERemoveKind.Debuffs && other.EffectType == GameplayEffect.EEffectType.Debuff) ||
+                             (effect.RemoveOnApply == GameplayEffect.ERemoveKind.Buffs   && other.EffectType == GameplayEffect.EEffectType.Buff) ||
+                             (effect.RemoveOnApply == GameplayEffect.ERemoveKind.Both    && other.EffectType != GameplayEffect.EEffectType.Hidden);
+            bool tagMatch = byTags && GrantsAny(other, effect.RemoveEffectsWithTags);
+            bool immuneMatch = byImmunity && GrantsAny(other, effect.GrantsImmunityTo);
+            if (!kindMatch && !tagMatch && !immuneMatch) continue;
+
+            // Lo de la inmunidad se quita siempre; el tope es para limpiar/purgar/quitar por tag.
+            if (!immuneMatch && effect.MaxRemoved > 0 && removed >= effect.MaxRemoved) continue;
+            RemoveActiveEffect(active);
+            if (!immuneMatch) removed++;
+        }
+    }
+
+    private bool CanBeRemoved(GameplayEffect other) =>
+        other.EffectType != GameplayEffect.EEffectType.Hidden && !other.CannotBeRemoved && !_classPassives.Contains(other);
+
+    private static bool GrantsAny(GameplayEffect effect, List<EGameplayTag> tags)
+    {
+        if (effect.GrantedTags == null) return false;
+        foreach (EGameplayTag tag in tags)
+            if (tag != EGameplayTag.None && effect.GrantedTags.Contains(tag)) return true;
+        return false;
     }
 
     // Le hace bajar un tick a la duración (y al período, si es

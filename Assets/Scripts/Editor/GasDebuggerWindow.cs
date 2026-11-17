@@ -194,9 +194,13 @@ public class GasDebuggerWindow : EditorWindow
     private void DrawTags(AbilitySystemComponent asc)
     {
         var tags = asc.DebugTags.Where(k => k.Value > 0 && Passes(k.Key.ToString())).OrderBy(k => k.Key.ToString()).ToList();
-        if (tags.Count == 0) { EditorGUILayout.LabelField("(ninguno)", EditorStyles.miniLabel); return; }
+        if (tags.Count == 0) EditorGUILayout.LabelField("(ninguno)", EditorStyles.miniLabel);
         foreach (var kv in tags)
             EditorGUILayout.LabelField(kv.Key + (kv.Value > 1 ? $"   ×{kv.Value}" : ""));
+
+        // Inmunidades: los efectos que dan estos tags no entran (GE ▸ "Mientras dura, inmune a los que dan").
+        var immune = asc.DebugImmunities.Where(k => k.Value > 0).Select(k => k.Key.ToString()).OrderBy(n => n).ToList();
+        if (immune.Count > 0) EditorGUILayout.LabelField("Inmune a lo que da: " + string.Join(", ", immune), EditorStyles.wordWrappedMiniLabel);
     }
 
     // --- Efectos activos ---

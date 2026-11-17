@@ -104,6 +104,7 @@ public class GasValidatorWindow : EditorWindow
         }
 
         // --- Efectos ---
+        var grantedByAnyone = new HashSet<EGameplayTag>(effects.Where(e => e.GrantedTags != null).SelectMany(e => e.GrantedTags));
         foreach (GameplayEffect ge in effects)
         {
             if (ge.Period > 0f && ge.Duration <= 0f)
@@ -125,6 +126,13 @@ public class GasValidatorWindow : EditorWindow
                             Add(ESeverity.Error, "Escala con un atributo, pero no dice cuál", $"{ge.name}: modificador {i + 1} ({m.Attribute})", ge);
                     }
                 }
+
+            // Quitar e inmunidad: un tag que ningún efecto da no quita ni bloquea nada; una inmunidad sin duración no dura.
+            foreach (EGameplayTag tag in (ge.RemoveEffectsWithTags ?? new List<EGameplayTag>()).Concat(ge.GrantsImmunityTo ?? new List<EGameplayTag>()))
+                if (tag != EGameplayTag.None && !grantedByAnyone.Contains(tag))
+                    Add(ESeverity.Warning, "Quita o da inmunidad a un tag que ningún efecto da (no hace nada)", $"{ge.name}: {tag}", ge);
+            if (ge.GrantsImmunityTo != null && ge.GrantsImmunityTo.Count > 0 && ge.Duration <= 0f)
+                Add(ESeverity.Warning, "Da inmunidad pero es instantáneo (la inmunidad no dura)", ge.name, ge);
 
             bool visible = ge.EffectType != GameplayEffect.EEffectType.Hidden && ge.Duration > 0f;
             if (visible && ge.Icon == null)

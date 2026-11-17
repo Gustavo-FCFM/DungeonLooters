@@ -30,6 +30,15 @@ public class GameplayEffect : ScriptableObject
         [InspectorName("Hacia donde mira el que lo aplica")] SourceForward    // Hacia donde mira quien lo aplicó (una patada en línea)
     }
 
+    // Qué efectos quita este al aplicarse (ver "Quitar efectos e inmunidad").
+    public enum ERemoveKind
+    {
+        [InspectorName("Nada")]                           Nothing = 0,
+        [InspectorName("Los debuffs (limpiar)")]          Debuffs = 1,
+        [InspectorName("Los buffs (purgar)")]             Buffs   = 2,
+        [InspectorName("Buffs y debuffs")]                Both    = 3,
+    }
+
     // Si es Buff/Debuff/Hidden — controla si aparece en la barra de
     // efectos activos y de qué color (ver UI_EffectSlot).
     public enum EEffectType
@@ -269,6 +278,53 @@ public class GameplayEffect : ScriptableObject
     // lista también sirve como "identidad" del efecto para cooldowns y
     // sincronización en red — ver GameplayAbility.CanActivate() y
     // NetworkAbilitySystemComponent.
+    // =========================================================
+    // QUITAR EFECTOS E INMUNIDAD (17 de noviembre de 2026, de las "Mejoras del GAS")
+    // =========================================================
+    //
+    // Sin código por habilidad: LIMPIAR (quitarle los debuffs a un aliado), PURGAR (quitarle los buffs a un enemigo),
+    // condiciones por tag ("no entra si el objetivo tiene…", "solo si tiene…") e INMUNIDADES ("mientras dura, los
+    // efectos que dan estos tags no entran"). Lo resuelve AbilitySystemComponent.ApplyGameplayEffect, antes que nada.
+    // Nunca se quitan: los cooldowns (efectos ocultos), las pasivas de la clase ni lo marcado "No se puede quitar".
+    // Una inmunidad reconoce a un efecto por los TAGS que da: un veneno sin tag propio no se puede bloquear así.
+
+    [Section(EffectSection.Cleanse, startCollapsed: true)]
+    [Tooltip("Al aplicarse, le quita al objetivo sus debuffs (limpiar), sus buffs (purgar) o los dos. Sirve en efectos " +
+             "instantáneos (una curación que limpia) y con duración.")]
+    [Label("Al aplicarse, quita")]
+    public ERemoveKind RemoveOnApply = ERemoveKind.Nothing;
+
+    [Section(EffectSection.Cleanse)]
+    [Tooltip("Al aplicarse, también le quita los efectos que dan alguno de estos tags (cualquier tipo, menos ocultos).")]
+    [Label("Al aplicarse, quita los que dan estos tags")]
+    public List<EGameplayTag> RemoveEffectsWithTags = new List<EGameplayTag>();
+
+    [Section(EffectSection.Cleanse)]
+    [Tooltip("Cuántos quita como mucho, empezando por los más nuevos. 0 = todos.")]
+    [Label("Cuántos quita (0 = todos)")]
+    public int MaxRemoved = 0;
+
+    [Section(EffectSection.Cleanse)]
+    [Tooltip("Si el objetivo tiene alguno de estos tags, este efecto no entra (ni quita nada).")]
+    [Label("No se aplica si el objetivo tiene")]
+    public List<EGameplayTag> BlockedIfTargetHas = new List<EGameplayTag>();
+
+    [Section(EffectSection.Cleanse)]
+    [Tooltip("Este efecto solo entra si el objetivo tiene TODOS estos tags.")]
+    [Label("Solo se aplica si el objetivo tiene")]
+    public List<EGameplayTag> RequiresTargetTags = new List<EGameplayTag>();
+
+    [Section(EffectSection.Cleanse)]
+    [Tooltip("Mientras este efecto está activo, el objetivo es INMUNE a los efectos que dan alguno de estos tags: no " +
+             "entran. Al aplicarse, también le quita los que ya tenía. Solo en efectos con duración.")]
+    [Label("Mientras dura, inmune a los que dan")]
+    public List<EGameplayTag> GrantsImmunityTo = new List<EGameplayTag>();
+
+    [Section(EffectSection.Cleanse)]
+    [Tooltip("Ninguna limpieza, purga ni inmunidad lo quita (la bendición del jefe, un estado del modo de juego…).")]
+    [Label("No se puede quitar")]
+    public bool CannotBeRemoved = false;
+
     [Section(EffectSection.Tags)]
     [Tooltip("Tags que tiene el objetivo mientras el efecto está activo (State_Stunned, " +
              "Status_Slow...). El PRIMERO es además la identidad del efecto: con él se bloquea un " +

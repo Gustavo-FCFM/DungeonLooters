@@ -334,6 +334,11 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   habilidad (desde el 14 de octubre de 2026): sale solo sobre el curado, nunca sobre un enemigo;
   lo dispara `ApplyHitEffects` al aplicar un efecto que sube la vida. Cada GA elige el suyo.
 
+- **Limpiar, purgar, inmunidades y condiciones por tag van en el GE, no en código** (sección "Quitar efectos e inmunidad",
+  desde el 17 de noviembre de 2026; lo resuelve `ApplyGameplayEffect` antes que nada). La inmunidad reconoce a un efecto por
+  los TAGS que da: un debuff que se quiera poder bloquear o limpiar por tag tiene que dar un tag propio. Nunca se quitan los
+  cooldowns, las pasivas de la clase ni lo marcado "No se puede quitar".
+
 - **Los efectos de una habilidad van en su lista `Effects`** (desde el 7 de octubre de
   2026): cada entrada dice cuándo (al golpear, al primer golpe, al activarse, al matar),
   a quién (enemigos, aliados, el lanzador, todos) y una condición de tag opcional. El

@@ -384,8 +384,9 @@ public abstract class SectionedInspector : Editor
             if (_inRegistry.HasValue)
                 EditorGUILayout.LabelField(_inRegistry.Value
                     ? "✔ Está en el registro de red."
-                    : "✘ NO está en el registro de red: su VFX/ícono se ve solo en el host. Corré " +
-                      "Mercenarios ▸ Actualizar los registros de red.", EditorStyles.wordWrappedMiniLabel);
+                    : "✘ NO está en el registro de red: su VFX/ícono se ve solo en el host. Se pone solo al crearlo; " +
+                      "si no entró (los automáticos apagados), Mercenarios ▸ Actualizar los registros de red.",
+                    EditorStyles.wordWrappedMiniLabel);
 
             if (_usages.Count == 0)
                 EditorGUILayout.LabelField("Nadie lo usa.", EditorStyles.miniLabel);

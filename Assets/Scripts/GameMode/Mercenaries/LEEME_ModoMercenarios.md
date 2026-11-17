@@ -413,8 +413,9 @@ Para probar sin esperar el reloj: con el juego corriendo, clic derecho en el com
    soporte) en el campo `SelectableClasses` del `UI_LobbyPanel` de la escena. Si sumás una
    cuarta, agregala ahí **y** en `MainBaseClasses` del prefab `Player`: el índice que viaja
    por la red es la posición en esa lista.
-6. **Los registros de red.** Cada `GA_*` o `GE_*` nuevo hay que agregarlo con
-   `Mercenarios ▸ Actualizar los registros de red`, o su VFX se ve solo en el host.
+6. **Los registros de red.** Cada `GA_*` o `GE_*` nuevo entra solo al crearlo (desde el 17 de
+   noviembre de 2026); si no, `Mercenarios ▸ Actualizar los registros de red`, o su VFX se ve solo
+   en el host. Después, todos con el mismo build.
 7. **Arte.** Todo es primitivas y colores planos. Cuando tengas modelos, reemplazá los
    hijos visuales: la lógica no mira los meshes en ningún lado.
 

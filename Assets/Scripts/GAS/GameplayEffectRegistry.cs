@@ -14,7 +14,9 @@ using System.Collections.Generic;
 // Mantenimiento: cualquier GameplayEffect con Duration > 0 que
 // quieras que se vea en esa barra tiene que estar en la lista
 // Effects. Si falta, el efecto sigue funcionando en gameplay, solo
-// no le sincroniza el icono a los clientes remotos.
+// no le sincroniza el icono a los clientes remotos. Desde el 17 de
+// noviembre de 2026 se actualiza SOLA al crear, borrar o renombrar un GE
+// (GasRegistryAutoUpdate).
 // ============================================================
 [CreateAssetMenu(fileName = "GameplayEffectRegistry", menuName = "GAS/Gameplay Effect Registry")]
 public class GameplayEffectRegistry : ScriptableObject
@@ -63,20 +65,30 @@ public class GameplayEffectRegistry : ScriptableObject
     // nombre (orden determinístico). Click derecho sobre el asset → esta opción.
     // Incluir efectos instantáneos/Hidden es inofensivo (nunca se los busca);
     // lo importante es que estén los buffs/debuffs con icono.
-    [ContextMenu("Auto-Fill From Project")]
-    private void AutoFillFromProject()
+    // La lista como TIENE que quedar (por nombre y, si se repite, por ruta): la regla del orden vive
+    // SOLO acá; la usan el menú de los registros y la actualización sola (GasRegistryAutoUpdate).
+    public static List<GameplayEffect> CollectFromProject()
     {
-        var found = new List<GameplayEffect>();
+        var found = new List<(GameplayEffect asset, string path)>();
         foreach (string guid in UnityEditor.AssetDatabase.FindAssets("t:GameplayEffect"))
         {
             string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
             var ge = UnityEditor.AssetDatabase.LoadAssetAtPath<GameplayEffect>(path);
-            if (ge != null) found.Add(ge);
+            if (ge != null) found.Add((ge, path));
         }
-        found.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+        found.Sort((a, b) =>
+        {
+            int byName = string.CompareOrdinal(a.asset.name, b.asset.name);
+            return byName != 0 ? byName : string.CompareOrdinal(a.path, b.path);
+        });
+        return found.ConvertAll(f => f.asset);
+    }
 
+    [ContextMenu("Auto-Fill From Project")]
+    private void AutoFillFromProject()
+    {
         Effects.Clear();
-        Effects.AddRange(found);
+        Effects.AddRange(CollectFromProject());
         UnityEditor.EditorUtility.SetDirty(this);
         Debug.Log($"[GameplayEffectRegistry] Auto-Fill: {Effects.Count} efectos registrados.");
     }

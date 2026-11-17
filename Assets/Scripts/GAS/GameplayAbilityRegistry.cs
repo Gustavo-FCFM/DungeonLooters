@@ -18,8 +18,9 @@ using System.Collections.Generic;
 // Mantenimiento: cualquier GameplayAbility que reproduzca un VFX de
 // impacto (PlayImpactVFX) o una VisualsSequence tiene que estar en la
 // lista Abilities. Si falta, la habilidad sigue funcionando pero su VFX
-// solo se ve en el servidor/host (se avisa con un LogWarning). Usá el
-// menú contextual "Auto-Fill From Project" del asset para rellenarla.
+// solo se ve en el servidor/host (se avisa con un LogWarning). Desde el
+// 17 de noviembre de 2026 se actualiza SOLA al crear, borrar o renombrar un
+// GA (GasRegistryAutoUpdate); a mano, Mercenarios ▸ Actualizar los registros.
 // ============================================================
 [CreateAssetMenu(fileName = "GameplayAbilityRegistry", menuName = "GAS/Gameplay Ability Registry")]
 public class GameplayAbilityRegistry : ScriptableObject
@@ -65,22 +66,33 @@ public class GameplayAbilityRegistry : ScriptableObject
     }
 
 #if UNITY_EDITOR
-    // Rellena la lista con TODAS las GameplayAbility del proyecto, ordenadas por
-    // nombre (orden determinístico). Click derecho sobre el asset → esta opción.
-    [ContextMenu("Auto-Fill From Project")]
-    private void AutoFillFromProject()
+    // La lista como TIENE que quedar: todas las GameplayAbility del proyecto, por nombre y, si el
+    // nombre se repite (hay dos GA_Fireball), por ruta. Orden determinístico: la misma lista en
+    // cualquier máquina. La usan el menú de los registros y la actualización sola
+    // (MercRegistryTools / GasRegistryAutoUpdate): la regla del orden vive SOLO acá.
+    public static List<GameplayAbility> CollectFromProject()
     {
-        var found = new List<GameplayAbility>();
+        var found = new List<(GameplayAbility asset, string path)>();
         foreach (string guid in UnityEditor.AssetDatabase.FindAssets("t:GameplayAbility"))
         {
             string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
             var ga = UnityEditor.AssetDatabase.LoadAssetAtPath<GameplayAbility>(path);
-            if (ga != null) found.Add(ga);
+            if (ga != null) found.Add((ga, path));
         }
-        found.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+        found.Sort((a, b) =>
+        {
+            int byName = string.CompareOrdinal(a.asset.name, b.asset.name);
+            return byName != 0 ? byName : string.CompareOrdinal(a.path, b.path);
+        });
+        return found.ConvertAll(f => f.asset);
+    }
 
+    // Click derecho sobre el asset → esta opción (lo mismo que el menú de los registros).
+    [ContextMenu("Auto-Fill From Project")]
+    private void AutoFillFromProject()
+    {
         Abilities.Clear();
-        Abilities.AddRange(found);
+        Abilities.AddRange(CollectFromProject());
         UnityEditor.EditorUtility.SetDirty(this);
         Debug.Log($"[GameplayAbilityRegistry] Auto-Fill: {Abilities.Count} habilidades registradas.");
     }

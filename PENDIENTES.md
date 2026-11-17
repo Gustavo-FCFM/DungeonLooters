@@ -332,7 +332,15 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
     - [x] `GE_WinHeal` y `GE_LoseHeal`: Gustavo apagó la casilla de escalado (17 de noviembre). Siguen sin usarse.
     - [ ] Sugerencias: sin desarme `GA_InmortalWrath`, `GA_ElementalFury`, `GA_SilentDeath`, `GA_Blink`; sin silencio
           `GA_SwordAttack`; sin enraizado `GA_SpellOverload`.
-- [ ] **Registros automáticos**: que se actualicen solos al crear o borrar un GA/GE (`AssetPostprocessor`).
+- [x] **Registros automáticos** (17 de noviembre; `Scripts/Editor/GasRegistryAutoUpdate.cs`): al crear, duplicar, borrar o
+      renombrar un GA o un GE, los registros de red se ponen al día solos y la consola dice qué entró y qué salió. Guardar
+      uno que ya estaba no hace nada; en Play espera a salir (no cambia los índices de la partida). Se apaga en
+      `Mercenarios ▸ GAS ▸ Registros de red automáticos`. La regla del orden vive solo en `CollectFromProject` de cada
+      registro (con nombres repetidos desempata por la ruta) y el menú de siempre ya no toca el asset si no cambió.
+      Probado: crear, renombrar y borrar un GA y un GE de prueba; los registros quedaron byte por byte como estaban.
+      Ojo: corre en la siguiente vuelta del editor, y con Unity en segundo plano esas vueltas no corren (se pone al
+      día al volver a Unity).
+  - [ ] Verlo con Unity al frente: Ctrl+D sobre un GE (dice que entra) y borrarlo (dice que sale).
 - [x] **Pruebas automáticas del camino del daño** (17 de noviembre; `Scripts/Editor/Tests/GasDamagePipelineTests.cs`, 22
       pruebas, ~3 s, sin assets ni escena): daño fijo y escalado, armadura (porcentaje, mínimo 1), vulnerabilidad y
       resistencia (tope 90 %), redondeo, escudo (mágico ×2), inmunidad, inmortal, daño que cura, crítico, robo de vida,

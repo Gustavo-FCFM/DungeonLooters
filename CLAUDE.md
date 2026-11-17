@@ -161,11 +161,14 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   los ejecuta el DUEÑO por TargetRpc, nunca el servidor escribiendo el transform. Un bot no
   tiene dueño: cada uno de esos movimientos tiene su ruta en `BotController` (`ServerDash`,
   `ServerLeap`, `ServerStartFlight`, `ServerDive`), y lo que no la tiene se marca `MovesThroughOwner`.
-- **Los registros de red se actualizan a mano.** Cada `GA_*` o `GE_*` nuevo tiene que
-  entrar en `GameplayAbilityRegistry` / `GameplayEffectRegistry` (los dos assets de
+- **Los registros de red.** Cada `GA_*` o `GE_*` tiene que estar en
+  `GameplayAbilityRegistry` / `GameplayEffectRegistry` (los dos assets de
   `Assets/Resources/`), porque FishNet manda el ÍNDICE dentro de esas listas y no la
-  referencia. Lo hace `Mercenarios ▸ Actualizar los registros de red`. Si falta uno, su
-  VFX se ve **solo en el host**.
+  referencia. Si falta uno, su VFX se ve **solo en el host**. **Se actualizan solos** (desde el
+  17 de noviembre de 2026, `GasRegistryAutoUpdate`) al crear, duplicar, borrar o renombrar uno;
+  a mano, `Mercenarios ▸ Actualizar los registros de red` (`MercRegistryTools`), que las herramientas
+  de una vez siguen llamando al terminar. El orden lo decide SOLO `CollectFromProject` de cada
+  registro. Un cambio de los registros = todos con el mismo build.
 
 - **Para revisar el GAS hay dos ventanas** (desde el 17 de noviembre de 2026): `Mercenarios ▸ GAS ▸ Revisar el GAS` (el
   validador: registros, tags de bloqueo, íconos, textos, nombres repetidos; correrlo después de crear habilidades o

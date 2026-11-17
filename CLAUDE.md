@@ -163,6 +163,12 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   `Assets/Resources/`), porque FishNet manda el ÍNDICE dentro de esas listas y no la
   referencia. Lo hace `Mercenarios ▸ Actualizar los registros de red`. Si falta uno, su
   VFX se ve **solo en el host**.
+
+- **Para revisar el GAS hay dos ventanas** (desde el 17 de noviembre de 2026): `Mercenarios ▸ GAS ▸ Revisar el GAS` (el
+  validador: registros, tags de bloqueo, íconos, textos, nombres repetidos; correrlo después de crear habilidades o
+  efectos) y `Mercenarios ▸ GAS ▸ Depurador en vivo` (en Play: atributos, tags, efectos, cooldowns y la cadena de cada
+  golpe). Una regla nueva del proyecto que se pueda revisar mirando los assets va como chequeo del validador
+  (`GasValidatorWindow.Scan`). Desde el CLI: `GasValidatorWindow.Report()`.
 - **El cursor tiene un solo dueño: `UICursor`.** Ningún menú toca `Cursor.lockState` ni
   `PlayerInputProvider.SetUIMode` por su cuenta — los pide con `UICursor.Request(this)` y
   los suelta con `Release`. Si no, gana el último en cerrarse.

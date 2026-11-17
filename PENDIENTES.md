@@ -310,6 +310,63 @@ LEEME del modo, "Las catacumbas". La herramienta (`MercCatacombsSetup`) ya se co
   - [ ] Verlo en Play: si queda alguna esquina rara, decir cerca de qué (osario, anillo, cripta).
 - [ ] Borrar el stash "catacumbas primer intento" (el primer armado, con la rampa B tapada; el clasificador no dejó borrarlo).
 
+**Mejoras del GAS (17 de noviembre, lo que le falta; trabajo de ahora, no del framework a futuro).** Medido sobre el código:
+hoy tiene 24 habilidades genéricas, efectos con duración, ticks, 3 formas de acumular, grupos, empuje/atracción, ejecutar,
+crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo como framework está en
+`DesignDocuments/GAS_Hacia_Un_Framework.md`.)
+
+*Para el programador (primero: no cambian nada del juego y sirven también en la jam):*
+- [x] **Depurador en vivo** (17 de noviembre; `Mercenarios ▸ GAS ▸ Depurador en vivo`, `GasDebuggerWindow`): elegir un
+      personaje (la selección, el jugador local o de una lista) y ver atributos (base, actual y modificadores), tags, efectos
+      activos con tiempo y acumulaciones, habilidades con su cooldown y la cadena de los últimos golpes ("30 → crítico 45 →
+      defensas 41 → escudo −10 → vida −31"). La cadena la anota el ASC solo con la ventana abierta (`TraceDamage`).
+      Probado sin Play con dos personajes de prueba.
+  - [ ] Verlo en Play (con el editor de host: si es cliente, solo ve lo sincronizado y lo avisa).
+- [x] **Validador de assets** (17 de noviembre; `Mercenarios ▸ GAS ▸ Revisar el GAS`, `GasValidatorWindow`): errores (fuera del
+      registro, registros con huecos, ticks sin duración, modificadores sin atributo, clases sin stats o con huecos), avisos
+      (kit sin `State_Stunned`, buffs sin ícono, entradas vacías, nombres repetidos, textos sin español) y sugerencias
+      (movimiento sin `State_Rooted`, mágicas sin `State_Silenced`, de arma sin `State_Disarmed`). Clic = selecciona el asset.
+  - Lo que encontró el 17 de noviembre (0 errores, decisiones de Gustavo):
+    - [ ] Sin ícono: `GE_CommandingVoiceBuff`, `GE_EventBoss`, `GE_Shrine_NpcEmpower` (los dos últimos, sobre los NPC).
+    - [ ] Sin `State_Stunned`: `GA_InmortalWrath`, `GA_Flight` (o anotar la excepción en el validador).
+    - [ ] `GE_WinHeal` y `GE_LoseHeal`: nadie los usa; casilla de escalado prendida sin atributo. ¿Borrarlos?
+    - [ ] Sugerencias: sin desarme `GA_InmortalWrath`, `GA_ElementalFury`, `GA_SilentDeath`, `GA_Blink`; sin silencio
+          `GA_SwordAttack`; sin enraizado `GA_SpellOverload`.
+- [ ] **Registros automáticos**: que se actualicen solos al crear o borrar un GA/GE (`AssetPostprocessor`).
+- [ ] **Pruebas automáticas del camino del daño** (Unity Test Framework): defensa, escudo, crítico, robo de vida… Hoy no
+      hay ninguna; cada cambio del pipeline se prueba jugando.
+- [ ] **Escena de prueba de habilidades** con muñecos que muestren el daño por segundo y los efectos recibidos.
+- [ ] **Partir los dos archivos grandes** (ASC 2 095 líneas, GameplayAbility 2 447) en `partial class` por tema.
+
+*En el núcleo (soporte):*
+- [ ] **Efectos que quitan efectos**: limpiar (tus debuffs) y purgar (los buffs del enemigo). Un campo en el GE: "Quita
+      efectos con estos tags". Hoy solo por código (`RemoveEffectsWithTag`).
+- [ ] **Inmunidades por tag en el GE**: "No se aplica si el objetivo tiene…" / "Solo si tiene…". Hoy la condición vive en la
+      entrada de la habilidad, no en el efecto.
+- [ ] **Efectos encadenados**: "Al terminar, aplica…" / "Si se lo quitan antes, aplica…" (una marca que explota al expirar).
+- [ ] **Duración infinita explícita** y **quitar al recibir daño / al moverse / al usar una habilidad**.
+- [ ] **Niveles con curvas** en habilidades y efectos (un mismo GE con 10/15/20 de daño según el nivel).
+- [ ] **Tags jerárquicos** (`Status.CC.Stun` cuenta como `Status.CC`): con 96 tags planos se pregunta uno por uno.
+- [ ] **Eventos de juego con datos** ("hizo parry", "golpeó por la espalda") que activen habilidades solas.
+- [ ] **Tareas de habilidad** ("esperar a soltar", "esperar X s", "esperar a que choque"): hoy cada habilidad arma sus
+      corrutinas (19 en las genéricas).
+
+*Habilidades genéricas que faltan:*
+- [ ] Gancho (te lleva a un punto o te trae algo) — sobre Dash + Teleport.
+- [ ] Rayo continuo que sigue la mira (lanzallamas, cura en haz) — sobre ChanneledCone / Hitscan.
+- [ ] Proyectil que vuelve o rebota en paredes — sobre ProjectileShoot.
+- [ ] Marcar y detonar — sobre las acumulaciones.
+- [ ] Contraataque / reflejo genérico — sobre ShieldBlock.
+- [ ] Intercambiar posición — sobre Teleport.
+- [ ] Provocar (forzar el objetivo de los NPC) — un tag y la IA.
+- [ ] Zona que crece o avanza (tornado, muro que avanza) — sobre SpawnSummon + Summon_Zone.
+- [ ] Revivir (nueva).
+- [ ] Vínculo entre dos: comparte daño o curación (nueva).
+- [ ] Definitiva global (todos los enemigos del mapa) — sobre InstantAoE.
+
+*Orden propuesto:* 1) depurador y validador; 2) limpiar/purgar e inmunidades por tag; 3) pruebas del daño; 4) tareas y
+eventos (lo más grande).
+
 **Tabla con KDA, ventana de ayuda y bolsa de dinero (4 de noviembre, pedido de Gustavo): HECHO Y PROBADO ✅ (6 de noviembre), salvo el control.** Las
 herramientas ya se corrieron y se borraron.
 - **Tabla de la partida** (`UI_MatchStats`, `Match_UI ▸ MatchStats`): cada equipo con su color, nivel y puntos, y cada

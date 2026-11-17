@@ -60,9 +60,10 @@ marca de un golpe cada dependencia de esta tabla, y desde ahí no se pueden cola
    una **2D** habría que hacer las variantes con física 2D.
 5. **`CharacterClassDefinition` mezcla el kit con la presentación** (modelo, armas, animaciones, paredes). Separar
    "qué sabe hacer" de "cómo se ve" lo hace útil para juegos sin clases.
-6. **Archivos muy grandes:** el ASC tiene 2 095 líneas y `GameplayAbility` 2 447. Partirlos en `partial class` por
-   tema (atributos, efectos, tags, cooldowns, el camino del daño; activación, canalizar, efectos, visuales) facilita
-   leerlos y llevarse solo una parte.
+6. **Archivos muy grandes — HECHO (17 de noviembre de 2026).** El ASC (2 241 líneas) y `GameplayAbility` (2 447) ya son
+   `partial class` repartidas por tema (`GAS/AbilitySystemComponent/` y `GAS/GameplayAbility/`; el archivo principal
+   guarda los campos del Inspector). Se leen por tema, pero ojo: las partes se llaman entre sí (son una misma clase), así
+   que se copian juntas; lo que sí quedó a la vista es qué toca a qué.
 
 ---
 

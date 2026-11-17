@@ -356,7 +356,17 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
   - [ ] Probarla en Play con una clase.
   - [ ] Borrar `Scripts/Editor/MercTrainingSetup.cs` (la herramienta de una vez que la armó) cuando la escena ande.
   - [-] Los muñecos no son de red: sin números flotantes ni marcador de golpe, y el cartel solo tiene números en el host.
-- [ ] **Partir los dos archivos grandes** (ASC 2 095 líneas, GameplayAbility 2 447) en `partial class` por tema.
+- [x] **Partir los dos archivos grandes** (17 de noviembre): el ASC (2 241 líneas) y `GameplayAbility` (2 447) son `partial
+      class` repartidas por tema. El principal (`GAS/AbilitySystemComponent.cs`, 328 líneas; `GAS/GameplayAbility.cs`, 429)
+      tiene TODOS los campos del Inspector y la lista de sus partes; el resto vive en `GAS/AbilitySystemComponent/` (8 partes:
+      atributos, efectos, el camino del daño, lo que cambia el número, quitar efectos, habilidades, vida y nivel, el registro
+      del combate) y en `GAS/GameplayAbility/` (12: ciclo de vida, cuándo pega, canalizar, cargas, ecos, efectos,
+      acumulaciones, objetivo, VFX, cliente, datos viejos, gizmos). Sin cambiar una línea de lógica: los miembros, el orden de
+      los campos guardados, la serialización de los 251 GA y los 36 ASC de los prefabs y el validador dieron idénticos, y las
+      22 pruebas pasan. El archivo del ASC se RENOMBRÓ (tenía espacios: `Ability System Component.cs`): con la clase
+      repartida, Unity solo le asocia el componente al archivo que se llama igual que ella, y por un minuto los prefabs lo
+      vieron como script perdido (en memoria; no se guardó nada). Conserva su GUID; no volver a renombrarlo.
+  - [ ] Verlo en el editor: un prefab con ASC (el Player) muestra el componente normal, y una partida en Play.
 
 *En el núcleo (soporte):*
 - [x] **Efectos que quitan efectos** (17 de noviembre): sección "Quitar efectos e inmunidad" del GE. "Al aplicarse, quita":

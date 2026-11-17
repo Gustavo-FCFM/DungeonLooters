@@ -108,7 +108,7 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
 | `Assets/Attributes/` | Clases jugables (`Class_*.asset`) y stats (`ASDef_*`), por clase; `Enemies/` y `Summons/` para los NPCs. |
 | `Assets/Effects/` | Los `GE_*`, por tipo (Damage, Buffs, CC, Debuffs, Cooldowns). |
 | `Assets/GameplayAbilities/` | Los `GA_*` por clase, **con sus scripts `GA_*.cs` al lado** — son contenido. `Enemies/` para las de los NPCs. |
-| `Assets/Scripts/GAS/` | El motor de habilidades: ASC, efectos, habilidades base, atributos, tags, registros. `Entities/` son los objetos que las habilidades crean (proyectiles, tótems, barreras). |
+| `Assets/Scripts/GAS/` | El motor de habilidades: ASC, efectos, habilidades base, atributos, tags, registros. `Entities/` son los objetos que las habilidades crean (proyectiles, tótems, barreras). El ASC y `GameplayAbility` están repartidos por tema: el archivo principal (`AbilitySystemComponent.cs`, `GameplayAbility.cs`) y sus partes en `AbilitySystemComponent/` y `GameplayAbility/`. |
 | `Assets/Scripts/Network/` | Conexión y red: `NetworkAbilitySystemComponent`, `NetworkGameManager`, `LobbyManager` (la sala de espera), `NetAddress` (las direcciones), `LanDiscovery` (la lista de partidas en la red) y `ConnectionHUD` (el recuadro viejo, solo para `Test_Network`). |
 | `Assets/Scripts/Player/` | El jugador y sus cámaras: `PlayerController`, input, animación, `RagdollController`, `UpperBodyAim`, `ThirdPersonOrbitCam`, `SpectatorCamera`, `MenuOrbitCamera`. |
 | `Assets/Scripts/UI/` | Toda la UI que no es de un modo: HUD de clase, menú de clases, sala (`UI_LobbyPanel`), menú principal, ajustes, `MercUIFactory`, `InputGlyphs` (la ÚNICA tabla de qué botón se dibuja: Q / RB / R1) y `UICursor` — el único dueño del cursor y del modo de input. |
@@ -181,6 +181,15 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   las defensas, el escudo o los efectos, correr `unity command test run --mode editor --filter GasDamagePipeline`. Si una
   regla cambia A PROPÓSITO, su prueba cambia en el mismo commit. Los números de una prueba nueva se eligen para que una
   regla distinta dé OTRO resultado (con 20 de daño, armadura 10 da lo mismo con dos fórmulas: la prueba no vigilaba nada).
+
+- **El ASC y `GameplayAbility` son `partial class` repartidas por tema** (desde el 17 de noviembre de 2026). La cabecera del
+  archivo principal (`GAS/AbilitySystemComponent.cs`, `GAS/GameplayAbility.cs`) dice qué tiene cada parte
+  (`GAS/AbilitySystemComponent/`, `GAS/GameplayAbility/`). Lo nuevo va en la parte de su tema; un tema nuevo grande, en una
+  parte nueva que se anota en esa cabecera. **Un campo nuevo del Inspector va SIEMPRE en el archivo principal**: Unity guarda
+  los campos en el orden en que están escritos, y repartidos entre archivos ese orden no está garantizado. **El archivo
+  principal se llama EXACTAMENTE como la clase y no se renombra**: con la clase repartida, Unity solo le asocia el componente
+  a ese archivo (el del ASC se llamaba "Ability System Component.cs" y, al repartirlo, los prefabs lo vieron como script
+  perdido hasta renombrarlo conservando su GUID).
 - **El cursor tiene un solo dueño: `UICursor`.** Ningún menú toca `Cursor.lockState` ni
   `PlayerInputProvider.SetUIMode` por su cuenta — los pide con `UICursor.Request(this)` y
   los suelta con `Release`. Si no, gana el último en cerrarse.

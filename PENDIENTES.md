@@ -339,7 +339,15 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       curación (tope y bonus), OnDamageDone, la cadena del depurador, limpiar/purgar/inmunidad y condiciones por tag.
       Comprobadas rompiendo la armadura a propósito (fallan 2). Correr: Test Runner ▸ EditMode, o
       `unity command test run --mode editor --filter GasDamagePipeline`.
-- [ ] **Escena de prueba de habilidades** con muñecos que muestren el daño por segundo y los efectos recibidos.
+- [x] **Escena de prueba de habilidades** (17 de noviembre): `Scenes/Test_Abilities`, una copia de Test_Network con 8
+      muñecos (`Prefabs/Testing/TrainingDummy`, script `GameMode/TrainingDummy`): normal, blindado (armadura 10),
+      resistente (50 %), con escudo (300), aliado herido (de tu equipo, vuelve a media vida) y un grupo de tres para las de
+      área. El cartel dice vida y escudo, DPS y HPS de los últimos 5 s, el total del combate, la cadena del último golpe y
+      los efectos con su tiempo y acumulaciones. No mueren (inmortales) y se reinician tras 4 s sin recibir nada. Probado
+      sin Play (blindado con escudo: dos golpes de 80 y una quemadura).
+  - [ ] Probarla en Play con una clase.
+  - [ ] Borrar `Scripts/Editor/MercTrainingSetup.cs` (la herramienta de una vez que la armó) cuando la escena ande.
+  - [-] Los muñecos no son de red: sin números flotantes ni marcador de golpe, y el cartel solo tiene números en el host.
 - [ ] **Partir los dos archivos grandes** (ASC 2 095 líneas, GameplayAbility 2 447) en `partial class` por tema.
 
 *En el núcleo (soporte):*

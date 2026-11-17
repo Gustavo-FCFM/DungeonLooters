@@ -116,7 +116,7 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
 | `Assets/Scripts/Settings/` | `GameSettings` (PlayerPrefs), incluido qué control eligió el jugador y el idioma. |
 | `Assets/Scripts/Localization/` | `Loc` (los textos por clave, en español e inglés) y `LocalizedText`. La tabla es `Resources/Localization.csv`. |
 | `Assets/Scripts/Audio/` | Sonido: `AudioManager`, `MusicPlayer`, `AudioLibrary` y `SfxCue`. |
-| `Assets/Scripts/GameMode/` | Lo que sirve a CUALQUIER modo: `DeathZone`, `FloatingVisual`, `NPC_Target`, `HealthPack`. |
+| `Assets/Scripts/GameMode/` | Lo que sirve a CUALQUIER modo: `DeathZone`, `FloatingVisual`, `NPC_Target`, `HealthPack`, `TrainingDummy` (el muñeco de práctica). |
 | `Assets/Scripts/GameMode/Mercenaries/` | **El modo Mercenarios**, y solo él: el modo, la arena, bases, objetivo, NPCs, bots y su HUD (`UI/`). Ver su `LEEME_ModoMercenarios.md`. Un modo nuevo (FFA) va en su propia carpeta al lado. |
 | `Assets/Scripts/Editor/` | Todas las herramientas de editor (menú `Mercenarios ▸ …`, el inspector de habilidades y `ClassModels/`, que genera los modelos de relleno). Tiene que llamarse `Editor` para que Unity no las meta en la build. |
 | `Assets/Resources/` | Lo que se carga por nombre: los dos registros de red, el catálogo de enemigos, la biblioteca de audio y la tabla de textos (`Localization.csv`). |
@@ -127,6 +127,9 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
 
 **Escenas:**
 - `Assets/Scenes/Test_Network.unity` — pruebas rápidas de clases y habilidades.
+- `Assets/Scenes/Test_Abilities.unity` — **la escena de prueba de habilidades** (desde el 17 de noviembre de 2026): una copia
+  de Test_Network con muñecos (`TrainingDummy`) que dicen el DPS, la cadena de cada golpe y los efectos recibidos. Un muñeco
+  más es una instancia de `Prefabs/Testing/TrainingDummy` con sus números en el Inspector.
 - `Assets/Scenes/Mercenaries_Gamemode.unity` — **el modo de juego**, la arena 3c3c3. Es también la
   pantalla de inicio: el menú principal es un panel sobre la arena, no otra escena.
 - `Assets/Scenes/Mercenaries_Graveyard.unity` — **el mapa nuevo** (El Cementerio de los Tres

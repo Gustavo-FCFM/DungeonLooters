@@ -169,6 +169,12 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   efectos) y `Mercenarios ▸ GAS ▸ Depurador en vivo` (en Play: atributos, tags, efectos, cooldowns y la cadena de cada
   golpe). Una regla nueva del proyecto que se pueda revisar mirando los assets va como chequeo del validador
   (`GasValidatorWindow.Scan`). Desde el CLI: `GasValidatorWindow.Report()`.
+
+- **El camino del daño tiene pruebas automáticas** (desde el 17 de noviembre de 2026):
+  `Scripts/Editor/Tests/GasDamagePipelineTests.cs` (EditMode, sin assets ni escena). Después de tocar `ExecuteInstantEffect`,
+  las defensas, el escudo o los efectos, correr `unity command test run --mode editor --filter GasDamagePipeline`. Si una
+  regla cambia A PROPÓSITO, su prueba cambia en el mismo commit. Los números de una prueba nueva se eligen para que una
+  regla distinta dé OTRO resultado (con 20 de daño, armadura 10 da lo mismo con dos fórmulas: la prueba no vigilaba nada).
 - **El cursor tiene un solo dueño: `UICursor`.** Ningún menú toca `Cursor.lockState` ni
   `PlayerInputProvider.SetUIMode` por su cuenta — los pide con `UICursor.Request(this)` y
   los suelta con `Release`. Si no, gana el último en cerrarse.

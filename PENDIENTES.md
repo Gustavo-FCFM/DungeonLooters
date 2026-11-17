@@ -329,12 +329,16 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
   - Lo que encontró el 17 de noviembre (0 errores, decisiones de Gustavo):
     - [ ] Sin ícono: `GE_CommandingVoiceBuff`, `GE_EventBoss`, `GE_Shrine_NpcEmpower` (los dos últimos, sobre los NPC).
     - [ ] Sin `State_Stunned`: `GA_InmortalWrath`, `GA_Flight` (o anotar la excepción en el validador).
-    - [ ] `GE_WinHeal` y `GE_LoseHeal`: nadie los usa; casilla de escalado prendida sin atributo. ¿Borrarlos?
+    - [x] `GE_WinHeal` y `GE_LoseHeal`: Gustavo apagó la casilla de escalado (17 de noviembre). Siguen sin usarse.
     - [ ] Sugerencias: sin desarme `GA_InmortalWrath`, `GA_ElementalFury`, `GA_SilentDeath`, `GA_Blink`; sin silencio
           `GA_SwordAttack`; sin enraizado `GA_SpellOverload`.
 - [ ] **Registros automáticos**: que se actualicen solos al crear o borrar un GA/GE (`AssetPostprocessor`).
-- [ ] **Pruebas automáticas del camino del daño** (Unity Test Framework): defensa, escudo, crítico, robo de vida… Hoy no
-      hay ninguna; cada cambio del pipeline se prueba jugando.
+- [x] **Pruebas automáticas del camino del daño** (17 de noviembre; `Scripts/Editor/Tests/GasDamagePipelineTests.cs`, 22
+      pruebas, ~3 s, sin assets ni escena): daño fijo y escalado, armadura (porcentaje, mínimo 1), vulnerabilidad y
+      resistencia (tope 90 %), redondeo, escudo (mágico ×2), inmunidad, inmortal, daño que cura, crítico, robo de vida,
+      curación (tope y bonus), OnDamageDone, la cadena del depurador, limpiar/purgar/inmunidad y condiciones por tag.
+      Comprobadas rompiendo la armadura a propósito (fallan 2). Correr: Test Runner ▸ EditMode, o
+      `unity command test run --mode editor --filter GasDamagePipeline`.
 - [ ] **Escena de prueba de habilidades** con muñecos que muestren el daño por segundo y los efectos recibidos.
 - [ ] **Partir los dos archivos grandes** (ASC 2 095 líneas, GameplayAbility 2 447) en `partial class` por tema.
 

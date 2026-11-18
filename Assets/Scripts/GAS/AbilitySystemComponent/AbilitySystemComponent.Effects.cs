@@ -39,8 +39,17 @@ public partial class AbilitySystemComponent
     // a ActiveEffects respetando su StackingPolicy (Refresh/Stack/Override).
     // durationOverride pisa la duración del asset (usado por cooldowns
     // dinámicos, ej. basados en velocidad de ataque).
-
+    //
+    // Los encadenados que dispare (por ejemplo, una limpieza que quita una marca con "Si se lo quitan antes")
+    // esperan a que este termine de aplicarse: ver ENCADENADOS.
     public void ApplyGameplayEffect(GameplayEffect effect, object source = null, float durationOverride = -1f)
+    {
+        _chainHold++;
+        try { ApplyGameplayEffectNow(effect, source, durationOverride); }
+        finally { EndChainHold(); }
+    }
+
+    private void ApplyGameplayEffectNow(GameplayEffect effect, object source, float durationOverride)
     {
         if (effect == null) return;
 
@@ -93,7 +102,7 @@ public partial class AbilitySystemComponent
 
                     // ReplacesGroup (posturas): el nuevo SIEMPRE saca a los otros del grupo.
                     if (!effect.ReplacesGroup && otro.Priority >= effect.Priority) return;   // ya hay uno igual/superior
-                    RemoveActiveEffect(ActiveEffects[i]);           // este es superior (o reemplaza) → quitar el otro
+                    RemoveActiveEffect(ActiveEffects[i], EEffectEnd.Replaced);   // este es superior (o reemplaza) → quitar el otro
                 }
             }
 
@@ -114,7 +123,7 @@ public partial class AbilitySystemComponent
             {
                 for (int i = ActiveEffects.Count - 1; i >= 0; i--)
                     if (ActiveEffects[i].Definition == effect)
-                        RemoveActiveEffect(ActiveEffects[i]);
+                        RemoveActiveEffect(ActiveEffects[i], EEffectEnd.Replaced);
             }
             else if (effect.StackingPolicy == GameplayEffect.EStackingType.Stack && effect.MaxStacks > 0)
             {
@@ -129,7 +138,7 @@ public partial class AbilitySystemComponent
                 // de vida.
                 if (effect.OnMaxStacksEffect != null && stacks + 1 >= effect.MaxStacks)
                 {
-                    RemoveEffectsByDefinition(effect);
+                    RemoveEffectsByDefinition(effect, EEffectEnd.Replaced);
                     ApplyGameplayEffect(effect.OnMaxStacksEffect, source);
                     return;
                 }
@@ -402,8 +411,8 @@ public partial class AbilitySystemComponent
 
     // Quita un efecto activo: revierte sus modificadores, le saca los tags
     // que otorgaba, y notifica OnActiveEffectRemovedCallback (usado tanto
-    // para remoción explícita como para expiración natural).
-    private void RemoveActiveEffect(ActiveGameplayEffect effect)
+    // para remoción explícita como para expiración natural). 'why' decide si dispara sus encadenados.
+    private void RemoveActiveEffect(ActiveGameplayEffect effect, EEffectEnd why = EEffectEnd.Removed)
     {
         ApplyEffectModifiers(effect.Definition, false);
 
@@ -419,15 +428,24 @@ public partial class AbilitySystemComponent
         ActiveEffects.Remove(effect);
         CountImmunities(effect.Definition, -1);
         OnActiveEffectRemovedCallback?.Invoke(effect.Definition);
+
+        QueueChainedEffects(effect, why);
     }
 
     // Le hace bajar un tick a la duración (y al período, si es
     // periódico) de todos los efectos activos, ejecuta los ticks que
     // corresponda, y limpia los que ya expiraron. Se llama una vez por
-    // frame desde Update().
+    // frame desde Update(). Los encadenados de lo que venció salen al terminar el barrido.
     private void ProcessActiveEffects(float deltaTime)
     {
         if (ActiveEffects.Count == 0) return;
+        _chainHold++;
+        try { ProcessActiveEffectsNow(deltaTime); }
+        finally { EndChainHold(); }
+    }
+
+    private void ProcessActiveEffectsNow(float deltaTime)
+    {
 
         // Recorremos una COPIA, no la lista viva: un tick puede bajar la vida a 0 y
         // disparar Die() → OnDeath, y cualquier handler que aplique o quite un efecto
@@ -474,8 +492,93 @@ public partial class AbilitySystemComponent
         // lista nueva CADA frame, para todos los personajes).
         if (expired == null) return;
 
+        // Contains: un tick de este mismo barrido pudo matarlo, y morir ya se llevó sus buffs; quitarlo otra vez le
+        // revertiría los modificadores dos veces.
         foreach (var e in expired)
-            RemoveActiveEffect(e);
+            if (ActiveEffects.Contains(e)) RemoveActiveEffect(e, EEffectEnd.Expired);
+    }
+
+    // =========================================================
+    // ENCADENADOS (18 de noviembre de 2026; los campos están en GameplayEffect: "Al terminar (encadenados)")
+    // =========================================================
+    //
+    // Cuando un efecto con duración se va, se le aplican a quien lo tenía sus "Al vencer, aplica" (si venció) o sus
+    // "Si se lo quitan antes, aplica" (si lo quitaron), firmados por quien se lo puso y con la habilidad de origen.
+    // No van en el momento: esperan a que termine lo que está recorriendo ActiveEffects (una limpieza, el barrido de
+    // cada frame, un ApplyGameplayEffect), para no cambiar la lista en plena vuelta. Un muerto no encadena.
+
+    // Por qué se va un efecto activo.
+    private enum EEffectEnd
+    {
+        Removed,    // lo quitaron antes de tiempo (limpieza, purga, inmunidad, una habilidad): "Si se lo quitan antes"
+        Expired,    // se le acabó el tiempo: "Al vencer"
+        Replaced,   // volver a aplicarlo lo sacó (pisar, el grupo, la explosión al tope): nada
+        Cleared,    // la limpieza de morir, revivir o cambiar de clase: nada
+    }
+
+    private struct PendingChain { public GameplayEffect Effect; public object Source; public GameplayAbility Ability; }
+
+    private readonly List<PendingChain> _pendingChains = new List<PendingChain>();
+    private int _chainHold;   // > 0: hay una vuelta sobre ActiveEffects en curso; los encadenados esperan
+
+    // Una cadena que dispara otra que dispara otra...: más de esto en la misma pila es casi seguro un círculo.
+    private const int MaxChainDepth = 8;
+    private static int s_chainDepth;
+    private static bool s_warnedChainDepth;
+
+    private void QueueChainedEffects(ActiveGameplayEffect gone, EEffectEnd why)
+    {
+        List<GameplayEffect> list = why == EEffectEnd.Expired ? gone.Definition.OnExpireEffects
+                                  : why == EEffectEnd.Removed ? gone.Definition.OnRemovedEffects : null;
+        if (list == null || list.Count == 0 || HasTag(EGameplayTag.State_Dead)) return;
+
+        // El que lo puso ya no está (salió de la partida, una invocación que murió): sin firma, solo lo fijo.
+        object source = gone.Source;
+        if (source is UnityEngine.Object o && o == null) source = null;
+
+        foreach (GameplayEffect next in list)
+            if (next != null) _pendingChains.Add(new PendingChain { Effect = next, Source = source, Ability = gone.SourceAbility });
+
+        if (_chainHold == 0) FlushChainedEffects();
+    }
+
+    private void EndChainHold()
+    {
+        _chainHold--;
+        if (_chainHold == 0) FlushChainedEffects();
+    }
+
+    private void FlushChainedEffects()
+    {
+        if (_pendingChains.Count == 0 || _chainHold > 0) return;
+        if (s_chainDepth >= MaxChainDepth)
+        {
+            if (!s_warnedChainDepth)
+            {
+                s_warnedChainDepth = true;
+                Debug.LogWarning($"[GAS] Efectos encadenados que se disparan entre sí más de {MaxChainDepth} veces seguidas " +
+                                 $"(en '{name}', con '{_pendingChains[0].Effect.name}'): se cortó la cadena. Revisar sus " +
+                                 "\"Al vencer\" / \"Si se lo quitan antes\".");
+            }
+            _pendingChains.Clear();
+            return;
+        }
+
+        var batch = new List<PendingChain>(_pendingChains);
+        _pendingChains.Clear();
+        s_chainDepth++;
+        try
+        {
+            foreach (PendingChain c in batch)
+            {
+                if (HasTag(EGameplayTag.State_Dead)) break;
+                GameplayAbility previousContext = DamageContext;
+                DamageContext = c.Ability;
+                try { ApplyGameplayEffect(c.Effect, c.Source); }
+                finally { DamageContext = previousContext; }
+            }
+        }
+        finally { s_chainDepth--; }
     }
 
     // Lista en vivo de los efectos activos (buffs/debuffs/cooldowns). Solo

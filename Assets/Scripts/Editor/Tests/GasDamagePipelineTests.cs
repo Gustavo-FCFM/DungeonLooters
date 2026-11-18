@@ -368,4 +368,102 @@ public class GasDamagePipelineTests
         target.ApplyGameplayEffect(notIfSilenced, null);
         Assert.IsFalse(target.HasTag(EGameplayTag.State_Rooted));
     }
+
+    // =========================================================
+    // ENCADENADOS ("Al vencer, aplica" / "Si se lo quitan antes, aplica")
+    // =========================================================
+
+    // El paso de cada frame, a mano (en las pruebas no corre Update).
+    private static void Tick(AbilitySystemComponent asc, float seconds) =>
+        typeof(AbilitySystemComponent).GetMethod("ProcessActiveEffects", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                                      .Invoke(asc, new object[] { seconds });
+
+    // Una marca de 2 s que al vencer pega 30 y si se la quitan antes pega 7 (números distintos para saber cuál salió).
+    private GameplayEffect Mark(out GameplayEffect onExpire, out GameplayEffect onRemoved)
+    {
+        GameplayEffect mark = Effect("Marca", 2f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_Silenced);
+        onExpire = Hit(30f);
+        onRemoved = Hit(7f);
+        mark.OnExpireEffects = new List<GameplayEffect> { onExpire };
+        mark.OnRemovedEffects = new List<GameplayEffect> { onRemoved };
+        return mark;
+    }
+
+    [Test]
+    public void Encadenado_AlVencer_SaleSoloAlVencer()
+    {
+        var target = Character(100f);
+        target.ApplyGameplayEffect(Mark(out _, out _), null);
+        Tick(target, 1f);
+        Assert.AreEqual(100f, Health(target), "todavía no venció");
+        Tick(target, 1.5f);
+        Assert.IsFalse(target.HasTag(EGameplayTag.State_Silenced));
+        Assert.AreEqual(70f, Health(target), "al vencer: 30 (no el 7 de quitarla)");
+    }
+
+    [Test]
+    public void Encadenado_SiSeLoQuitanAntes_SaleConLimpiezaYConCodigo()
+    {
+        var target = Character(100f);
+        GameplayEffect mark = Mark(out _, out _);
+        target.ApplyGameplayEffect(mark, null);
+        GameplayEffect cleanse = Effect("Limpiar");
+        cleanse.RemoveOnApply = GameplayEffect.ERemoveKind.Debuffs;
+        target.ApplyGameplayEffect(cleanse, null);
+        Assert.AreEqual(93f, Health(target), "limpiada: 7 (no el 30 de vencer)");
+
+        target.ApplyGameplayEffect(mark, null);
+        target.RemoveEffectsWithTag(EGameplayTag.State_Silenced);   // una habilidad que consume la marca
+        Assert.AreEqual(86f, Health(target));
+    }
+
+    [Test]
+    public void Encadenado_NoSaleAlReaplicarNiAlMorirNiAlCambiarDeClase()
+    {
+        var target = Character(100f);
+        GameplayEffect mark = Mark(out _, out _);
+        mark.StackingPolicy = GameplayEffect.EStackingType.Override;
+        target.ApplyGameplayEffect(mark, null);
+        target.ApplyGameplayEffect(mark, null);          // pisarla: reemplazo, no "quitada"
+        Assert.AreEqual(100f, Health(target), "pisarla no encadena");
+
+        target.RemoveAllBuffsAndDebuffs();                // lo que hace morir
+        Assert.AreEqual(100f, Health(target), "la limpieza de morir no encadena");
+
+        target.ApplyGameplayEffect(mark, null);
+        target.RemoveAllActiveEffects();                  // cambiar de clase
+        Assert.AreEqual(100f, Health(target), "cambiar de clase no encadena");
+    }
+
+    [Test]
+    public void Encadenado_LoFirmaQuienPusoElEfecto()
+    {
+        var attacker = Character(100f, (EAttributeType.Attack, 40f));
+        var target = Character(200f);
+        GameplayEffect mark = Effect("Marca", 1f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_Silenced);
+        mark.OnExpireEffects = new List<GameplayEffect> { Hit(0f, EAttributeType.Attack, 1.5f) };
+        target.ApplyGameplayEffect(mark, attacker);
+        Tick(target, 1.1f);
+        Assert.AreEqual(140f, Health(target), "escala con el Ataque del que la puso (40 × 1.5)");
+        Assert.AreSame(attacker, target.LastAttacker, "la baja es de quien la puso");
+    }
+
+    [Test]
+    public void Encadenado_UnCirculoSeCorta()
+    {
+        var target = Character(1000f);
+        GameplayEffect a = Effect("A", 1f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_Silenced);
+        GameplayEffect b = Effect("B", 1f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_Rooted);
+        GameplayEffect cleanseA = Effect("Quita A"); cleanseA.RemoveEffectsWithTags = new List<EGameplayTag> { EGameplayTag.State_Silenced };
+        GameplayEffect cleanseB = Effect("Quita B"); cleanseB.RemoveEffectsWithTags = new List<EGameplayTag> { EGameplayTag.State_Rooted };
+        // Quitar A pone B y lo quita; quitar B pone A y lo quita: sin tope no termina nunca.
+        a.OnRemovedEffects = new List<GameplayEffect> { b, cleanseB };
+        b.OnRemovedEffects = new List<GameplayEffect> { a, cleanseA };
+        target.ApplyGameplayEffect(a, null);
+        typeof(AbilitySystemComponent).GetField("s_warnedChainDepth", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)
+                                      .SetValue(null, false);   // el aviso sale una vez por sesión
+        UnityEngine.TestTools.LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("se cortó la cadena"));
+        target.ApplyGameplayEffect(cleanseA, null);       // si no hay tope, esto no vuelve (o revienta la pila)
+        Assert.Pass("la cadena se cortó");
+    }
 }

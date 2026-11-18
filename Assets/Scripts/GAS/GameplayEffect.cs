@@ -325,6 +325,32 @@ public class GameplayEffect : ScriptableObject
     [Label("No se puede quitar")]
     public bool CannotBeRemoved = false;
 
+    // =========================================================
+    // ENCADENADOS (18 de noviembre de 2026, de las "Mejoras del GAS")
+    // =========================================================
+    //
+    // Lo que pasa cuando un efecto CON duración se va: "al vencer" (se le acabó el tiempo) o "si se lo quitan antes"
+    // (lo limpiaron, lo purgaron, una inmunidad, o una habilidad lo quitó o lo consumió). Una marca que explota al
+    // vencer, un buff que al terminar deja cansado, una marca que al consumirla detona. Se aplican sobre QUIEN LO TENÍA,
+    // firmados por quien se lo puso (escalan con sus stats y la baja es suya) y con la habilidad de origen (el resumen
+    // de muerte). NO encadenan: volver a aplicarlo (refrescar, pisar, el grupo, la explosión al tope), la limpieza de
+    // morir, revivir o cambiar de clase, ni un muerto. Lo resuelve AbilitySystemComponent.RemoveActiveEffect.
+
+    [Section(EffectSection.Chain, startCollapsed: true)]
+    [ShowIf(nameof(Duration), ShowIfAttribute.Positive)]
+    [Tooltip("Cuando se le acaba el tiempo, se le aplican estos efectos a quien lo tenía (firmados por quien se lo " +
+             "puso). Solo al vencer: si se lo quitan antes, no.")]
+    [Label("Al vencer, aplica")]
+    public List<GameplayEffect> OnExpireEffects = new List<GameplayEffect>();
+
+    [Section(EffectSection.Chain)]
+    [ShowIf(nameof(Duration), ShowIfAttribute.Positive)]
+    [Tooltip("Si se lo quitan ANTES de que venza (una limpieza, una purga, una inmunidad, o una habilidad que lo quita " +
+             "o lo consume), se le aplican estos efectos a quien lo tenía (firmados por quien se lo puso). Volver a " +
+             "aplicarlo, morir o cambiar de clase no cuentan.")]
+    [Label("Si se lo quitan antes, aplica")]
+    public List<GameplayEffect> OnRemovedEffects = new List<GameplayEffect>();
+
     [Section(EffectSection.Tags)]
     [Tooltip("Tags que tiene el objetivo mientras el efecto está activo (State_Stunned, " +
              "Status_Slow...). El PRIMERO es además la identidad del efecto: con él se bloquea un " +

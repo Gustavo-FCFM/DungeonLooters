@@ -378,7 +378,16 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       en efectos instantáneos. Probado sin Play (limpiar, purgar con tope, inmunidad, condiciones).
   - [ ] Usarlo en un efecto real y verlo en Play (por ejemplo, una limpieza para el Clérigo). Ojo: para hacer a alguien
         inmune al veneno del zombi, ese veneno tiene que dar un tag de veneno (hoy no da ninguno).
-- [ ] **Efectos encadenados**: "Al terminar, aplica…" / "Si se lo quitan antes, aplica…" (una marca que explota al expirar).
+- [x] **Efectos encadenados** (18 de noviembre): sección "Al terminar (encadenados)" del GE, con "Al vencer, aplica" (solo si
+      se le acaba el tiempo) y "Si se lo quitan antes, aplica" (limpieza, purga, inmunidad, o una habilidad que lo quita o
+      lo consume). Caen sobre quien lo tenía, firmados por quien se lo puso (escalan con sus stats, la baja es suya) y con la
+      habilidad de origen. No encadenan: volver a aplicarlo (refrescar, pisar, el grupo, la explosión al tope), morir,
+      revivir, cambiar de clase, ni un muerto. Esperan a que termine la vuelta sobre los efectos en curso; más de 8 seguidos
+      se cortan con un aviso. El validador avisa de encadenados en un instantáneo, entradas vacías y uno que se repone a
+      sí mismo. 5 pruebas nuevas (27 en total). De paso: un efecto que vencía en el mismo frame en que un tick mataba al
+      personaje se quitaba dos veces (revertía sus modificadores dos veces).
+  - [ ] Usarlo en un efecto real y verlo en Play (una marca de prueba en un muñeco de Test_Abilities). Con esto, "marcar y
+        detonar" ya no necesita código: la marca con "Si se lo quitan antes: daño" y una habilidad que la consume.
 - [ ] **Duración infinita explícita** y **quitar al recibir daño / al moverse / al usar una habilidad**.
 - [ ] **Niveles con curvas** en habilidades y efectos (un mismo GE con 10/15/20 de daño según el nivel).
 - [ ] **Tags jerárquicos** (`Status.CC.Stun` cuenta como `Status.CC`): con 96 tags planos se pregunta uno por uno.

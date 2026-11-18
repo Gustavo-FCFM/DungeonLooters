@@ -102,13 +102,21 @@ public partial class AbilitySystemComponent
     // Quita todas las instancias activas de un efecto concreto, revirtiendo sus
     // modificadores, tags y escudo. Sirve para cancelar un buff antes de tiempo
     // (ej: el escudo de carga de Golpe Final si lo interrumpen).
-    public void RemoveEffectsByDefinition(GameplayEffect definition)
+    public void RemoveEffectsByDefinition(GameplayEffect definition) => RemoveEffectsByDefinition(definition, EEffectEnd.Removed);
+
+    // Las que recorren ActiveEffects dejan los encadenados para el final de la vuelta (ver ENCADENADOS, en Effects).
+    private void RemoveEffectsByDefinition(GameplayEffect definition, EEffectEnd why)
     {
         if (definition == null) return;
 
-        for (int i = ActiveEffects.Count - 1; i >= 0; i--)
-            if (ActiveEffects[i].Definition == definition)
-                RemoveActiveEffect(ActiveEffects[i]);
+        _chainHold++;
+        try
+        {
+            for (int i = ActiveEffects.Count - 1; i >= 0; i--)
+                if (ActiveEffects[i].Definition == definition)
+                    RemoveActiveEffect(ActiveEffects[i], why);
+        }
+        finally { EndChainHold(); }
     }
 
     // Quita todos los efectos activos que otorguen un tag dado (revirtiendo sus
@@ -116,9 +124,14 @@ public partial class AbilitySystemComponent
     // cualquier "romper el estado X" (ej: una purga que quita todos los debuffs).
     public void RemoveEffectsWithTag(EGameplayTag tag)
     {
-        for (int i = ActiveEffects.Count - 1; i >= 0; i--)
-            if (ActiveEffects[i].Definition.GrantedTags.Contains(tag))
-                RemoveActiveEffect(ActiveEffects[i]);
+        _chainHold++;
+        try
+        {
+            for (int i = ActiveEffects.Count - 1; i >= 0; i--)
+                if (ActiveEffects[i].Definition.GrantedTags.Contains(tag))
+                    RemoveActiveEffect(ActiveEffects[i]);
+        }
+        finally { EndChainHold(); }
     }
 
     // Quita UNA SOLA acumulación de las que otorgan un tag: la que está por vencer.
@@ -155,9 +168,14 @@ public partial class AbilitySystemComponent
     // duración), así que el daño instantáneo no cuenta.
     public void RemoveAllDebuffs()
     {
-        for (int i = ActiveEffects.Count - 1; i >= 0; i--)
-            if (ActiveEffects[i].Definition.EffectType == GameplayEffect.EEffectType.Debuff)
-                RemoveActiveEffect(ActiveEffects[i]);
+        _chainHold++;
+        try
+        {
+            for (int i = ActiveEffects.Count - 1; i >= 0; i--)
+                if (ActiveEffects[i].Definition.EffectType == GameplayEffect.EEffectType.Debuff)
+                    RemoveActiveEffect(ActiveEffects[i]);
+        }
+        finally { EndChainHold(); }
     }
 
     // Quita buffs Y debuffs, y deja lo que no es "estado de combate": los Hidden (los
@@ -170,15 +188,15 @@ public partial class AbilitySystemComponent
             ActiveGameplayEffect e = ActiveEffects[i];
             if (e.Definition.EffectType == GameplayEffect.EEffectType.Hidden) continue;
             if (_classPassives.Contains(e.Definition)) continue;
-            RemoveActiveEffect(e);
+            RemoveActiveEffect(e, EEffectEnd.Cleared);   // morir / revivir: no encadena
         }
     }
 
-    // Quita TODOS los efectos activos de una (ej: al cambiar de clase).
+    // Quita TODOS los efectos activos de una (ej: al cambiar de clase). No encadena.
     public void RemoveAllActiveEffects()
     {
         for (int i = ActiveEffects.Count - 1; i >= 0; i--)
-            RemoveActiveEffect(ActiveEffects[i]);
+            RemoveActiveEffect(ActiveEffects[i], EEffectEnd.Cleared);
         _classPassives.Clear();
     }
 }

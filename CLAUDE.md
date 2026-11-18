@@ -359,6 +359,11 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   desde el 17 de noviembre de 2026; lo resuelve `ApplyGameplayEffect` antes que nada). La inmunidad reconoce a un efecto por
   los TAGS que da: un debuff que se quiera poder bloquear o limpiar por tag tiene que dar un tag propio. Nunca se quitan los
   cooldowns, las pasivas de la clase ni lo marcado "No se puede quitar".
+  **Lo que pasa cuando un efecto se va también va en el GE** (sección "Al terminar (encadenados)", desde el 18 de noviembre de
+  2026): "Al vencer, aplica" y "Si se lo quitan antes, aplica", sobre quien lo tenía y firmados por quien se lo puso.
+  `RemoveActiveEffect` recibe POR QUÉ se va (`EEffectEnd`): un código nuevo que quite efectos dice si es "quitado"
+  (encadena), "reemplazado" o "limpieza de morir/cambiar de clase" (no encadenan); y si recorre `ActiveEffects`, sube
+  `_chainHold` mientras recorre (los encadenados esperan a que termine).
 
 - **Los efectos de una habilidad van en su lista `Effects`** (desde el 7 de octubre de
   2026): cada entrada dice cuándo (al golpear, al primer golpe, al activarse, al matar),

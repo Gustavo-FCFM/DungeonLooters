@@ -134,6 +134,16 @@ public class GasValidatorWindow : EditorWindow
             if (ge.GrantsImmunityTo != null && ge.GrantsImmunityTo.Count > 0 && ge.Duration <= 0f)
                 Add(ESeverity.Warning, "Da inmunidad pero es instantáneo (la inmunidad no dura)", ge.name, ge);
 
+            // Encadenados ("Al terminar"): solo tienen sentido con duración; una entrada vacía no hace nada; uno que se
+            // vuelve a poner a sí mismo al vencer no termina nunca (puede ser a propósito: un aura que se renueva).
+            int chains = (ge.OnExpireEffects?.Count ?? 0) + (ge.OnRemovedEffects?.Count ?? 0);
+            if (chains > 0 && ge.Duration <= 0f)
+                Add(ESeverity.Warning, "Tiene encadenados pero es instantáneo (nunca vence ni se quita: no salen)", ge.name, ge);
+            foreach (GameplayEffect next in (ge.OnExpireEffects ?? new List<GameplayEffect>()).Concat(ge.OnRemovedEffects ?? new List<GameplayEffect>()))
+                if (next == null) { Add(ESeverity.Warning, "Entrada vacía en \"Al vencer\" / \"Si se lo quitan antes\"", ge.name, ge); break; }
+            if (ge.OnExpireEffects != null && ge.OnExpireEffects.Contains(ge))
+                Add(ESeverity.Suggestion, "Al vencer se vuelve a poner a sí mismo: no termina nunca (¿a propósito?)", ge.name, ge);
+
             bool visible = ge.EffectType != GameplayEffect.EEffectType.Hidden && ge.Duration > 0f;
             if (visible && ge.Icon == null)
                 Add(ESeverity.Warning, "Buff o debuff visible sin ícono (sale un cuadro vacío en la barra)", ge.name, ge);

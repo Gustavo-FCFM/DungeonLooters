@@ -427,7 +427,14 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
         campo "Marca del cazador (GE)". Borrados `HuntersMarkPassive.cs` y su componente de los cuatro prefabs
         (`RangerBehaviours` quedó vacío). Comprobado en memoria (marca 4 s, refresca, el escudo no marca).
     - [ ] Verlo en Play con red: la marca, el revelado a través de paredes a tu equipo, y la definitiva del Cazador.
-  - [ ] Siguiente pasiva simple para pasar a datos: parte de Artes marciales.
+  - [x] **Artes marciales pasada a datos** (18 de noviembre): `GE_MartialArtsPassive` (Monje, Maestro elemental, Shinobi) y
+        `GE_MartialArtsSharpenPassive` (Samurái), ocultos e infinitos: "al hacer daño, a quien lo tiene: una acumulación", solo
+        si llegó a la vida y con la condición nueva "Una vez por golpe (aunque alcance a varios)" (una vez por frame: un
+        puñetazo a tres suma una). Borrados `MartialArtsPassive.cs` y su componente de los tres prefabs (`MonkBehaviours` y
+        `SamuraiBehaviours` quedaron vacíos). Comprobado en memoria con los assets reales. 39 pruebas.
+    - [ ] Verlo en Play con el Monje: hasta 4 acumulaciones; un golpe a varios suma una.
+  - Las demás pasivas de código (Venganza, Tácticas, compañeros, apuestas, Presa, Bendición, Danza, Cazador paciente…)
+    llevan estado o cuentas propias: se quedan en código.
   - [ ] Habilidades que se activan solas con un evento ("al bloquear, contraataca"): la base del contraataque genérico.
 - [ ] **Tareas de habilidad** ("esperar a soltar", "esperar X s", "esperar a que choque"): hoy cada habilidad arma sus
       corrutinas (19 en las genéricas).
@@ -2622,7 +2629,7 @@ Claude. Compila limpio (juego y editor).
 | Stats | Los del Monje a nivel 3: 180 de vida, 6 de ataque. Rol: Daño. La espada del Guerrero en la mano (la "katana") | `ASDef_Samurai`, `Class_Samurai` |
 | Clic izq. | Dos cortes en arco (⚙ 3 m, 120°), daño de clase y una herida cada uno (`GE_Wounds` del Pícaro, hasta 10). Con Ki, la Ráfaga: las 4 acumulaciones y 4 cortes | `GA_SamuraiAttack` → `GA_SamuraiStrikes` / `GA_SamuraiFlurry` (+ `GA_SamuraiFlurryStacks`), cortes `GA_SamuraiSlash` con los clips del combo del Guerrero |
 | Clic der. | El bloqueo y la Defensa paciente del Monje, pero cada golpe que frenan le pone una herida al atacante (también a distancia y en el parry) | `SamuraiBehaviours` (copia de `MonkBehaviours`): `Entity_ShieldBarrier.OnBlockAttackerEffect` = `GE_Wounds` |
-| Pasiva extra — Afilar | Cada acumulación de Artes marciales también da +1 de ataque | `GE_MartialArtsSharpen` en su `MartialArtsPassive` |
+| Pasiva extra — Afilar | Cada acumulación de Artes marciales también da +1 de ataque | `GE_MartialArtsSharpen`, que aplica `GE_MartialArtsSharpenPassive` (antes `MartialArtsPassive`) |
 | Q | Ki, como el Monje | `GA_Ki` |
 | Shift | La Patada voladora y la del dragón, y las dos ponen una herida (pedido de Gustavo, 8 de octubre) | `GA_SamuraiKick` → `GA_SamuraiFlyingKick` / `GA_SamuraiDragonKick` |
 | E — Corte giratorio | Área alrededor (⚙ 3.5 m, 1.5 × ataque) con heridas; ⚙ 8 s. Con Ki, **Cortes devastadores**: 1 corte + 1 por acumulación; con acumulaciones, CADA corte lo cura igual a su ataque de antes de gastarlas (6 + 1 por acumulación); al terminar las gasta | `GA_SamuraiSpin` → `GA_SpinningSlash` / `GA_DevastatingCuts` (`GA_InstantAoE` con `ExtraHitsPerStack`) + `GE_SpinningSlashDamage`, `GE_SamuraiCutHeal` |
@@ -3189,7 +3196,7 @@ batalla y Comandante hechos y probados (falta el aturdido al apuntar, el jueves 
 
    | Ranura | Habilidad | Pieza |
    |---|---|---|
-   | Pasiva | Artes marciales: cada ataque que pega (uno por ataque, no por enemigo) suma 5 % de velocidad de ataque, hasta 4 acumulaciones, 8 s. ⚙ También 5 % de movimiento (lo decía el documento) | `MartialArtsPassive` (nueva) + `GE_MartialArts` (Stack 4, AtkSpeed × 0.95, MovSpeed × 1.05) |
+   | Pasiva | Artes marciales: cada ataque que pega (uno por ataque, no por enemigo) suma 5 % de velocidad de ataque, hasta 4 acumulaciones, 8 s. ⚙ También 5 % de movimiento (lo decía el documento) | `GE_MartialArtsPassive` (reacción; antes `MartialArtsPassive`) + `GE_MartialArts` (Stack 4; hoy el asset dice AtkSpeed × 0.9, MovSpeed × 1.1) |
    | Q | Ki: 2 cargas (8 de octubre; antes 3) (⚙ 8 s cada una). Deja el Ki preparado (⚙ 10 s): la PRÓXIMA acción sale con Ki y lo gasta. Con Ki ya preparado no se gasta otra carga | `GA_Ki` (`GA_SelfBuff`, MaxCharges 2) + `GE_Ki` (tag nuevo `Status_Ki`) |
    | Clic izq. | Dos puñetazos (`AttackPunch01_R` y `_L`, cono de 2 m y ⚙ 90°), 1 s entre ataques. Con Ki, **Ráfaga de golpes**: primero se pone las 4 acumulaciones de una y después pega | `GA_MonkAttack` (`GA_TagSwitch`, ConsumeTag) → `GA_MonkStrikes` / `GA_FlurryOfBlows` (combo: `GA_FlurryStacks` + los dos puños) |
    | Clic der. | Bloqueo frontal, más chico que los escudos: ⚙ frena el 40 % por energía según el daño frenado. Con Ki, **Defensa paciente**: 6 s de una cápsula alrededor que frena el 40 % desde cualquier lado con la misma energía, SIN mantener el botón (puede atacar a la vez) | `GA_MonkGuard` (`GA_HoldTagSwitch`: ahora acepta una variante que no es de mantener y consume el tag) → `GA_MonkBlock` / `GA_PatientDefense` + `GE_PatientDefense` (tag nuevo `Status_PatientDefense`). La cápsula es una segunda barrera en `MonkBehaviours` con la casilla nueva `Omnidirectional` y una esfera con el material del escudo |
@@ -3255,7 +3262,7 @@ batalla y Comandante hechos y probados (falta el aturdido al apuntar, el jueves 
    | Arma | Katana: más alcance, ataques en arco | La espada del Guerrero (sin modelos nuevos) |
    | Clic izq. | Los 2 golpes (4 con la Ráfaga), en arco; cada golpe pone una herida | Conos + `GE_Wounds` del Pícaro (DoT, ya tiene tope de 10) en sus Effects |
    | Clic der. | Bloqueo: por cada ataque que frena, una herida al ATACANTE (hasta 10). Reemplaza al "devuelve un golpe" del documento | La barrera aplica un GE al atacante por golpe frenado (nuevo, chico) |
-   | Pasiva extra — Afilar | Las acumulaciones también suben el ataque: +1 cada una (6 + 1 por acumulación) | Otro GE de acumulaciones con +1 de ataque; `MartialArtsPassive` ya acepta el GE. Sin código |
+   | Pasiva extra — Afilar | Las acumulaciones también suben el ataque: +1 cada una (6 + 1 por acumulación) | Otro GE de acumulaciones con +1 de ataque; `GE_MartialArtsSharpenPassive` lo aplica. Sin código |
    | E — Corte giratorio | Área alrededor que pone heridas. Con Ki (Cortes devastadores): 1 corte + 1 por acumulación (0 → 1 corte y no se cura; 4 → 5 cortes). Con acumulaciones, CADA corte lo cura igual a su ataque de antes de gastarlas (6 + 1 por acumulación: con 4, 5 curaciones de 10). Las gasta todas | `GA_InstantAoE` + la pieza compartida (repetir por acumulación y gastar) |
    | R — Corte final | Se apunta un rectángulo (un ataque en línea con desplazamiento); **mientras apunta, se marca a quién va a alcanzar**. Viaja hasta el final golpeando a todos y les pone un GE (⚙ 4 s): si su vida baja al 5 %, muere. Heridas según las acumulaciones que tenga | `GA_RushAttack` sin frenar en el primero + marcador rectangular y resaltado de objetivos (nuevo) + "ejecutar al 5 %" en el pipeline de daño (nuevo) |
 

@@ -637,6 +637,26 @@ public class GasDamagePipelineTests
     }
 
     [Test]
+    public void Reaccion_UnaVezPorGolpe_AunqueAlcanceAVarios()
+    {
+        var attacker = Character(100f);
+        var a = Character(100f);
+        var b = Character(100f);
+        var c = Character(100f);
+        GameplayEffect stack = Effect("Acumulación", 8f, GameplayEffect.EEffectType.Buff, EGameplayTag.State_AlwaysVisible);
+        stack.StackingPolicy = GameplayEffect.EStackingType.Stack;
+        GameplayEffect passive = Passive(EGameplayEvent.DamageDealt, EReactionTarget.Self, stack);
+        passive.Reactions[0].OncePerFrame = true;
+        attacker.ApplyGameplayEffect(passive, attacker);
+
+        // Un mismo golpe que alcanza a tres (el mismo frame): una sola acumulación.
+        a.ApplyGameplayEffect(Hit(10f), attacker);
+        b.ApplyGameplayEffect(Hit(10f), attacker);
+        c.ApplyGameplayEffect(Hit(10f), attacker);
+        Assert.AreEqual(1, attacker.GetActiveEffects().FindAll(x => x.Definition == stack).Count);
+    }
+
+    [Test]
     public void Reaccion_AlMatar_YSeGasta()
     {
         var attacker = Character(100f);

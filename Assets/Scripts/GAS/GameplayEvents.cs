@@ -86,6 +86,11 @@ public class EffectReaction
     [Label("Solo si llegó a la vida")]
     public bool RequiresHealthDamage = false;
 
+    [Tooltip("Sale UNA vez por golpe aunque alcance a varios (un puñetazo que pega a tres suma una acumulación, no tres). " +
+             "Cuenta por frame: los golpes de un mismo ataque llegan juntos.")]
+    [Label("Una vez por golpe (aunque alcance a varios)")]
+    public bool OncePerFrame = false;
+
     [Tooltip("Solo si el daño, la curación o lo bloqueado llega a esto. 0 = cualquiera.")]
     [Label("Mínimo (vida; 0 = cualquiera)")]
     public float MinMagnitude = 0f;

@@ -63,7 +63,20 @@ public partial class AbilitySystemComponent
                 if (x.OnlyIfOwnerLacks != EGameplayTag.None && HasTag(x.OnlyIfOwnerLacks)) continue;
                 if (x.RequiresHealthDamage && data.ToHealth <= 0f) continue;
                 if (active.ReactionReadyAt != null && r < active.ReactionReadyAt.Length && Time.time < active.ReactionReadyAt[r]) continue;
+                if (x.OncePerFrame && active.ReactionFrame != null && r < active.ReactionFrame.Length &&
+                    active.ReactionFrame[r] == Time.frameCount) continue;
                 if (x.Chance < 1f && UnityEngine.Random.value >= x.Chance) continue;
+
+                if (x.OncePerFrame)
+                {
+                    if (active.ReactionFrame == null || active.ReactionFrame.Length < reactions.Count)
+                    {
+                        int old = active.ReactionFrame?.Length ?? 0;
+                        Array.Resize(ref active.ReactionFrame, reactions.Count);
+                        for (int k = old; k < active.ReactionFrame.Length; k++) active.ReactionFrame[k] = -1;
+                    }
+                    active.ReactionFrame[r] = Time.frameCount;
+                }
 
                 if (x.Cooldown > 0f)
                 {

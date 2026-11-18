@@ -65,6 +65,9 @@ public class ActiveGameplayEffect
     // alguna con espera sale.
     public float[] ReactionReadyAt;
 
+    // Reacciones "una vez por golpe" (EffectReaction.OncePerFrame): en qué frame salió cada una por última vez (-1 = nunca).
+    public int[] ReactionFrame;
+
     // Arranca el cronómetro de una nueva aplicación del efecto.
     // durationOverride > 0 pisa la duración del asset (lo usan los
     // cooldowns dinámicos, ej. basados en velocidad de ataque).

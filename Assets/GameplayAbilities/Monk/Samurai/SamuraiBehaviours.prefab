@@ -449,7 +449,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8607894374043660639}
-  - component: {fileID: 6328559423145134014}
   m_Layer: 0
   m_Name: SamuraiBehaviours
   m_TagString: Untagged
@@ -474,16 +473,3 @@ Transform:
   - {fileID: 5729082409882672608}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6328559423145134014
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9026357972262154142}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: afba9ca7b3053b265be507de3af72682, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  StackEffect: {fileID: 11400000, guid: 70f34c6535a16ec45a402bf7c2f280f7, type: 2}

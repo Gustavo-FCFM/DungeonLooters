@@ -43,6 +43,7 @@ MonoBehaviour:
   PassiveBehaviorsPrefab: {fileID: 9026357972262154142, guid: 67389f31ecae8544db899d501a673944, type: 3}
   PassiveEffects:
   - {fileID: 11400000, guid: 5425dc3edd0320d4a8b0ad013919b6cc, type: 2}
+  - {fileID: 11400000, guid: b25daf71d74b4a1419bee695f4c0e42a, type: 2}
   WallMovement: {fileID: 11400000, guid: 3cf9a185a9e8b3a439593589183dd388, type: 2}
   StatGrowthPerLevel:
   - Attribute: 2
@@ -55,16 +56,21 @@ MonoBehaviour:
     AmountPerLevel: 25
   AvailableSubclasses: []
   ClassAnimatorOverride: {fileID: 22100000, guid: f175085a22aa728459655748dd969669, type: 2}
+  ClassModel: {fileID: 0}
   StanceAnimatorOverride: {fileID: 0}
   StanceAnimatorTag: 0
   MainHandWeaponPrefab: {fileID: 0}
   OffHandWeaponPrefab: {fileID: 0}
   MainHandRotationOffset: {x: 0, y: 0, z: 0}
   MainHandPositionOffset: {x: 0, y: 0, z: 0}
+  MainHandScale: 1
   OffHandRotationOffset: {x: 0, y: 0, z: 0}
   OffHandPositionOffset: {x: 0, y: 0, z: 0}
   OffHandPose: {fileID: 0}
   OffHandPoseRequiredTag: 0
+  DrawMainHandTag: 0
+  StowedMainHandPositionOffset: {x: 0, y: 0, z: -0.2}
+  StowedMainHandRotationOffset: {x: 0, y: 180, z: 45}
   StowOffHandTag: 0
   StowedOffHandPositionOffset: {x: 0, y: 0, z: 0}
   StowedOffHandRotationOffset: {x: 0, y: 0, z: 0}

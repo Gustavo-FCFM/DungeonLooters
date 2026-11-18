@@ -411,6 +411,16 @@ public class GameplayEffect : ScriptableObject
     [Label("Si se lo quitan antes, aplica")]
     public List<GameplayEffect> OnRemovedEffects = new List<GameplayEffect>();
 
+    // REACCIONES (18 de noviembre de 2026, los eventos de juego): mientras este efecto está activo, cuando a quien lo
+    // tiene le pasa algo (hizo daño, recibió un crítico, mató...), aplica efectos. Así una pasiva es un GE infinito con
+    // reacciones, sin script. Ver GameplayEvents.cs y AbilitySystemComponent.Events.
+    [Section(EffectSection.Reactions, startCollapsed: true)]
+    [ShowIf(HasDurationFields, ShowIfAttribute.Positive)]
+    [Tooltip("Mientras dura: cuando a quien lo tiene le pasa algo (hacer daño, recibir un crítico, matar, curar...), " +
+             "aplica efectos a él, al otro o a los dos. Lo que aplica una reacción no dispara otras reacciones.")]
+    [Label("Reacciones")]
+    public List<EffectReaction> Reactions = new List<EffectReaction>();
+
     [Section(EffectSection.Tags)]
     [Tooltip("Tags que tiene el objetivo mientras el efecto está activo (State_Stunned, " +
              "Status_Slow...). El PRIMERO es además la identidad del efecto: con él se bloquea un " +

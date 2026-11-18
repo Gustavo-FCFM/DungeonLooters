@@ -148,6 +148,22 @@ public class GasValidatorWindow : EditorWindow
             // Los que fingen ser infinitos con un número enorme (antes del 18 de noviembre de 2026 no había casilla).
             if (!ge.Infinite && ge.Duration >= 900f)
                 Add(ESeverity.Suggestion, "Dura 15 minutos o más: ¿es \"Dura para siempre\"?", $"{ge.name}: {ge.Duration:0} s", ge);
+            // Reacciones (eventos de juego): solo mientras dura; cada una con evento y algo que aplicar; "al otro" con un
+            // evento que no tiene otro no hace nada.
+            if (ge.Reactions != null && ge.Reactions.Count > 0)
+            {
+                if (!ge.HasDuration)
+                    Add(ESeverity.Warning, "Tiene reacciones pero es instantáneo (las reacciones son mientras dura)", ge.name, ge);
+                for (int i = 0; i < ge.Reactions.Count; i++)
+                {
+                    EffectReaction x = ge.Reactions[i];
+                    if (x == null) continue;
+                    if (x.When == EGameplayEvent.None || x.Effects == null || !x.Effects.Exists(e => e != null))
+                        Add(ESeverity.Warning, "Reacción sin evento o sin efectos (no hace nada)", $"{ge.name}: reacción {i + 1}", ge);
+                    else if (x.When == EGameplayEvent.AbilityUsed && x.ApplyTo == EReactionTarget.Other)
+                        Add(ESeverity.Warning, "Reacción \"al usar una habilidad\" que aplica \"al otro\" (no hay otro)", $"{ge.name}: reacción {i + 1}", ge);
+                }
+            }
             if (ge.OnExpireEffects != null && ge.OnExpireEffects.Contains(ge))
                 Add(ESeverity.Suggestion, "Al vencer se vuelve a poner a sí mismo: no termina nunca (¿a propósito?)", ge.name, ge);
 

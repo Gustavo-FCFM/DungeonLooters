@@ -24,6 +24,7 @@ using System;
 //   · Abilities        habilidades otorgadas, cooldowns y ecos
 //   · Life             vida, muerte, experiencia y nivel
 //   · CombatLog        quién le pegó y lo curó, el daño recibido y la cadena del depurador
+//   · Events           los eventos de juego (SendGameplayEvent) y las Reacciones de los efectos
 // Un campo nuevo del Inspector va en ESTE archivo: Unity los guarda en el orden en que están
 // escritos, y repartidos entre archivos ese orden no está garantizado.
 // El archivo se llama EXACTAMENTE como la clase: con la clase repartida, Unity solo le asocia el

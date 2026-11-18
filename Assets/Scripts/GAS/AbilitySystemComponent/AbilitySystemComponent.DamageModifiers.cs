@@ -244,6 +244,9 @@ public partial class AbilitySystemComponent
         float remaining = Mathf.Max(0f, -ctx.Magnitude);
         if (Mathf.Approximately(remaining, total)) return;
 
+        // Evento de juego: lo frenó un bloqueo de ESTE personaje.
+        SendGameplayEvent(EGameplayEvent.Blocked, sourceASC, total - remaining, isPeriodicTick);
+
         float ratio = remaining / total;
         physicalDamage *= ratio;
         magicDamage    *= ratio;

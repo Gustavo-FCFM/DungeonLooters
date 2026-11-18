@@ -30,7 +30,10 @@ public partial class AbilitySystemComponent
         AbilitySystemComponent killer = LastAttacker;
         NetworkAbilitySystemComponent netAsc = GetComponent<NetworkAbilitySystemComponent>();
         if (killer != null && !ReferenceEquals(killer, this) && (netAsc == null || netAsc.IsServerInitialized))
+        {
             killer.OnKilledTarget?.Invoke(this);
+            killer.SendGameplayEvent(EGameplayEvent.Kill, this);   // evento de juego "al matar"
+        }
 
         OnDeath?.Invoke();
     }

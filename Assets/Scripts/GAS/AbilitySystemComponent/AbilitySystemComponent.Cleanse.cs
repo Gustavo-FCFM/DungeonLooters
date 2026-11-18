@@ -109,14 +109,14 @@ public partial class AbilitySystemComponent
     {
         if (definition == null) return;
 
-        _chainHold++;
+        BeginHold();
         try
         {
             for (int i = ActiveEffects.Count - 1; i >= 0; i--)
                 if (ActiveEffects[i].Definition == definition)
                     RemoveActiveEffect(ActiveEffects[i], why);
         }
-        finally { EndChainHold(); }
+        finally { EndHold(); }
     }
 
     // Quita todos los efectos activos que otorguen un tag dado (revirtiendo sus
@@ -124,14 +124,14 @@ public partial class AbilitySystemComponent
     // cualquier "romper el estado X" (ej: una purga que quita todos los debuffs).
     public void RemoveEffectsWithTag(EGameplayTag tag)
     {
-        _chainHold++;
+        BeginHold();
         try
         {
             for (int i = ActiveEffects.Count - 1; i >= 0; i--)
                 if (ActiveEffects[i].Definition.GrantedTags.Contains(tag))
                     RemoveActiveEffect(ActiveEffects[i]);
         }
-        finally { EndChainHold(); }
+        finally { EndHold(); }
     }
 
     // Quita UNA SOLA acumulación de las que otorgan un tag: la que está por vencer.
@@ -168,14 +168,14 @@ public partial class AbilitySystemComponent
     // duración), así que el daño instantáneo no cuenta.
     public void RemoveAllDebuffs()
     {
-        _chainHold++;
+        BeginHold();
         try
         {
             for (int i = ActiveEffects.Count - 1; i >= 0; i--)
                 if (ActiveEffects[i].Definition.EffectType == GameplayEffect.EEffectType.Debuff)
                     RemoveActiveEffect(ActiveEffects[i]);
         }
-        finally { EndChainHold(); }
+        finally { EndHold(); }
     }
 
     // Quita buffs Y debuffs, y deja lo que no es "estado de combate": los Hidden (los
@@ -205,7 +205,7 @@ public partial class AbilitySystemComponent
     public void RemoveEffectsOnEvent(GameplayEffect.ERemoveOnEvent what)
     {
         if (ActiveEffects.Count == 0) return;
-        _chainHold++;
+        BeginHold();
         try
         {
             for (int i = ActiveEffects.Count - 1; i >= 0; i--)
@@ -219,7 +219,7 @@ public partial class AbilitySystemComponent
                 RemoveActiveEffect(active);
             }
         }
-        finally { EndChainHold(); }
+        finally { EndHold(); }
     }
 
     // Quita TODOS los efectos activos de una (ej: al cambiar de clase). No encadena.

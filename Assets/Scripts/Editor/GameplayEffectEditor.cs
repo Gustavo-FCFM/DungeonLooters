@@ -39,6 +39,8 @@ public class GameplayEffectEditor : SectionedInspector
                                             e.StackingPolicy == GameplayEffect.EStackingType.Refresh ? "se refresca" : "se reemplaza");
         if (e.CountsAsCrowdControl) facts.Add("es control");
         if (e.HasDuration && e.RemoveOn != GameplayEffect.ERemoveOnEvent.Nothing) facts.Add("se va solo");
+        if (e.HasDuration && e.Reactions != null && e.Reactions.Count > 0)
+            facts.Add(e.Reactions.Count == 1 ? "1 reacción" : $"{e.Reactions.Count} reacciones");
         if (e.KnockbackDistance > 0f) facts.Add($"desplaza {e.KnockbackDistance:0.##} m");
         if (e.ExecuteBelowHealth > 0f) facts.Add($"ejecuta al {e.ExecuteBelowHealth * 100f:0.#} % de vida");
 

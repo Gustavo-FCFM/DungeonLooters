@@ -404,9 +404,18 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
   - [ ] Verlo en Play: las posturas, el vuelo, el bloqueo y las auras sin reloj en la barra (en el host y en un cliente).
   - [ ] Probar "Se va solo" en un efecto real (un sigilo que se rompe al atacar). El Trampero (`GE_PatientHunter`)
         podría usar "al moverse" en vez del código de su pasiva.
-- [ ] **Niveles con curvas** en habilidades y efectos (un mismo GE con 10/15/20 de daño según el nivel).
+- [-] **Niveles con curvas** en habilidades y efectos (un mismo GE con 10/15/20 de daño según el nivel). POSPUESTO (18 de
+      noviembre, decisión de Gustavo): con 3 niveles, subclase en el 3 y el daño que ya crece con el Ataque, vale poco
+      acá. Sirve para la jam o un juego con más niveles (duraciones, radios, cooldowns y daños fijos por nivel).
 - [ ] **Tags jerárquicos** (`Status.CC.Stun` cuenta como `Status.CC`): con 96 tags planos se pregunta uno por uno.
-- [ ] **Eventos de juego con datos** ("hizo parry", "golpeó por la espalda") que activen habilidades solas.
+- [x] **Eventos de juego con datos** (18 de noviembre; `GAS/GameplayEvents.cs` y `AbilitySystemComponent.Events`): al hacer
+      y recibir daño, crítico hecho y recibido, por la espalda, al bloquear, al matar, al curar y recibir curación, al
+      usar una habilidad; con quién, cuánto y con qué habilidad. Por código: `OnGameplayEvent`. Sin código: la sección
+      "Reacciones (mientras dura)" del GE (cuándo, a quién, qué aplica, condiciones de tag, mínimo, ticks, probabilidad,
+      espera, "y se gasta"): una pasiva es un GE infinito con reacciones. Lo que aplica una reacción no dispara otras, y
+      sale cuando nadie está recorriendo efectos. 5 pruebas nuevas (37).
+  - [ ] Pasar a datos una pasiva hecha a mano (empezar por el Punto débil) y verla en Play.
+  - [ ] Habilidades que se activan solas con un evento ("al bloquear, contraataca"): la base del contraataque genérico.
 - [ ] **Tareas de habilidad** ("esperar a soltar", "esperar X s", "esperar a que choque"): hoy cada habilidad arma sus
       corrutinas (19 en las genéricas).
 

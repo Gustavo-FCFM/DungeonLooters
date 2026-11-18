@@ -245,6 +245,25 @@ public partial class AbilitySystemComponent
             if (sourceASC != null) sourceASC.RemoveEffectsOnEvent(GameplayEffect.ERemoveOnEvent.DealDamage);
         }
 
+        // EVENTOS DE JUEGO (ver AbilitySystemComponent.Events y GameplayEvents.cs): cada uno desde los ojos de a quién le pasó.
+        if (damageEndured > 0f && !ReferenceEquals(sourceASC, this))
+        {
+            SendGameplayEvent(EGameplayEvent.DamageTaken, sourceASC, damageEndured, isPeriodicTick);
+            if (anyCritical) SendGameplayEvent(EGameplayEvent.CriticalTaken, sourceASC, damageEndured, isPeriodicTick);
+            if (sourceASC != null)
+            {
+                sourceASC.SendGameplayEvent(EGameplayEvent.DamageDealt, this, damageEndured, isPeriodicTick);
+                if (anyCritical) sourceASC.SendGameplayEvent(EGameplayEvent.CriticalDealt, this, damageEndured, isPeriodicTick);
+                if (!isPeriodicTick && IsBackstab(sourceASC)) sourceASC.SendGameplayEvent(EGameplayEvent.BackstabDealt, this, damageEndured);
+            }
+        }
+        if (healthHealed > 0f)
+        {
+            SendGameplayEvent(EGameplayEvent.HealReceived, sourceASC, healthHealed, isPeriodicTick);
+            if (sourceASC != null && !ReferenceEquals(sourceASC, this) && !sourceASC.IsEnemyOf(this))
+                sourceASC.SendGameplayEvent(EGameplayEvent.HealDealt, this, healthHealed, isPeriodicTick);
+        }
+
         // El resumen de muerte: todo daño recibido, venga de quien venga (también de una zona sin autor).
         if (damageEndured > 0f)
             RecordDamageTaken(sourceASC != null ? CreditOf(sourceASC) : null, damageEndured, isPeriodicTick);

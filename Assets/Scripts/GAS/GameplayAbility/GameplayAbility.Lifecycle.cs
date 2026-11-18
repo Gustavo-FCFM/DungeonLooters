@@ -132,6 +132,7 @@ public abstract partial class GameplayAbility
         // "Se va solo: al usar una habilidad" (un sigilo que se rompe al lanzar). Antes de los efectos "al activarse" (y
         // lo de este mismo frame no cuenta): el buff que pone ESTA habilidad no se va en el acto. Un eco no cuenta.
         if (!IsEcho) OwnerASC.RemoveEffectsOnEvent(GameplayEffect.ERemoveOnEvent.UseAbility);
+        if (!IsEcho) OwnerASC.SendGameplayEvent(EGameplayEvent.AbilityUsed, null, 0f, false, this);   // evento de juego
 
         // Canalizado CONTINUO ya cobrado: cada repetición sale gratis (el costo y el cooldown
         // se cobran una vez, al empezar). Sus efectos "al activarse" sí se repiten (la Recarga de

@@ -61,6 +61,10 @@ public class ActiveGameplayEffect
     public int AppliedFrame;
     public Vector3 AppliedPosition;
 
+    // Reacciones con espera (EffectReaction.Cooldown): cuándo puede volver a salir cada una (Time.time). Null hasta que
+    // alguna con espera sale.
+    public float[] ReactionReadyAt;
+
     // Arranca el cronómetro de una nueva aplicación del efecto.
     // durationOverride > 0 pisa la duración del asset (lo usan los
     // cooldowns dinámicos, ej. basados en velocidad de ataque).

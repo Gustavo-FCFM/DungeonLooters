@@ -369,6 +369,11 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   tiene duración se pregunta `HasDuration` (no `Duration > 0`) y la duración a aplicar es `EffectiveDuration` (+∞ si es
   infinito; el efecto activo queda con `TotalDuration` 0 = "sin reloj"). Lo que se va solo con un evento va en "Se va
   solo" (`RemoveOn`), no en código de pasiva.
+  **Una pasiva nueva que reacciona a algo es un GE con "Reacciones"** (desde el 18 de noviembre de 2026, los eventos de
+  juego: `GameplayEvents.cs`): un GE infinito con "cuando hago daño / recibo un crítico / mato…, aplica tal efecto a mí o al
+  otro". Por código se escucha `ASC.OnGameplayEvent`, no un evento suelto nuevo. Un evento nuevo se agrega AL FINAL de
+  `EGameplayEvent` y se manda con `SendGameplayEvent` desde donde pasa. Todo lo que aplique, quite o recorra efectos va
+  entre `BeginHold` / `EndHold` (en un finally): así salen después los encadenados y las reacciones.
 
 - **Los efectos de una habilidad van en su lista `Effects`** (desde el 7 de octubre de
   2026): cada entrada dice cuándo (al golpear, al primer golpe, al activarse, al matar),

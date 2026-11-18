@@ -553,4 +553,94 @@ public class GasDamagePipelineTests
         Tick(target, 0.1f);
         Assert.IsFalse(target.HasTag(EGameplayTag.State_Rooted), "0.8 m: se movió");
     }
+
+    // =========================================================
+    // EVENTOS DE JUEGO Y REACCIONES
+    // =========================================================
+
+    // Una pasiva: un efecto infinito con una reacción.
+    private GameplayEffect Passive(EGameplayEvent when, EReactionTarget to, params GameplayEffect[] apply)
+    {
+        GameplayEffect passive = Effect("Pasiva", 0f, GameplayEffect.EEffectType.Hidden);
+        passive.Infinite = true;
+        passive.Reactions = new List<EffectReaction>
+        {
+            new EffectReaction { When = when, ApplyTo = to, Effects = new List<GameplayEffect>(apply) },
+        };
+        return passive;
+    }
+
+    [Test]
+    public void Reaccion_AlHacerDaño_MarcaAlGolpeado()
+    {
+        var attacker = Character(100f);
+        var victim = Character(100f);
+        GameplayEffect mark = Effect("Marca", 5f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_Silenced);
+        attacker.ApplyGameplayEffect(Passive(EGameplayEvent.DamageDealt, EReactionTarget.Other, mark), attacker);
+
+        victim.ApplyGameplayEffect(Hit(10f), attacker);
+        Assert.IsTrue(victim.HasTag(EGameplayTag.State_Silenced), "el golpeado queda marcado");
+        Assert.IsFalse(attacker.HasTag(EGameplayTag.State_Silenced), "\"al otro\": el que pega no");
+    }
+
+    [Test]
+    public void Reaccion_LoQueAplicaNoDisparaOtraReaccion()
+    {
+        var attacker = Character(100f);
+        var victim = Character(100f);
+        // "Al hacer daño, al otro: 5 más". Sin el freno, esos 5 volverían a disparar la reacción para siempre.
+        attacker.ApplyGameplayEffect(Passive(EGameplayEvent.DamageDealt, EReactionTarget.Other, Hit(5f)), attacker);
+        victim.ApplyGameplayEffect(Hit(10f), attacker);
+        Assert.AreEqual(85f, Health(victim), "10 del golpe + 5 de la reacción, una sola vez");
+    }
+
+    [Test]
+    public void Reaccion_CondicionYEspera()
+    {
+        var attacker = Character(1000f);
+        var victim = Character(1000f);
+        GameplayEffect passive = Passive(EGameplayEvent.DamageDealt, EReactionTarget.Other, Hit(5f));
+        passive.Reactions[0].OnlyIfOwnerHas = EGameplayTag.State_AlwaysVisible;   // la versión "potenciada" (un tag que no toca el daño)
+        passive.Reactions[0].Cooldown = 5f;
+        attacker.ApplyGameplayEffect(passive, attacker);
+
+        victim.ApplyGameplayEffect(Hit(10f), attacker);
+        Assert.AreEqual(990f, Health(victim), "sin el tag, no sale");
+
+        GiveTag(attacker, EGameplayTag.State_AlwaysVisible);
+        victim.ApplyGameplayEffect(Hit(10f), attacker);
+        victim.ApplyGameplayEffect(Hit(10f), attacker);
+        Assert.AreEqual(965f, Health(victim), "con el tag sale UNA vez (la segunda está en espera): 10 + 5 + 10");
+    }
+
+    [Test]
+    public void Reaccion_AlMatar_YSeGasta()
+    {
+        var attacker = Character(100f);
+        var victim = Character(10f);
+        GameplayEffect buff = Effect("Racha", 10f, GameplayEffect.EEffectType.Buff, EGameplayTag.State_AlwaysVisible);
+        GameplayEffect passive = Passive(EGameplayEvent.Kill, EReactionTarget.Self, buff);
+        passive.Reactions[0].ConsumesEffect = true;
+        attacker.ApplyGameplayEffect(passive, attacker);
+
+        victim.ApplyGameplayEffect(Hit(50f), attacker);
+        Assert.IsTrue(attacker.HasTag(EGameplayTag.State_AlwaysVisible), "al matar, el que mata gana el buff");
+        Assert.IsFalse(attacker.GetActiveEffects().Exists(a => a.Definition == passive), "y la pasiva se gastó");
+    }
+
+    [Test]
+    public void Evento_LlegaPorCodigoConSusDatos()
+    {
+        var attacker = Character(100f);
+        var victim = Character(100f);
+        var seen = new List<GameplayEventData>();
+        attacker.OnGameplayEvent += d => seen.Add(d);
+        GameplayEffect crit = Hit(10f);
+        crit.CritIfTargetHas = EGameplayTag.State_Silenced;
+        GiveTag(victim, EGameplayTag.State_Silenced);
+        victim.ApplyGameplayEffect(crit, attacker);
+
+        Assert.IsTrue(seen.Exists(d => d.Event == EGameplayEvent.DamageDealt && d.Other == victim && d.Magnitude > 0f));
+        Assert.IsTrue(seen.Exists(d => d.Event == EGameplayEvent.CriticalDealt), "el golpe salió crítico");
+    }
 }

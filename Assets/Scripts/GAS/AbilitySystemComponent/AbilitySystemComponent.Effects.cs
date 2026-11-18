@@ -44,9 +44,9 @@ public partial class AbilitySystemComponent
     // esperan a que este termine de aplicarse: ver ENCADENADOS.
     public void ApplyGameplayEffect(GameplayEffect effect, object source = null, float durationOverride = -1f)
     {
-        _chainHold++;
+        BeginHold();
         try { ApplyGameplayEffectNow(effect, source, durationOverride); }
-        finally { EndChainHold(); }
+        finally { EndHold(); }
     }
 
     private void ApplyGameplayEffectNow(GameplayEffect effect, object source, float durationOverride)
@@ -443,13 +443,13 @@ public partial class AbilitySystemComponent
     private void ProcessActiveEffects(float deltaTime)
     {
         if (ActiveEffects.Count == 0) return;
-        _chainHold++;
+        BeginHold();
         try
         {
             RemoveEffectsOnEvent(GameplayEffect.ERemoveOnEvent.Move);   // "Se va solo: al moverse"
             ProcessActiveEffectsNow(deltaTime);
         }
-        finally { EndChainHold(); }
+        finally { EndHold(); }
     }
 
     private void ProcessActiveEffectsNow(float deltaTime)

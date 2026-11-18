@@ -26,6 +26,7 @@ using UnityEditor;
 [CustomPropertyDrawer(typeof(PaladinAuraPassive.AuraRing))]
 [CustomPropertyDrawer(typeof(CompanionManager.CompanionOption))]
 [CustomPropertyDrawer(typeof(SfxCue))]
+[CustomPropertyDrawer(typeof(EffectReaction))]
 [CustomPropertyDrawer(typeof(MercEnemyCatalog.Entry))]
 public class LabeledFieldsDrawer : PropertyDrawer
 {

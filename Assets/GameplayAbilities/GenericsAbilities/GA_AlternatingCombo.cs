@@ -89,7 +89,7 @@ public class GA_AlternatingCombo : GameplayAbility
     private IEnumerator RunSequenceRoutine(List<GA_ComboSequence.ComboStep> sequence, int sequenceIndex)
     {
         // Ver GA_ComboSequence: corta la secuencia si otra habilidad la interrumpe.
-        int cancelSerial = OwnerASC != null ? OwnerASC.CancelSerial : 0;
+        AbilityGuard interruption = Guard(EStopWhen.Interrupted);   // la interrupción del básico, desde ahora
 
         if (sequence != null)
         {
@@ -150,7 +150,7 @@ public class GA_AlternatingCombo : GameplayAbility
                 if (step.DelayAfter > 0)
                     yield return new WaitForSeconds(step.DelayAfter / speed);
 
-                if (IsInterruptible && OwnerASC != null && OwnerASC.CancelSerial != cancelSerial) yield break;
+                if (interruption.Check()) yield break;
             }
         }
 

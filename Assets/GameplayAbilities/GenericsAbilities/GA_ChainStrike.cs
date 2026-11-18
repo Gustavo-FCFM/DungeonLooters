@@ -87,7 +87,7 @@ public class GA_ChainStrike : GameplayAbility
 
         while (current != null)
         {
-            if (OwnerASC == null || OwnerASC.HasTag(EGameplayTag.State_Dead)) break;
+            if (ShouldStop(EStopWhen.Dies)) break;
 
             // A su espalda, a su altura, mirándolo (con la cámara: si no, sigue mirando a donde miraba).
             Vector3 behind = current.transform.position - current.transform.forward * BehindDistance;

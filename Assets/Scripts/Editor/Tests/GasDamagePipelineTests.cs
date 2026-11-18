@@ -717,6 +717,59 @@ public class GasDamagePipelineTests
         Assert.IsTrue(owner.HasTag(EGameplayTag.State_AlwaysVisible), "con el tag, sale");
     }
 
+    // =========================================================
+    // TAREAS: ¿CORTO? (AbilityGuard / EStopWhen)
+    // =========================================================
+
+    // Un guardián de una habilidad real otorgada (GA_SelfBuff), desde afuera (Guard es protected).
+    private static AbilityGuard GuardFor(GameplayAbility ability, AbilitySystemComponent owner, EStopWhen when) =>
+        (AbilityGuard)System.Activator.CreateInstance(typeof(AbilityGuard),
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null,
+            new object[] { ability, owner, when }, null);
+
+    [Test]
+    public void Guardian_MuereAturdidoYBloqueado()
+    {
+        var owner = Character(100f);
+        GameplayAbility ga = TriggeredSelfBuff(owner, EGameplayEvent.None, Effect("Nada", 1f));
+        ga.ActivationBlockedTags = new List<EGameplayTag> { EGameplayTag.State_Silenced };
+
+        var onlyDies = GuardFor(ga, owner, EStopWhen.Dies);
+        var blocked  = GuardFor(ga, owner, EStopWhen.Blocked);
+        var stunned  = GuardFor(ga, owner, EStopWhen.Stunned);
+        Assert.IsFalse(onlyDies.Check() || blocked.Check() || stunned.Check(), "nada todavía");
+
+        GiveTag(owner, EGameplayTag.State_Silenced);
+        Assert.IsTrue(blocked.Check(), "lo que la bloquea la corta");
+        Assert.IsFalse(onlyDies.Check(), "\"solo al morir\" no se corta por un silencio");
+        Assert.IsFalse(stunned.Check());
+
+        GiveTag(owner, EGameplayTag.State_Stunned);
+        Assert.IsTrue(stunned.Check());
+    }
+
+    [Test]
+    public void Guardian_InterrupcionYDaño_DesdeQueEmpezo()
+    {
+        var attacker = Character(100f);
+        var owner = Character(100f);
+        GameplayAbility ga = TriggeredSelfBuff(owner, EGameplayEvent.None, Effect("Nada", 1f));
+        ga.IsInterruptible = true;
+
+        owner.CancelInterruptibleAbilities();             // una interrupción ANTES de empezar no cuenta
+        var interrupt = GuardFor(ga, owner, EStopWhen.Interrupted);
+        Assert.IsFalse(interrupt.Check());
+        owner.CancelInterruptibleAbilities();
+        Assert.IsTrue(interrupt.Check(), "otra habilidad la cortó");
+
+        using (var damaged = GuardFor(ga, owner, EStopWhen.Damaged))
+        {
+            Assert.IsFalse(damaged.Check());
+            owner.ApplyGameplayEffect(Hit(10f), attacker);
+            Assert.IsTrue(damaged.Check(), "recibió daño de otro");
+        }
+    }
+
     [Test]
     public void Evento_LlegaPorCodigoConSusDatos()
     {

@@ -214,11 +214,7 @@ public abstract partial class GameplayAbility
     // morir, otra habilidad si es interrumpible y, si se marcó, recibir daño.
     protected bool CastInterrupted(AbilitySystemComponent asc, int cancelSerial, bool damaged)
     {
-        if (asc == null || asc.HasTag(EGameplayTag.State_Dead)) return true;
-
-        if (ActivationBlockedTags != null)
-            foreach (EGameplayTag tag in ActivationBlockedTags)
-                if (asc.HasTag(tag)) return true;
+        if (asc == null || StateStops(this, asc, EStopWhen.Dies | EStopWhen.Blocked)) return true;
 
         if (IsInterruptible && asc.CancelSerial != cancelSerial) return true;
         return (_castSource ?? CastSettingsSource ?? this).CastBreaksOnDamage && damaged;

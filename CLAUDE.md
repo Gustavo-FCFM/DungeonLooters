@@ -377,6 +377,9 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   **Una habilidad que sale sola con un evento** (un contraataque) usa la sección "Se activa sola" del GA (desde el 18 de
   noviembre de 2026), no código: la activa el servidor por `ServerActivateTriggered`, que manda la animación también al dueño
   remoto. Nada que la active "a mano" desde el servidor llama a `Activate()` directo.
+  **Una rutina de habilidad nueva dice qué la corta con `EStopWhen`** (desde el 18 de noviembre de 2026, las tareas:
+  `GameplayAbility.Tasks.cs`): `ShouldStop(...)` o un `Guard(...)` (`guard.Check()` en cada vuelta) y las esperas `WaitSeconds`,
+  `WaitUntil` y `Repeat`, en vez de chequear tags y el `CancelSerial` a mano. Con `Damaged`, el guardián se suelta (`using`).
 
 - **Los efectos de una habilidad van en su lista `Effects`** (desde el 7 de octubre de
   2026): cada entrada dice cuándo (al golpear, al primer golpe, al activarse, al matar),

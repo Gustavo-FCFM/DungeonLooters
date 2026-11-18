@@ -135,7 +135,7 @@ public class GA_GroundFissure : GameplayAbility
         float waited = 0f;
         while (waited < DiveTimeout)
         {
-            if (OwnerASC == null || OwnerASC.HasTag(EGameplayTag.State_Dead)) yield break;
+            if (ShouldStop(EStopWhen.Dies)) yield break;
             if (Physics.Raycast(OwnerASC.transform.position + Vector3.up * 0.2f, Vector3.down, 0.45f, GroundMask,
                                 QueryTriggerInteraction.Ignore)) break;
             waited += Time.deltaTime;

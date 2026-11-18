@@ -186,14 +186,7 @@ public class GA_ChanneledCone : GameplayAbility, IChanneledAbility
     }
 
     // Lo que impide lanzarla también la corta a mitad.
-    private bool IsInterrupted()
-    {
-        if (OwnerASC == null || OwnerASC.HasTag(EGameplayTag.State_Dead)) return true;
-        if (ActivationBlockedTags != null)
-            foreach (EGameplayTag tag in ActivationBlockedTags)
-                if (OwnerASC.HasTag(tag)) return true;
-        return false;
-    }
+    private bool IsInterrupted() => ShouldStop(EStopWhen.Dies | EStopWhen.Blocked);
 
     // La mira de ahora: en el host, su cámara en vivo; en un cliente, la que manda mientras
     // dura el canalizado. Vector3.zero = nunca llegó ninguna.

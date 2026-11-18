@@ -28,6 +28,7 @@ using System.Collections.Generic;
 //   · ClientHooks  lo que pregunta el cliente: animación de los pasos, predicción, cámara, ícono
 //   · Legacy       datos viejos → formato nuevo (al cargar el asset)
 //   · Gizmos       gizmos y manijas del editor
+//   · Tasks        las tareas: ¿corto? (ShouldStop / Guard con EStopWhen) y las esperas (WaitSeconds, WaitUntil, Repeat)
 // Un campo nuevo del Inspector va en ESTE archivo: Unity los guarda en el orden en que están
 // escritos, y repartidos entre archivos ese orden no está garantizado.
 // No renombrar este archivo: con la clase repartida, Unity solo le asocia la clase al archivo que se

@@ -157,9 +157,7 @@ public class GA_RushAttack : GameplayAbility, IChanneledAbility, IGroundTargetAb
         while (elapsed < duration + LatencyGrace)
         {
             if (OwnerASC == null) yield break;
-            if (OwnerASC.HasTag(EGameplayTag.State_Dead) || OwnerASC.HasTag(EGameplayTag.State_Stunned) ||
-                OwnerASC.HasTag(EGameplayTag.State_Rooted))
-                break;
+            if (ShouldStop(EStopWhen.Dies | EStopWhen.Stunned | EStopWhen.Rooted)) break;
             if (netAsc.ConsumeRushStopRequest()) break;
 
             if (HitAround(hit) && StopAtFirstEnemy) break;

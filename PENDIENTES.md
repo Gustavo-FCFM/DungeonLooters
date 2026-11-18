@@ -443,8 +443,14 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
         `WasTriggered` / `TriggeredBy` para el Activate. 2 pruebas nuevas (41), sin red.
     - [ ] Probarla en Play con red: un contraataque "al bloquear un golpe" en el Guardián (botón None), con un host y un
           cliente, y con un bot. Mirar la mira hacia el otro y la animación en el dueño remoto.
-- [ ] **Tareas de habilidad** ("esperar a soltar", "esperar X s", "esperar a que choque"): hoy cada habilidad arma sus
-      corrutinas (19 en las genéricas).
+- [x] **Tareas de habilidad** (18 de noviembre; `GameplayAbility.Tasks.cs`): "¿corto?" dicho una vez con `EStopWhen` (morir,
+      aturdido, enraizado, lo que la bloquea, la interrupción del básico, recibir daño): `ShouldStop(...)` para lo del momento y
+      `Guard(...)` (`AbilityGuard`) para lo que se recuerda desde el inicio; esperas con guardián: `WaitSeconds`, `WaitUntil`,
+      `Repeat`. Pasados a las piezas nuevas, con EXACTAMENTE el mismo corte, 11 lugares en 10 habilidades (canalizar,
+      ChanneledCone, InstantAoE, ChargedAttack, RushAttack, GroundFissure, ChainStrike, ShieldBlock y los dos combos).
+      2 pruebas nuevas (43).
+  - [ ] Pasar las esperas viejas (`WaitForSeconds`, que no cortan a mitad) de a una, con Play: cambiar eso cambia el juego.
+  - [ ] `GA_ProjectileShoot`: mezcla varias cosas en sus rutinas; pasarlo con Play a mano.
 
 *Habilidades genéricas que faltan:*
 - [ ] Gancho (te lleva a un punto o te trae algo) — sobre Dash + Teleport.

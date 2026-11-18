@@ -186,8 +186,7 @@ public class GA_ChargedAttack : GameplayAbility, IHoldAbility
     {
         while (_holding)
         {
-            if (OwnerASC == null || OwnerASC.HasTag(EGameplayTag.State_Dead) ||
-                OwnerASC.HasTag(EGameplayTag.State_Stunned))
+            if (ShouldStop(EStopWhen.Dies | EStopWhen.Stunned))
             {
                 Cancel();
                 yield break;

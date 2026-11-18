@@ -154,7 +154,7 @@ public class GA_ComboSequence : GameplayAbility
         // Para cortar el combo entero si otra habilidad lo interrumpe (ver
         // GameplayAbility.IsInterruptible): cada paso ya se corta solo; esto evita
         // que arranque el siguiente.
-        int cancelSerial = OwnerASC != null ? OwnerASC.CancelSerial : 0;
+        AbilityGuard interruption = Guard(EStopWhen.Interrupted);   // la interrupción del básico, desde ahora
 
         // Ritmo del combo: si es el ataque básico, toda la secuencia (clips y delays)
         // se comprime para entrar en un ciclo de ataque y acelera con los buffs.
@@ -207,7 +207,7 @@ public class GA_ComboSequence : GameplayAbility
             if (step.DelayAfter > 0)
                 yield return new WaitForSeconds(step.DelayAfter / speed);
 
-            if (IsInterruptible && OwnerASC != null && OwnerASC.CancelSerial != cancelSerial) yield break;
+            if (interruption.Check()) yield break;
         }
 
         EndAbility();

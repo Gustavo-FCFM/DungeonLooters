@@ -226,7 +226,7 @@ public class GA_ShieldBlock : GameplayAbility, IHoldAbility
 
         while (_holding)
         {
-            if (OwnerASC == null || OwnerASC.HasTag(EGameplayTag.State_Dead)) break;
+            if (ShouldStop(EStopWhen.Dies)) break;
 
             if (EnergyDrainPerSecond > 0f)
             {

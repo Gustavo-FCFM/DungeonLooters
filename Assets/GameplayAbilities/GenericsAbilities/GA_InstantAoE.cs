@@ -137,7 +137,7 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
                 yield return new WaitForSeconds(RepeatInterval / speedMultiplier);
 
                 if (OwnerASC == null) yield break;
-                if (OwnerASC.HasTag(EGameplayTag.State_Dead) || OwnerASC.HasTag(EGameplayTag.State_Stunned)) break;
+                if (ShouldStop(EStopWhen.Dies | EStopWhen.Stunned)) break;
 
                 if (DeployMode == GA_ContinuousAoE.EAoEDeploy.AtOwner) center = OwnerASC.transform.position;
 

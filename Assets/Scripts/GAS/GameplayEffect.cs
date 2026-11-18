@@ -433,6 +433,12 @@ public class GameplayEffect : ScriptableObject
     [Label("Escudo que cura: vida por lo frenado (0 a 1)")]
     [Range(0f, 1f)] public float HealShieldReturn = 1f;
 
+    [ShowIf(HasDurationFields, ShowIfAttribute.Positive)]
+    [Tooltip("Mientras dura, el EQUIPO de quien lo puso ve a quien lo tiene a través de las paredes (la Marca del cazador). " +
+             "El equipo del marcado y los demás no. Se renueva en cada refresco.")]
+    [Label("Revela al equipo del que lo puso")]
+    public bool RevealsToSourceTeam = false;
+
     // =========================================================
     // COPIAS CONGELADAS (el proyectil devuelto por un parry)
     // =========================================================

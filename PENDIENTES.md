@@ -420,7 +420,14 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
         de `BattleMasterBehaviours`. Reacciones nuevas: "Solo si quien lo tiene NO tiene" y "Solo si llegó a la vida". Comprobado
         en memoria con los assets reales (normal, potenciada, escudo y daño propio, igual que el script). 38 pruebas.
     - [ ] Verlo en Play con el Maestro de batalla: la marca en el muñeco, y la potenciada con Romper límites.
-  - [ ] Siguientes pasivas simples para pasar a datos: la Marca del cazador, parte de Artes marciales.
+  - [x] **La Marca del cazador pasada a datos** (18 de noviembre): `GE_HuntersMarkPassive` (oculto, infinito, "al hacer daño,
+        al otro: GE_HuntersMark, solo si llegó a la vida") en los "Efectos pasivos" de las cuatro clases del Explorador. El
+        revelado pasó al GE: casilla nueva "Revela al equipo del que lo puso" (`RevealsToSourceTeam`, la llama
+        `ApplyGameplayEffect` al entrar y en cada refresco), marcada en `GE_HuntersMark`. La Presa del Cazador tiene su propio
+        campo "Marca del cazador (GE)". Borrados `HuntersMarkPassive.cs` y su componente de los cuatro prefabs
+        (`RangerBehaviours` quedó vacío). Comprobado en memoria (marca 4 s, refresca, el escudo no marca).
+    - [ ] Verlo en Play con red: la marca, el revelado a través de paredes a tu equipo, y la definitiva del Cazador.
+  - [ ] Siguiente pasiva simple para pasar a datos: parte de Artes marciales.
   - [ ] Habilidades que se activan solas con un evento ("al bloquear, contraataca"): la base del contraataque genérico.
 - [ ] **Tareas de habilidad** ("esperar a soltar", "esperar X s", "esperar a que choque"): hoy cada habilidad arma sus
       corrutinas (19 en las genéricas).
@@ -2031,7 +2038,7 @@ soltar; el proyectil es el de la daga, sin girar. Los íconos son prestados.
 
 | Ranura | Habilidad | Cómo |
 |---|---|---|
-| Pasiva | Marca del cazador: cada impacto marca 4 s (+10 % de daño recibido) y su equipo lo ve a través de las paredes | `HuntersMarkPassive` (nueva) + `GE_HuntersMark`, en `ExplorerBehaviours` |
+| Pasiva | Marca del cazador: cada impacto marca 4 s (+10 % de daño recibido) y su equipo lo ve a través de las paredes | `GE_HuntersMarkPassive` (reacción; antes `HuntersMarkPassive`, borrado el 18 de noviembre) + `GE_HuntersMark` (revela al equipo del que lo puso) |
 | Clic izq. | Arco corto: mantener carga en 3 fases (0 / 0.5 / 1 s): ×1 / ×1.6 / ×2.4 del ataque, 24 / 44 / 70 m, más rápido y con zoom; cargando camina más lento | `GA_ChargedAttack` con `GA_ExplorerArrow1..3` |
 | Clic der. | Espadas cortas: un corte en arco corto | copia de `GA_DaggerCone` |
 | Q | Ataque rápido: los próximos 3 disparos salen con la carga máxima al instante, y 6 s atacando más rápido (×0.6 entre ataques). 12 s | `GA_SelfBuff` + `GE_QuickShot` (3 acumulaciones) + `GE_QuickShotHaste` |

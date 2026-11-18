@@ -38,17 +38,20 @@ MonoBehaviour:
   - InputSlot: 5
     Ability: {fileID: 11400000, guid: 218d94d70d8882e41823575c973ca2db, type: 2}
   PassiveBehaviorsPrefab: {fileID: 1798604898553192926, guid: 03ff9b4623169c04a9e7152c18e1fdb2, type: 3}
-  PassiveEffects: []
+  PassiveEffects:
+  - {fileID: 11400000, guid: da46648ac64e2044589f5fad2fda5473, type: 2}
   WallMovement: {fileID: 11400000, guid: 0909e17f538cef540ba16708b593b2db, type: 2}
   StatGrowthPerLevel: []
   AvailableSubclasses: []
   ClassAnimatorOverride: {fileID: 22100000, guid: f175085a22aa728459655748dd969669, type: 2}
+  ClassModel: {fileID: 0}
   StanceAnimatorOverride: {fileID: 0}
   StanceAnimatorTag: 0
   MainHandWeaponPrefab: {fileID: 2940968421794840072, guid: d6566bb9ade75594b8068db0bf39da23, type: 3}
   OffHandWeaponPrefab: {fileID: 6751337086952172511, guid: 93671539c61430f4a8deda9514111581, type: 3}
   MainHandRotationOffset: {x: 0, y: 0, z: 0}
   MainHandPositionOffset: {x: 0, y: 0, z: 0}
+  MainHandScale: 1
   OffHandRotationOffset: {x: 0, y: 0, z: 0}
   OffHandPositionOffset: {x: -0.1, y: 0, z: 0}
   OffHandPose: {fileID: 0}

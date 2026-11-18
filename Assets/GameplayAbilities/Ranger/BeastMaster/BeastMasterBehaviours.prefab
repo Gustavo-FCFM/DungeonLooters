@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1612854927576649060}
-  - component: {fileID: 6908140468462988179}
   - component: {fileID: 4557877731189863876}
   m_Layer: 0
   m_Name: BeastMasterBehaviours
@@ -33,20 +32,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6908140468462988179
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1798604898553192926}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6360dcb11ea55504396d1829f69aeadb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MarkEffect: {fileID: 11400000, guid: a3c9940fa1f453a408ca52fdaab1f3f9, type: 2}
-  RevealSeconds: 0
 --- !u!114 &4557877731189863876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -86,3 +71,4 @@ MonoBehaviour:
     ActiveEffect: {fileID: 11400000, guid: 4fa877502620826429d7438d19eca64c, type: 2}
     RespawnCooldown: {fileID: 0}
   StartIndex: 0
+  StoredRegenPercentPerSecond: 2

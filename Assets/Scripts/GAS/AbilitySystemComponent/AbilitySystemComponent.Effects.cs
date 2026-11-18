@@ -115,6 +115,7 @@ public partial class AbilitySystemComponent
                         existing.SetDuration(finalDuration);
                         existing.AppliedFrame    = Time.frameCount;
                         existing.AppliedPosition = transform.position;
+                        RevealToSourceTeam(effect, finalDuration, source);
                         OnActiveEffectAddedCallback?.Invoke(effect, finalDuration);
                         return;
                     }
@@ -162,6 +163,7 @@ public partial class AbilitySystemComponent
                 // arriba, no agregamos otra instancia.
                 if (stacks >= effect.MaxStacks)
                 {
+                    RevealToSourceTeam(effect, finalDuration, source);
                     OnActiveEffectAddedCallback?.Invoke(effect, finalDuration);
                     return;
                 }
@@ -193,11 +195,23 @@ public partial class AbilitySystemComponent
                     RemoveAllDebuffs();
             }
 
+            RevealToSourceTeam(effect, finalDuration, source);
             OnActiveEffectAddedCallback?.Invoke(effect, finalDuration);
 
             // Un efecto que ejecuta remata en el acto al que ya estaba por debajo del umbral.
             if (effect.ExecuteBelowHealth > 0f) CheckExecute();
         }
+    }
+
+    // "Revela a quien lo tiene ante el equipo del que lo puso" (GameplayEffect.RevealsToSourceTeam, 18 de noviembre de 2026):
+    // el equipo del autor lo ve a través de las paredes por lo que dura (al entrar y en cada refresco). Un infinito, una
+    // hora. Solo en el servidor y con red (NetworkAbilitySystemComponent.ServerRevealToTeam).
+    private void RevealToSourceTeam(GameplayEffect effect, float duration, object source)
+    {
+        if (!effect.RevealsToSourceTeam || !(source is AbilitySystemComponent by) || by == null || by.TeamID <= 0) return;
+        NetworkAbilitySystemComponent net = GetComponent<NetworkAbilitySystemComponent>();
+        if (net == null || !net.IsServerInitialized) return;
+        net.ServerRevealToTeam(by.TeamID, float.IsPositiveInfinity(duration) ? 3600f : duration);
     }
 
     // =========================================================

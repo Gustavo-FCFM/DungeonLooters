@@ -71,9 +71,14 @@ public class HunterPreyPassive : MonoBehaviour, IDamageModifier
     [Label("Definitiva: cada baja suma (s)")]
     public float ApexSecondsPerKill = 3f;
 
+    [Tooltip("La Marca del cazador (GE_HuntersMark) que la definitiva le pone a todos. Desde el 18 de noviembre de 2026 la " +
+             "marca revela sola al equipo del que la puso (\"Revela al equipo del que lo puso\"); antes se buscaba en " +
+             "HuntersMarkPassive, que pasó a ser un GE con reacciones.")]
+    [Label("Marca del cazador (GE)")]
+    public GameplayEffect HuntersMarkEffect;
+
     private AbilitySystemComponent        _asc;
     private NetworkAbilitySystemComponent _netAsc;
-    private HuntersMarkPassive            _huntersMark;
 
     private struct Prey { public EClassRole Role; public float Until; }
     private readonly Dictionary<AbilitySystemComponent, Prey> _prey = new Dictionary<AbilitySystemComponent, Prey>();
@@ -91,7 +96,6 @@ public class HunterPreyPassive : MonoBehaviour, IDamageModifier
     {
         _asc    = GetComponentInParent<AbilitySystemComponent>();
         _netAsc = _asc != null ? _asc.GetComponent<NetworkAbilitySystemComponent>() : null;
-        _huntersMark = _asc != null ? _asc.GetComponentInChildren<HuntersMarkPassive>(true) : null;
     }
 
     private void OnEnable()
@@ -254,8 +258,7 @@ public class HunterPreyPassive : MonoBehaviour, IDamageModifier
             if (_prey.TryGetValue(other, out Prey p) && p.Until >= until - 0.25f) continue;
 
             MarkPrey(other, seconds);
-            if (_huntersMark != null && _huntersMark.MarkEffect != null)
-                other.ApplyGameplayEffect(_huntersMark.MarkEffect, _asc, seconds);
+            if (HuntersMarkEffect != null) other.ApplyGameplayEffect(HuntersMarkEffect, _asc, seconds);
 
             NetworkAbilitySystemComponent otherNet = other.GetComponent<NetworkAbilitySystemComponent>();
             if (otherNet != null && otherNet.IsServerInitialized) otherNet.ServerRevealToTeam(_asc.TeamID, seconds);

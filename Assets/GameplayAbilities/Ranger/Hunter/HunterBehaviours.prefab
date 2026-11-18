@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1789286839085525861}
-  - component: {fileID: 5257428509752306738}
   - component: {fileID: 1641281914949551121}
   - component: {fileID: 8735425016992115375}
   m_Layer: 0
@@ -34,20 +33,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5257428509752306738
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7573284683755726708}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6360dcb11ea55504396d1829f69aeadb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MarkEffect: {fileID: 11400000, guid: a3c9940fa1f453a408ca52fdaab1f3f9, type: 2}
-  RevealSeconds: 0
 --- !u!114 &1641281914949551121
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -68,6 +53,7 @@ MonoBehaviour:
   HuntEffect: {fileID: 11400000, guid: e5729e937fe24a241837a4a17ff04b3a, type: 2}
   ApexEffect: {fileID: 11400000, guid: 15d64378b149fdf43a3c6b55269831a6, type: 2}
   ApexSecondsPerKill: 3
+  HuntersMarkEffect: {fileID: 11400000, guid: a3c9940fa1f453a408ca52fdaab1f3f9, type: 2}
 --- !u!114 &8735425016992115375
 MonoBehaviour:
   m_ObjectHideFlags: 0

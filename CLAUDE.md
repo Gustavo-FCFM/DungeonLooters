@@ -157,6 +157,9 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   dan, se pregunta por ellos ("¿tiene algún control?", "inmune a todo daño con el tiempo"). Un tag nuevo que sea de un
   grupo va con su línea en la tabla hijo → padre; lo que busque efectos por el tag que dan usa `GameplayTagTree.AnyMatches`,
   no `GrantedTags.Contains`.
+  **Cada valor nuevo de `EGameplayTag` / `EAttributeType` lleva `[InspectorName("Carpeta/Nombre")]`** (desde el 18 de noviembre de
+  2026): el desplegable del Inspector los agrupa en carpetas por tema o por clase. El nombre visible se cambia libre; el
+  ORDEN no (es el número guardado).
 - **Los jugadores viven en la capa 7 ("Character")**, no en la 6. Los ataques melee la
   usan como máscara en sus `Physics.OverlapX`.
 - **`ASC.ActiveEffects` solo existe poblado en el servidor.** La UI remota lee de los

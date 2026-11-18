@@ -412,6 +412,11 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       HasTag/GetTagCount, los bloqueos y condiciones, quitar por tag, la inmunidad, ReduceCooldownByTag y AnyEffectGrants.
       Nadie da un grupo (el validador lo avisa). La resistencia al control sigue recortando solo el control duro (los tres
       de siempre). 3 pruebas nuevas (46).
+  - [x] **Los desplegables de tags y atributos en carpetas** (18 de noviembre, pedido de Gustavo): `[InspectorName("Carpeta/Nombre")]`
+        en los 105 tags (Control, Estado, Daño con el tiempo, Cooldowns, Modo, una por clase, Grupos, Obsoletos) y carpetas en los
+        24 atributos. NO cambia ningún número (se comprobó el orden y los valores): ningún asset se tocó. Se descartó reordenar
+        el enum de verdad (547 assets/prefabs con tags y 355 con atributos guardados por número, más las escenas).
+    - [ ] Verlo en el editor: los desplegables abren en carpetas; si un nombre o una carpeta no convence, es una línea.
 - [x] **Eventos de juego con datos** (18 de noviembre; `GAS/GameplayEvents.cs` y `AbilitySystemComponent.Events`): al hacer
       y recibir daño, crítico hecho y recibido, por la espalda, al bloquear, al matar, al curar y recibir curación, al
       usar una habilidad; con quién, cuánto y con qué habilidad. Por código: `OnGameplayEvent`. Sin código: la sección

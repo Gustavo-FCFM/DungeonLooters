@@ -393,7 +393,7 @@ public class MercObjective : NetworkBehaviour
 
         _runtimeCarryEffect = ScriptableObject.CreateInstance<GameplayEffect>();
         _runtimeCarryEffect.name           = "GE_CargandoObjetivo(runtime)";
-        _runtimeCarryEffect.Duration       = 99999f;
+        _runtimeCarryEffect.Infinite       = true;   // mientras la lleve: se quita al soltarla o entregarla
         _runtimeCarryEffect.Period         = 0f;
         _runtimeCarryEffect.StackingPolicy = GameplayEffect.EStackingType.Refresh;
         _runtimeCarryEffect.EffectType     = GameplayEffect.EEffectType.Hidden;

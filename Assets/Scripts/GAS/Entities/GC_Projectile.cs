@@ -617,7 +617,7 @@ public class GC_Projectile : NetworkBehaviour
     private void OnDestroy()
     {
         foreach (GameplayEffect copy in _frozen.Values)
-            if (copy != null && copy.Duration <= 0f) Destroy(copy);
+            if (copy != null && !copy.HasDuration) Destroy(copy);
     }
 
     // True si un parry ya lo devolvió: no se vuelve a devolver, y lo del primer impacto

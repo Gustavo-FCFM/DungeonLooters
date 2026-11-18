@@ -697,6 +697,17 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
             return;
         }
 
+        // Sin reloj (infinito, o "Es de aura": lo que un aura refresca cada medio segundo). Duración 0 = "sin tiempo"
+        // para la barra, y solo se escribe lo que CAMBIÓ: un refresco que no cambia nada no viaja por la red
+        // (antes, cada aliado dentro de un aura reenviaba su entrada dos veces por segundo).
+        if (effect.Template.HidesTime)
+        {
+            if (!NetActiveEffectStartTick.ContainsKey(index)) NetActiveEffectStartTick[index] = TimeManager.Tick;
+            if (!NetActiveEffectDuration.TryGetValue(index, out float shownTotal) || shownTotal != 0f) NetActiveEffectDuration[index] = 0f;
+            if (!NetActiveEffectStacks.TryGetValue(index, out int shownStacks) || shownStacks != stacks) NetActiveEffectStacks[index] = stacks;
+            return;
+        }
+
         // Reconstruimos el tick de inicio desde lo ya transcurrido (igual que con
         // los cooldowns), para no reiniciar la barra en cada resincronización.
         uint elapsedTicks = TimeManager.TimeToTicks(Mathf.Max(0f, longestTotal - longestRemaining));

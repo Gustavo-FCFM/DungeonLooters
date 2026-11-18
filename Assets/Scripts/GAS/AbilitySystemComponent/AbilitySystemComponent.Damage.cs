@@ -237,6 +237,14 @@ public partial class AbilitySystemComponent
             OnHealedSelf?.Invoke(healthHealed);
         }
 
+        // "Se va solo" (GameplayEffect.RemoveOn): al recibir daño (de cualquiera menos de sí mismo, también un veneno o una
+        // zona sin autor) y, al que lo hizo, al hacer daño. Lo que frenó un escudo también cuenta.
+        if (damageEndured > 0f && !ReferenceEquals(sourceASC, this))
+        {
+            RemoveEffectsOnEvent(GameplayEffect.ERemoveOnEvent.TakeDamage);
+            if (sourceASC != null) sourceASC.RemoveEffectsOnEvent(GameplayEffect.ERemoveOnEvent.DealDamage);
+        }
+
         // El resumen de muerte: todo daño recibido, venga de quien venga (también de una zona sin autor).
         if (damageEndured > 0f)
             RecordDamageTaken(sourceASC != null ? CreditOf(sourceASC) : null, damageEndured, isPeriodicTick);
@@ -356,7 +364,7 @@ public partial class AbilitySystemComponent
     public float EstimateInstantDamage(GameplayEffect effect, AbilitySystemComponent sourceASC)
     {
         // Solo los instantáneos: un efecto con duración no "pega" al aplicarse.
-        if (effect == null || effect.Duration > 0f) return 0f;
+        if (effect == null || effect.HasDuration) return 0f;
 
         float total = 0f;
 

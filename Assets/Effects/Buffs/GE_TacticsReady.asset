@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: GE_TacticsReady
   m_EditorClassIdentifier: 
   Duration: 9999
+  Infinite: 1
   Period: 0
   StackingPolicy: 0
   MaxStacks: 0
@@ -30,6 +31,7 @@ MonoBehaviour:
   KnockbackUpVelocity: 0
   PullStopDistance: 1.5
   ExecuteBelowHealth: 0
+  CritIfTargetHas: 0
   TargetVFX: {fileID: 0}
   TargetVFXOffset: {x: 0, y: 0, z: 0}
   TargetVFXRotation: {x: 0, y: 0, z: 0}
@@ -41,4 +43,15 @@ MonoBehaviour:
     Volume: 1
     PitchVariance: 0.08
     MaxDistance: 35
+  RemoveOnApply: 0
+  RemoveEffectsWithTags: 
+  MaxRemoved: 0
+  BlockedIfTargetHas: 
+  RequiresTargetTags: 
+  GrantsImmunityTo: 
+  CannotBeRemoved: 0
+  RemoveOn: 0
+  OnExpireEffects: []
+  OnRemovedEffects: []
   GrantedTags: 52000000
+  HealShieldReturn: 1

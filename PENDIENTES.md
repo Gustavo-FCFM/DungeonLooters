@@ -388,7 +388,22 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       personaje se quitaba dos veces (revertía sus modificadores dos veces).
   - [ ] Usarlo en un efecto real y verlo en Play (una marca de prueba en un muñeco de Test_Abilities). Con esto, "marcar y
         detonar" ya no necesita código: la marca con "Si se lo quitan antes: daño" y una habilidad que la consume.
-- [ ] **Duración infinita explícita** y **quitar al recibir daño / al moverse / al usar una habilidad**.
+- [x] **Duración infinita explícita** y **quitar al recibir daño / al moverse / al usar una habilidad** (18 de noviembre):
+      casilla "Dura para siempre (hasta que lo quiten)" en el GE (no vence ni muestra reloj; se va si lo quitan, al morir
+      si es buff o debuff, o al cambiar de clase) y "Se va solo" en "Quitar efectos e inmunidad" (al recibir daño, al
+      hacer daño, al moverse más de medio metro, al usar una habilidad; cuenta como "quitado antes" y un evento del mismo
+      frame en que entró no cuenta). Lo que preguntaba "Duration > 0" pregunta `HasDuration`. 5 pruebas nuevas (32).
+      Marcados como infinitos los 25 que fingían con 999/9 999/99 999 s (posturas, hechizo del Mago, regeneración de
+      clase, compañero activo, Venganza, Danza defensiva, Tácticas listas, vuelo, bloqueos, sigilos, jefe y santuario) y
+      la bolsa del Objetivo (código). El validador sugiere revisar lo que dura 15 min o más.
+  - [x] **Auras sin reloj** (18 de noviembre, pedido de Gustavo): casilla "Es de aura: no mostrar tiempo" para lo que un
+        aura o una zona renueva cada medio segundo. Sigue durando lo mismo y cayéndose sola al salir; la barra no dibuja
+        reloj y la red ya no reenvía cada refresco (`SyncActiveEffect` solo escribe lo que cambia). Marcadas 10: las
+        cuatro auras del Paladín y el Ángel vengador, las auras de postura y la Voz de mando del Comandante, el Faro de
+        esperanza y la lentitud de la trampa de pinchos. `GE_Revealed` NO (las campanas lo usan con tiempo real).
+  - [ ] Verlo en Play: las posturas, el vuelo, el bloqueo y las auras sin reloj en la barra (en el host y en un cliente).
+  - [ ] Probar "Se va solo" en un efecto real (un sigilo que se rompe al atacar). El Trampero (`GE_PatientHunter`)
+        podría usar "al moverse" en vez del código de su pasiva.
 - [ ] **Niveles con curvas** en habilidades y efectos (un mismo GE con 10/15/20 de daño según el nivel).
 - [ ] **Tags jerárquicos** (`Status.CC.Stun` cuenta como `Status.CC`): con 96 tags planos se pregunta uno por uno.
 - [ ] **Eventos de juego con datos** ("hizo parry", "golpeó por la espalda") que activen habilidades solas.

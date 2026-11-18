@@ -104,7 +104,8 @@ public class UI_EffectSlot : MonoBehaviour
     {
         if (liveEffect == null) return;
 
-        float progress = liveEffect.TotalDuration > 0
+        // Sin reloj: los infinitos (TotalDuration 0) y los "de aura", que se refrescan sin parar.
+        float progress = liveEffect.TotalDuration > 0 && !liveEffect.Definition.HidesTime
             ? liveEffect.DurationRemaining / liveEffect.TotalDuration
             : 0f;
 

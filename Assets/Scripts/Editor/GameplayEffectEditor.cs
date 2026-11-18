@@ -32,12 +32,13 @@ public class GameplayEffectEditor : SectionedInspector
                     : e.EffectType == GameplayEffect.EEffectType.Debuff ? "Debuff" : "Oculto (no sale en la barra)";
 
         var facts = new List<string>();
-        facts.Add(e.Duration > 0f ? $"Dura {e.Duration:0.##} s" : "Instantáneo");
-        if (e.Duration > 0f && e.Period > 0f) facts.Add($"cada {e.Period:0.##} s");
+        facts.Add(e.Infinite ? "Dura para siempre" : e.Duration > 0f ? $"Dura {e.Duration:0.##} s" : "Instantáneo");
+        if (e.HasDuration && e.Period > 0f) facts.Add($"cada {e.Period:0.##} s");
         if (e.StackingPolicy == GameplayEffect.EStackingType.Stack && e.MaxStacks > 0) facts.Add($"hasta {e.MaxStacks} acumulaciones");
-        else if (e.Duration > 0f) facts.Add(e.StackingPolicy == GameplayEffect.EStackingType.Stack ? "se acumula" :
+        else if (e.HasDuration) facts.Add(e.StackingPolicy == GameplayEffect.EStackingType.Stack ? "se acumula" :
                                             e.StackingPolicy == GameplayEffect.EStackingType.Refresh ? "se refresca" : "se reemplaza");
         if (e.CountsAsCrowdControl) facts.Add("es control");
+        if (e.HasDuration && e.RemoveOn != GameplayEffect.ERemoveOnEvent.Nothing) facts.Add("se va solo");
         if (e.KnockbackDistance > 0f) facts.Add($"desplaza {e.KnockbackDistance:0.##} m");
         if (e.ExecuteBelowHealth > 0f) facts.Add($"ejecuta al {e.ExecuteBelowHealth * 100f:0.#} % de vida");
 
@@ -63,7 +64,7 @@ public class GameplayEffectEditor : SectionedInspector
     protected override void CollectWarnings(List<string> into)
     {
         GameplayEffect e = Effect;
-        bool instant = e.Duration <= 0f;
+        bool instant = !e.HasDuration;
 
         // Un GE de cooldown no lleva duración propia (se la da la habilidad): no avisar ahí.
         bool looksLikeCooldown = e.GrantedTags != null && e.GrantedTags.Exists(t => t.ToString().Contains("Cooldown"));

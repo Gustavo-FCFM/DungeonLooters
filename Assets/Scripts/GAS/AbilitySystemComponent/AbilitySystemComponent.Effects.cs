@@ -58,7 +58,7 @@ public partial class AbilitySystemComponent
         if (!PassesApplicationTags(effect) || IsImmuneTo(effect)) return;
 
         // Limpiar / purgar / quitar por tag, y lo que ya tenía y ahora es inmune: lo quita al aplicarse.
-        RemoveOnApply(effect, durationOverride > 0f ? durationOverride : effect.Duration);
+        RemoveOnApply(effect, durationOverride > 0f ? durationOverride : effect.EffectiveDuration);
 
         // Repeler / atraer: pasa en el instante de aplicarse, aparte de lo que haga el
         // efecto con sus modificadores (ver TryApplyKnockback).
@@ -67,11 +67,11 @@ public partial class AbilitySystemComponent
         // Inmunidad a debuffs (Imparable del Pirata): mientras Status_Unstoppable esté
         // activo, los efectos marcados como Debuff CON DURACIÓN (CC, DoT) no entran. El
         // daño instantáneo (Duration 0) sí — no queremos hacerlo invulnerable, solo a CC.
-        if (effect.EffectType == GameplayEffect.EEffectType.Debuff && effect.Duration > 0 &&
+        if (effect.EffectType == GameplayEffect.EEffectType.Debuff && effect.HasDuration &&
             HasTag(EGameplayTag.Status_Unstoppable))
             return;
 
-        float finalDuration = (durationOverride > 0) ? durationOverride : effect.Duration;
+        float finalDuration = (durationOverride > 0) ? durationOverride : effect.EffectiveDuration;   // +∞ si es infinito
 
         // Resistencia al control: recorta (o alarga) lo que dura el CC que entra.
         // Si el objetivo lo resiste del todo, el efecto NO se aplica en absoluto.
@@ -112,8 +112,9 @@ public partial class AbilitySystemComponent
                 {
                     if (existing.Definition == effect)
                     {
-                        existing.DurationRemaining = finalDuration;
-                        existing.TotalDuration     = finalDuration;
+                        existing.SetDuration(finalDuration);
+                        existing.AppliedFrame    = Time.frameCount;
+                        existing.AppliedPosition = transform.position;
                         OnActiveEffectAddedCallback?.Invoke(effect, finalDuration);
                         return;
                     }
@@ -152,8 +153,9 @@ public partial class AbilitySystemComponent
                 foreach (var existing in ActiveEffects)
                 {
                     if (existing.Definition != effect) continue;
-                    existing.DurationRemaining = finalDuration;
-                    existing.TotalDuration     = finalDuration;
+                    existing.SetDuration(finalDuration);
+                    existing.AppliedFrame    = Time.frameCount;
+                    existing.AppliedPosition = transform.position;
                 }
 
                 // Tope normal (sin explosión): al llegar al máximo ya refrescamos
@@ -169,6 +171,8 @@ public partial class AbilitySystemComponent
 
             ActiveGameplayEffect newEffect = new ActiveGameplayEffect(effect, finalDuration, source);
             newEffect.SourceAbility = DamageContext;   // para el resumen de muerte: los ticks saben de qué habilidad son
+            newEffect.AppliedFrame    = Time.frameCount;      // "Se va solo": un evento de este frame no cuenta
+            newEffect.AppliedPosition = transform.position;   // "Al moverse": desde acá
             ActiveEffects.Add(newEffect);
             CountImmunities(effect, +1);
 
@@ -440,7 +444,11 @@ public partial class AbilitySystemComponent
     {
         if (ActiveEffects.Count == 0) return;
         _chainHold++;
-        try { ProcessActiveEffectsNow(deltaTime); }
+        try
+        {
+            RemoveEffectsOnEvent(GameplayEffect.ERemoveOnEvent.Move);   // "Se va solo: al moverse"
+            ProcessActiveEffectsNow(deltaTime);
+        }
         finally { EndChainHold(); }
     }
 

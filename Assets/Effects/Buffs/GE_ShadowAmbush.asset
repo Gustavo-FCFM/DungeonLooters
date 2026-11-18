@@ -13,11 +13,14 @@ MonoBehaviour:
   m_Name: GE_ShadowAmbush
   m_EditorClassIdentifier: 
   Duration: 9999
+  Infinite: 1
   Period: 0
   StackingPolicy: 1
   MaxStacks: 0
+  OnMaxStacksEffect: {fileID: 0}
   EffectGroup: 32
   Priority: 0
+  ReplacesGroup: 0
   Icon: {fileID: 21300000, guid: 8258f66acee6d2a4d95a66bbb3b616da, type: 3}
   EffectType: 0
   Modifiers:
@@ -30,4 +33,35 @@ MonoBehaviour:
     UseTargetHealthScaling: 0
     TargetHealthMode: 0
     TargetHealthCoefficient: 0
+    MinMagnitude: 0
+  IsCrowdControl: 0
+  KnockbackDistance: 0
+  KnockbackDirection: 0
+  KnockbackDuration: 0.3
+  KnockbackUpVelocity: 0
+  PullStopDistance: 1.5
+  ExecuteBelowHealth: 0
+  CritIfTargetHas: 0
+  TargetVFX: {fileID: 0}
+  TargetVFXOffset: {x: 0, y: 0, z: 0}
+  TargetVFXRotation: {x: 0, y: 0, z: 0}
+  TargetVFXScale: {x: 0, y: 0, z: 0}
+  TargetVFXLoop: 1
+  JumpVFX: {fileID: 0}
+  TargetSound:
+    Clips: []
+    Volume: 1
+    PitchVariance: 0.08
+    MaxDistance: 35
+  RemoveOnApply: 0
+  RemoveEffectsWithTags: 
+  MaxRemoved: 0
+  BlockedIfTargetHas: 
+  RequiresTargetTags: 
+  GrantsImmunityTo: 
+  CannotBeRemoved: 0
+  RemoveOn: 0
+  OnExpireEffects: []
+  OnRemovedEffects: []
   GrantedTags: 2000000021000000
+  HealShieldReturn: 1

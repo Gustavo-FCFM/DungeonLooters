@@ -466,4 +466,91 @@ public class GasDamagePipelineTests
         target.ApplyGameplayEffect(cleanseA, null);       // si no hay tope, esto no vuelve (o revienta la pila)
         Assert.Pass("la cadena se cortó");
     }
+
+    // =========================================================
+    // DURACIÓN INFINITA Y "SE VA SOLO"
+    // =========================================================
+
+    // En las pruebas no pasan frames: lo aplicado "en este frame" no se podría ir. Se lo corre a un frame anterior.
+    private static void AgeEffects(AbilitySystemComponent asc)
+    {
+        foreach (ActiveGameplayEffect a in asc.GetActiveEffects()) a.AppliedFrame = -1;
+    }
+
+    [Test]
+    public void Infinito_NoVenceNiMuestraTiempo_YSeQuita()
+    {
+        var target = Character(100f);
+        GameplayEffect forever = Effect("Para siempre", 0f, GameplayEffect.EEffectType.Buff, EGameplayTag.Status_Invisible);
+        forever.Infinite = true;
+        forever.OnExpireEffects = new List<GameplayEffect> { Hit(50f) };
+        target.ApplyGameplayEffect(forever, null);
+        Tick(target, 100000f);
+        Assert.IsTrue(target.HasTag(EGameplayTag.Status_Invisible), "no vence");
+        Assert.AreEqual(100f, Health(target), "su \"Al vencer\" no sale nunca");
+        ActiveGameplayEffect active = target.GetActiveEffects()[0];
+        Assert.IsTrue(active.IsInfinite);
+        Assert.AreEqual(0f, active.TotalDuration, "total 0 = sin reloj (la barra y la red)");
+        target.RemoveEffectsWithTag(EGameplayTag.Status_Invisible);
+        Assert.IsFalse(target.HasTag(EGameplayTag.Status_Invisible), "se quita como cualquiera");
+    }
+
+    [Test]
+    public void SeVaSolo_AlRecibirDaño_DeOtroYNoDeSiMismo()
+    {
+        var attacker = Character(100f);
+        var target = Character(100f);
+        GameplayEffect sleep = Effect("Dormido", 10f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_Stunned);
+        sleep.RemoveOn = GameplayEffect.ERemoveOnEvent.TakeDamage;
+        sleep.OnRemovedEffects = new List<GameplayEffect> { Hit(5f) };   // cuenta como "quitado antes"
+        target.ApplyGameplayEffect(sleep, attacker);
+        AgeEffects(target);
+
+        target.ApplyGameplayEffect(Hit(10f), target);   // de sí mismo: no
+        Assert.IsTrue(target.HasTag(EGameplayTag.State_Stunned));
+        target.ApplyGameplayEffect(Hit(10f), attacker); // de otro: se despierta, y encadena
+        Assert.IsFalse(target.HasTag(EGameplayTag.State_Stunned));
+        Assert.AreEqual(75f, Health(target), "10 propio + 10 del golpe + 5 del encadenado");
+    }
+
+    [Test]
+    public void SeVaSolo_ElGolpeQueLoPoneNoLoSaca()
+    {
+        var attacker = Character(100f);
+        var target = Character(100f);
+        GameplayEffect sleep = Effect("Dormido", 10f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_Stunned);
+        sleep.RemoveOn = GameplayEffect.ERemoveOnEvent.TakeDamage;
+        target.ApplyGameplayEffect(sleep, attacker);
+        target.ApplyGameplayEffect(Hit(10f), attacker);  // el mismo frame (el mismo golpe pega y duerme)
+        Assert.IsTrue(target.HasTag(EGameplayTag.State_Stunned));
+    }
+
+    [Test]
+    public void SeVaSolo_AlHacerDaño()
+    {
+        var attacker = Character(100f);
+        var victim = Character(100f);
+        GameplayEffect stealth = Effect("Sigilo", 10f, GameplayEffect.EEffectType.Buff, EGameplayTag.State_AlwaysVisible);
+        stealth.RemoveOn = GameplayEffect.ERemoveOnEvent.DealDamage;
+        attacker.ApplyGameplayEffect(stealth, attacker);
+        AgeEffects(attacker);
+        victim.ApplyGameplayEffect(Hit(10f), attacker);
+        Assert.IsFalse(attacker.HasTag(EGameplayTag.State_AlwaysVisible));
+    }
+
+    [Test]
+    public void SeVaSolo_AlMoverse_ConMargen()
+    {
+        var target = Character(100f);
+        GameplayEffect stance = Effect("Postura", 10f, GameplayEffect.EEffectType.Buff, EGameplayTag.State_Rooted);
+        stance.RemoveOn = GameplayEffect.ERemoveOnEvent.Move;
+        target.ApplyGameplayEffect(stance, target);
+        AgeEffects(target);
+        target.transform.position += new Vector3(0.3f, 0f, 0f);
+        Tick(target, 0.1f);
+        Assert.IsTrue(target.HasTag(EGameplayTag.State_Rooted), "0.3 m: dentro del margen");
+        target.transform.position += new Vector3(0.5f, 0f, 0f);
+        Tick(target, 0.1f);
+        Assert.IsFalse(target.HasTag(EGameplayTag.State_Rooted), "0.8 m: se movió");
+    }
 }

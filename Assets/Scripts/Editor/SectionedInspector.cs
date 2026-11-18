@@ -276,9 +276,17 @@ public abstract class SectionedInspector : Editor
 
         foreach (ShowIfAttribute c in conditions)
         {
-            SerializedProperty other = serializedObject.FindProperty(c.Field);
-            if (other == null) continue;
-            bool pass = Evaluate(other, c.Value);
+            // "A|B": basta con que se cumpla en UNO de los campos (GameplayEffect.HasDurationFields: duración > 0 o infinito).
+            bool any = false, found = false;
+            foreach (string field in c.Field.Split('|'))
+            {
+                SerializedProperty other = serializedObject.FindProperty(field);
+                if (other == null) continue;
+                found = true;
+                if (Evaluate(other, c.Value)) { any = true; break; }
+            }
+            if (!found) continue;
+            bool pass = any;
             if (c.Invert) pass = !pass;
             if (!pass) return false;
         }

@@ -106,7 +106,7 @@ public class TrainingDummy : MonoBehaviour
         GameplayEffect setup = ScriptableObject.CreateInstance<GameplayEffect>();
         setup.name = "Muñeco (inmortal)";
         setup.EffectType = GameplayEffect.EEffectType.Hidden;
-        setup.Duration = 1e9f;
+        setup.Infinite = true;
         setup.CannotBeRemoved = true;
         setup.GrantedTags = new List<EGameplayTag> { EGameplayTag.Status_Immortal };
         setup.Modifiers = new List<Modifier>();
@@ -253,7 +253,7 @@ public class TrainingDummy : MonoBehaviour
             foreach (var kv in groups)
             {
                 string color = kv.Key.EffectType == GameplayEffect.EEffectType.Buff ? "#7CFC8A" : "#FF7A7A";
-                sb.AppendLine($"<color={color}>{kv.Key.name}</color> {kv.Value.left:0.0} s" + (kv.Value.stacks > 1 ? $" ×{kv.Value.stacks}" : ""));
+                sb.AppendLine($"<color={color}>{kv.Key.name}</color> {(float.IsPositiveInfinity(kv.Value.left) ? "∞" : kv.Value.left.ToString("0.0") + " s")}" + (kv.Value.stacks > 1 ? $" ×{kv.Value.stacks}" : ""));
             }
             EffectsText.text = sb.ToString();
         }

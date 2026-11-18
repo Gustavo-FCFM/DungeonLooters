@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: GE_StanceDefensive
   m_EditorClassIdentifier: 
   Duration: 99999
+  Infinite: 1
   Period: 0
   StackingPolicy: 0
   MaxStacks: 0
@@ -34,14 +35,33 @@ MonoBehaviour:
     TargetHealthCoefficient: 0
     MinMagnitude: 0
   IsCrowdControl: 0
+  KnockbackDistance: 0
+  KnockbackDirection: 0
+  KnockbackDuration: 0.3
+  KnockbackUpVelocity: 0
+  PullStopDistance: 1.5
+  ExecuteBelowHealth: 0
+  CritIfTargetHas: 0
   TargetVFX: {fileID: 0}
   TargetVFXOffset: {x: 0, y: 0, z: 0}
   TargetVFXRotation: {x: 0, y: 0, z: 0}
   TargetVFXScale: {x: 0, y: 0, z: 0}
   TargetVFXLoop: 1
+  JumpVFX: {fileID: 0}
   TargetSound:
     Clips: []
     Volume: 1
     PitchVariance: 0.08
     MaxDistance: 35
+  RemoveOnApply: 0
+  RemoveEffectsWithTags: 
+  MaxRemoved: 0
+  BlockedIfTargetHas: 
+  RequiresTargetTags: 
+  GrantsImmunityTo: 
+  CannotBeRemoved: 0
+  RemoveOn: 0
+  OnExpireEffects: []
+  OnRemovedEffects: []
   GrantedTags: 37000000
+  HealShieldReturn: 1

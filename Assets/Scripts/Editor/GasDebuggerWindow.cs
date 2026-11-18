@@ -229,11 +229,12 @@ public class GasDebuggerWindow : EditorWindow
             if (first.TotalDuration > 0f)
                 EditorGUI.ProgressBar(r, Mathf.Clamp01(first.DurationRemaining / first.TotalDuration), $"{first.DurationRemaining:0.0} / {first.TotalDuration:0.0} s");
             else
-                EditorGUI.LabelField(r, "sin duración (hasta que se quite)");
+                EditorGUI.LabelField(r, first.IsInfinite ? "para siempre (hasta que lo quiten)" : "sin duración (hasta que se quite)");
             string details = "";
             if (ge.Period > 0f) details += $"tick cada {ge.Period:0.##} s (próximo en {first.PeriodRemaining:0.0})   ";
             if (!string.IsNullOrEmpty(source)) details += $"de {source}   ";
-            if (!string.IsNullOrEmpty(ability)) details += $"con {ability}";
+            if (!string.IsNullOrEmpty(ability)) details += $"con {ability}   ";
+            if (ge.RemoveOn != GameplayEffect.ERemoveOnEvent.Nothing) details += $"se va solo: {ge.RemoveOn}";
             if (details.Length > 0) EditorGUILayout.LabelField(details, EditorStyles.miniLabel);
         }
     }

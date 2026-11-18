@@ -39,6 +39,18 @@ public class GameplayEffect : ScriptableObject
         [InspectorName("Buffs y debuffs")]                Both    = 3,
     }
 
+    // Lo que hace que un efecto con duración se vaya SOLO (ver "Se va solo", en "Quitar efectos e inmunidad").
+    // Se pueden marcar varios. Solo se amplía al final (se guarda como número).
+    [System.Flags]
+    public enum ERemoveOnEvent
+    {
+        [InspectorName("Nunca")]                    Nothing    = 0,
+        [InspectorName("Al recibir daño")]          TakeDamage = 1,
+        [InspectorName("Al hacer daño")]            DealDamage = 2,
+        [InspectorName("Al moverse")]               Move       = 4,
+        [InspectorName("Al usar una habilidad")]    UseAbility = 8,
+    }
+
     // Si es Buff/Debuff/Hidden — controla si aparece en la barra de
     // efectos activos y de qué color (ver UI_EffectSlot).
     public enum EEffectType
@@ -52,14 +64,47 @@ public class GameplayEffect : ScriptableObject
     // curación). Si es mayor a 0, queda activo ese tiempo (buffs,
     // debuffs, cooldowns).
     [Section(EffectSection.Duration)]
+    [ShowIf(nameof(Infinite), false)]
     [Tooltip("0 = instantáneo (daño, curación: se aplica y listo). > 0 = dura esos segundos " +
              "(buffs, debuffs, cooldowns).")]
     [Label("Duración (s, 0 = instantáneo)")]
     public float Duration = 0f;
 
+    // DURACIÓN INFINITA (18 de noviembre de 2026, de las "Mejoras del GAS"). Antes se fingía con un número grande
+    // (9999 s), que se veía como un reloj que nunca bajaba. Un infinito no vence ni muestra tiempo; se va como
+    // cualquiera: lo quitan (una habilidad, una limpieza, "Se va solo"), morir (si es buff o debuff) o cambiar de clase.
+    [Tooltip("No vence nunca y no muestra tiempo: dura hasta que lo quiten (una habilidad, una limpieza, \"Se va solo\"), " +
+             "hasta morir (si es buff o debuff) o hasta cambiar de clase. Para una pasiva, un estado del modo de juego, " +
+             "lo que dura mientras estás en una zona...")]
+    [Label("Dura para siempre (hasta que lo quiten)")]
+    public bool Infinite = false;
+
+    // DE AURA (18 de noviembre de 2026): un efecto que un aura o una zona re-aplica cada pocos décimos (dura ~1 s y
+    // se refresca mientras estás dentro, y se cae solo al salir). La lógica no cambia; solo que la barra de buffs no
+    // dibuja un reloj que se llena y se vacía sin parar, y la red no reenvía cada refresco (ver
+    // NetworkAbilitySystemComponent.SyncActiveEffect).
+    [ShowIf(nameof(Duration), ShowIfAttribute.Positive)]
+    [Tooltip("Para lo que un aura o una zona renueva todo el tiempo (las auras del Paladín, la voz del Comandante, una " +
+             "trampa que ralentiza mientras la pisas): sigue durando lo mismo y cayéndose solo al salir, pero en la barra " +
+             "se ve sin reloj y los refrescos no se mandan por la red.")]
+    [Label("Es de aura: no mostrar tiempo")]
+    public bool ShowsNoTime = false;
+
+    // Sin reloj en la barra: los infinitos y los de aura.
+    public bool HidesTime => Infinite || ShowsNoTime;
+
+    // ¿Es un efecto CON duración (finita o infinita)? Lo que antes preguntaba "Duration > 0" pregunta esto.
+    public bool HasDuration => Infinite || Duration > 0f;
+
+    // La duración a aplicar: la del asset, o infinita.
+    public float EffectiveDuration => Infinite ? float.PositiveInfinity : Duration;
+
+    // Para [ShowIf]: "tiene duración" = Duration > 0 O Infinite (la barra es "o", ver SectionedInspector).
+    public const string HasDurationFields = nameof(Duration) + "|" + nameof(Infinite);
+
     // Si es mayor a 0, mientras el efecto está activo se re-ejecuta cada
     // tantos segundos (ej: veneno que daña cada 2s).
-    [ShowIf(nameof(Duration), ShowIfAttribute.Positive)]
+    [ShowIf(HasDurationFields, ShowIfAttribute.Positive)]
     [Tooltip("Cada cuántos segundos se vuelve a aplicar mientras dura (un veneno que daña cada " +
              "2 s). 0 = no es periódico.")]
     [Label("Período (s)")]
@@ -325,6 +370,21 @@ public class GameplayEffect : ScriptableObject
     [Label("No se puede quitar")]
     public bool CannotBeRemoved = false;
 
+    // "SE VA SOLO" (18 de noviembre de 2026): un sigilo que se rompe al atacar, un sueño que se rompe al recibir daño,
+    // una postura que se pierde al moverse. Cuenta como "quitado antes" (dispara sus "Si se lo quitan antes"). Un evento
+    // del MISMO frame en que se aplicó no cuenta (el golpe que duerme no lo despierta). Lo resuelve
+    // AbilitySystemComponent.RemoveEffectsOnEvent; "No se puede quitar" no lo frena (es del propio efecto).
+    [Section(EffectSection.Cleanse)]
+    [ShowIf(HasDurationFields, ShowIfAttribute.Positive)]
+    [Tooltip("Se quita solo cuando a quien lo tiene le pasa algo de esto (se pueden marcar varios):\n" +
+             "· Al recibir daño: de cualquiera menos de sí mismo, también de un veneno o una zona.\n" +
+             "· Al hacer daño: cuando le baja vida o escudo a otro (también con sus venenos).\n" +
+             "· Al moverse: si se aleja más de medio metro de donde lo recibió (caminar, saltar, que lo empujen).\n" +
+             "· Al usar una habilidad: cualquiera que de verdad salga.\n" +
+             "Cuenta como \"quitado antes\": dispara sus \"Si se lo quitan antes\".")]
+    [Label("Se va solo")]
+    public ERemoveOnEvent RemoveOn = ERemoveOnEvent.Nothing;
+
     // =========================================================
     // ENCADENADOS (18 de noviembre de 2026, de las "Mejoras del GAS")
     // =========================================================
@@ -337,14 +397,14 @@ public class GameplayEffect : ScriptableObject
     // morir, revivir o cambiar de clase, ni un muerto. Lo resuelve AbilitySystemComponent.RemoveActiveEffect.
 
     [Section(EffectSection.Chain, startCollapsed: true)]
-    [ShowIf(nameof(Duration), ShowIfAttribute.Positive)]
+    [ShowIf(HasDurationFields, ShowIfAttribute.Positive)]
     [Tooltip("Cuando se le acaba el tiempo, se le aplican estos efectos a quien lo tenía (firmados por quien se lo " +
              "puso). Solo al vencer: si se lo quitan antes, no.")]
     [Label("Al vencer, aplica")]
     public List<GameplayEffect> OnExpireEffects = new List<GameplayEffect>();
 
     [Section(EffectSection.Chain)]
-    [ShowIf(nameof(Duration), ShowIfAttribute.Positive)]
+    [ShowIf(HasDurationFields, ShowIfAttribute.Positive)]
     [Tooltip("Si se lo quitan ANTES de que venza (una limpieza, una purga, una inmunidad, o una habilidad que lo quita " +
              "o lo consume), se le aplican estos efectos a quien lo tenía (firmados por quien se lo puso). Volver a " +
              "aplicarlo, morir o cambiar de clase no cuentan.")]

@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: GE_TrapSpikesSlow
   m_EditorClassIdentifier: 
   Duration: 1.2
+  Infinite: 0
+  ShowsNoTime: 1
   Period: 0
   StackingPolicy: 0
   MaxStacks: 0
@@ -52,4 +54,15 @@ MonoBehaviour:
     Volume: 1
     PitchVariance: 0.08
     MaxDistance: 35
+  RemoveOnApply: 0
+  RemoveEffectsWithTags: 
+  MaxRemoved: 0
+  BlockedIfTargetHas: 
+  RequiresTargetTags: 
+  GrantsImmunityTo: 
+  CannotBeRemoved: 0
+  RemoveOn: 0
+  OnExpireEffects: []
+  OnRemovedEffects: []
   GrantedTags: 
+  HealShieldReturn: 1

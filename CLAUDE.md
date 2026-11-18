@@ -364,6 +364,11 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   `RemoveActiveEffect` recibe POR QUÉ se va (`EEffectEnd`): un código nuevo que quite efectos dice si es "quitado"
   (encadena), "reemplazado" o "limpieza de morir/cambiar de clase" (no encadenan); y si recorre `ActiveEffects`, sube
   `_chainHold` mientras recorre (los encadenados esperan a que termine).
+  **Lo que dura "para siempre" se marca, no se finge** (desde el 18 de noviembre de 2026): casilla "Dura para siempre" (nada
+  de 9999 s), y lo que un aura renueva cada medio segundo lleva "Es de aura: no mostrar tiempo". Para saber si un efecto
+  tiene duración se pregunta `HasDuration` (no `Duration > 0`) y la duración a aplicar es `EffectiveDuration` (+∞ si es
+  infinito; el efecto activo queda con `TotalDuration` 0 = "sin reloj"). Lo que se va solo con un evento va en "Se va
+  solo" (`RemoveOn`), no en código de pasiva.
 
 - **Los efectos de una habilidad van en su lista `Effects`** (desde el 7 de octubre de
   2026): cada entrada dice cuándo (al golpear, al primer golpe, al activarse, al matar),

@@ -107,7 +107,7 @@ public class GasValidatorWindow : EditorWindow
         var grantedByAnyone = new HashSet<EGameplayTag>(effects.Where(e => e.GrantedTags != null).SelectMany(e => e.GrantedTags));
         foreach (GameplayEffect ge in effects)
         {
-            if (ge.Period > 0f && ge.Duration <= 0f)
+            if (ge.Period > 0f && !ge.HasDuration)
                 Add(ESeverity.Error, "Efecto con ticks pero sin duración (nunca tickea)", $"{ge.name}: cada {ge.Period} s, duración {ge.Duration}", ge);
 
             if (ge.Modifiers != null)
@@ -131,20 +131,27 @@ public class GasValidatorWindow : EditorWindow
             foreach (EGameplayTag tag in (ge.RemoveEffectsWithTags ?? new List<EGameplayTag>()).Concat(ge.GrantsImmunityTo ?? new List<EGameplayTag>()))
                 if (tag != EGameplayTag.None && !grantedByAnyone.Contains(tag))
                     Add(ESeverity.Warning, "Quita o da inmunidad a un tag que ningún efecto da (no hace nada)", $"{ge.name}: {tag}", ge);
-            if (ge.GrantsImmunityTo != null && ge.GrantsImmunityTo.Count > 0 && ge.Duration <= 0f)
+            if (ge.GrantsImmunityTo != null && ge.GrantsImmunityTo.Count > 0 && !ge.HasDuration)
                 Add(ESeverity.Warning, "Da inmunidad pero es instantáneo (la inmunidad no dura)", ge.name, ge);
 
             // Encadenados ("Al terminar"): solo tienen sentido con duración; una entrada vacía no hace nada; uno que se
             // vuelve a poner a sí mismo al vencer no termina nunca (puede ser a propósito: un aura que se renueva).
             int chains = (ge.OnExpireEffects?.Count ?? 0) + (ge.OnRemovedEffects?.Count ?? 0);
-            if (chains > 0 && ge.Duration <= 0f)
+            if (chains > 0 && !ge.HasDuration)
                 Add(ESeverity.Warning, "Tiene encadenados pero es instantáneo (nunca vence ni se quita: no salen)", ge.name, ge);
             foreach (GameplayEffect next in (ge.OnExpireEffects ?? new List<GameplayEffect>()).Concat(ge.OnRemovedEffects ?? new List<GameplayEffect>()))
                 if (next == null) { Add(ESeverity.Warning, "Entrada vacía en \"Al vencer\" / \"Si se lo quitan antes\"", ge.name, ge); break; }
+            if (ge.RemoveOn != GameplayEffect.ERemoveOnEvent.Nothing && !ge.HasDuration)
+                Add(ESeverity.Warning, "\"Se va solo\" en un efecto instantáneo (no queda nada que quitar)", ge.name, ge);
+            if (ge.Infinite && ge.OnExpireEffects != null && ge.OnExpireEffects.Count > 0)
+                Add(ESeverity.Warning, "Es infinito: su \"Al vencer\" no sale nunca", ge.name, ge);
+            // Los que fingen ser infinitos con un número enorme (antes del 18 de noviembre de 2026 no había casilla).
+            if (!ge.Infinite && ge.Duration >= 900f)
+                Add(ESeverity.Suggestion, "Dura 15 minutos o más: ¿es \"Dura para siempre\"?", $"{ge.name}: {ge.Duration:0} s", ge);
             if (ge.OnExpireEffects != null && ge.OnExpireEffects.Contains(ge))
                 Add(ESeverity.Suggestion, "Al vencer se vuelve a poner a sí mismo: no termina nunca (¿a propósito?)", ge.name, ge);
 
-            bool visible = ge.EffectType != GameplayEffect.EEffectType.Hidden && ge.Duration > 0f;
+            bool visible = ge.EffectType != GameplayEffect.EEffectType.Hidden && ge.HasDuration;
             if (visible && ge.Icon == null)
                 Add(ESeverity.Warning, "Buff o debuff visible sin ícono (sale un cuadro vacío en la barra)", ge.name, ge);
         }

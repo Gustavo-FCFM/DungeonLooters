@@ -1,3 +1,5 @@
+using UnityEngine;
+
 // ============================================================
 // ActiveGameplayEffect
 //
@@ -50,6 +52,15 @@ public class ActiveGameplayEffect
     // saber cuáles efectos limpiar en su barrido de cada frame.
     public bool IsExpired => DurationRemaining <= 0;
 
+    // Infinito ("Dura para siempre"): DurationRemaining es +∞ (nunca baja ni vence) y TotalDuration es 0, que para la
+    // barra de buffs y la red significa "sin tiempo" (no se dibuja el reloj).
+    public bool IsInfinite => float.IsPositiveInfinity(DurationRemaining);
+
+    // "Se va solo": en qué frame entró (un evento de ese mismo frame no cuenta) y dónde estaba quien lo recibió (para
+    // "Al moverse"). Volver a aplicarlo (refrescar) los renueva.
+    public int AppliedFrame;
+    public Vector3 AppliedPosition;
+
     // Arranca el cronómetro de una nueva aplicación del efecto.
     // durationOverride > 0 pisa la duración del asset (lo usan los
     // cooldowns dinámicos, ej. basados en velocidad de ataque).
@@ -57,18 +68,14 @@ public class ActiveGameplayEffect
     {
         Definition = definition;
         Source     = source;
-
-        if (durationOverride > 0)
-        {
-            DurationRemaining = durationOverride;
-            TotalDuration = durationOverride;
-        }
-        else
-        {
-            DurationRemaining = definition.Duration;
-            TotalDuration = definition.Duration;
-        }
-
+        SetDuration(durationOverride > 0 ? durationOverride : definition.EffectiveDuration);
         PeriodRemaining = definition.Period;
+    }
+
+    // Pone el reloj (al aplicarse, o al refrescarlo). Con +∞ queda infinito.
+    public void SetDuration(float duration)
+    {
+        DurationRemaining = duration;
+        TotalDuration     = float.IsPositiveInfinity(duration) ? 0f : duration;
     }
 }

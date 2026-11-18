@@ -192,6 +192,36 @@ public partial class AbilitySystemComponent
         }
     }
 
+    // =========================================================
+    // "SE VA SOLO" (GameplayEffect.RemoveOn, 18 de noviembre de 2026)
+    // =========================================================
+
+    // Cuánto se puede alejar de donde recibió el efecto antes de que cuente como "se movió" (m). Con algo de margen: el
+    // transform de un jugador llega por red y tiembla un poco aunque esté quieto.
+    private const float MoveTolerance = 0.5f;
+
+    // Le pasó 'what' a este personaje: se van los efectos que lo piden. Cuenta como "quitado antes" (encadena). Lo llaman
+    // el camino del daño (recibir / hacer daño), CommitAbility (usar una habilidad) y el paso de cada frame (moverse).
+    public void RemoveEffectsOnEvent(GameplayEffect.ERemoveOnEvent what)
+    {
+        if (ActiveEffects.Count == 0) return;
+        _chainHold++;
+        try
+        {
+            for (int i = ActiveEffects.Count - 1; i >= 0; i--)
+            {
+                if (i >= ActiveEffects.Count) continue;
+                ActiveGameplayEffect active = ActiveEffects[i];
+                if ((active.Definition.RemoveOn & what) == 0) continue;
+                if (active.AppliedFrame == Time.frameCount) continue;   // lo que lo puso en este mismo frame no lo saca
+                if (what == GameplayEffect.ERemoveOnEvent.Move &&
+                    (transform.position - active.AppliedPosition).sqrMagnitude <= MoveTolerance * MoveTolerance) continue;
+                RemoveActiveEffect(active);
+            }
+        }
+        finally { EndChainHold(); }
+    }
+
     // Quita TODOS los efectos activos de una (ej: al cambiar de clase). No encadena.
     public void RemoveAllActiveEffects()
     {

@@ -159,4 +159,16 @@ public enum EGameplayTag
     Status_MaximumProtection,  // La Protección máxima del Abjurador está activa (GE_MaximumProtection, 8 s): proyecta a todos los aliados a 25 m. Ver ArcaneProtectionPassive
     Status_MagicBlade,         // La Espada mágica del Filo danzante (GE_MagicBlade, 8 s): sus cortes hacen daño mágico (el "Daño mágico con el tag" de GA_ConeAttack / GA_Dash)
     Status_DefensiveDance,     // UNA por cada 3 % de la Danza defensiva del Filo danzante (GE_DefensiveDance; las pone y saca DefensiveDancePassive)
+
+    // --- GRUPOS (18 de noviembre de 2026, tags jerárquicos). Nadie los DA: HasTag(grupo) = tiene alguno de sus hijos, y
+    // quitar / inmunizar / exigir por un grupo vale para todos sus hijos. Quién es hijo de quién: GameplayTagTree. ---
+    Group_Control,             // todo lo que limita: el Control duro + desarme, lentitud y ceguera
+    Group_HardControl,         // el control DURO (hijo de Group_Control): aturdido, enraizado, silencio. Es el que recorta la Resistencia al control
+    Group_DamageOverTime,      // daño con el tiempo: veneno, quemadura, heridas
+    Group_Stance,              // las posturas (defensiva, ofensiva)
+    Group_Spell,               // el hechizo elegido del Mago (fuego, hielo, tierra, rayo)
+    Group_Companion,           // el compañero activo del Señor de las bestias (lobo, oso, búho)
+    Group_TotemBuff,           // los buffs de los tótems del Chamán (oso, lobo, águila, tigre)
+    Group_Aura,                // las auras del Paladín (protección, devoción, venganza, conquista)
+    Group_Cooldown,            // todos los cooldowns (de habilidades, de tótems, de compañeros)
 }

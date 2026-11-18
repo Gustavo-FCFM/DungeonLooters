@@ -37,8 +37,13 @@ public partial class AbilitySystemComponent
     private bool IsImmuneTo(GameplayEffect effect)
     {
         if (_immunities.Count == 0 || effect.CannotBeRemoved || effect.GrantedTags == null) return false;
+        // El tag y sus grupos (inmune a Group_DamageOverTime = inmune al veneno): se sube por el árbol de tags.
         foreach (EGameplayTag tag in effect.GrantedTags)
-            if (_immunities.TryGetValue(tag, out int n) && n > 0) return true;
+        {
+            EGameplayTag t = tag;
+            for (int guard = 0; guard < 16 && t != EGameplayTag.None; guard++, t = GameplayTagTree.ParentOf(t))
+                if (_immunities.TryGetValue(t, out int n) && n > 0) return true;
+        }
         return false;
     }
 
@@ -91,7 +96,7 @@ public partial class AbilitySystemComponent
     {
         if (effect.GrantedTags == null) return false;
         foreach (EGameplayTag tag in tags)
-            if (tag != EGameplayTag.None && effect.GrantedTags.Contains(tag)) return true;
+            if (GameplayTagTree.AnyMatches(effect.GrantedTags, tag)) return true;   // un grupo vale por sus hijos
         return false;
     }
 
@@ -128,7 +133,7 @@ public partial class AbilitySystemComponent
         try
         {
             for (int i = ActiveEffects.Count - 1; i >= 0; i--)
-                if (ActiveEffects[i].Definition.GrantedTags.Contains(tag))
+                if (GameplayTagTree.AnyMatches(ActiveEffects[i].Definition.GrantedTags, tag))
                     RemoveActiveEffect(ActiveEffects[i]);
         }
         finally { EndHold(); }
@@ -151,7 +156,7 @@ public partial class AbilitySystemComponent
 
         foreach (var active in ActiveEffects)
         {
-            if (!active.Definition.GrantedTags.Contains(tag)) continue;
+            if (!GameplayTagTree.AnyMatches(active.Definition.GrantedTags, tag)) continue;
             if (oldest == null || active.DurationRemaining < oldest.DurationRemaining)
                 oldest = active;
         }

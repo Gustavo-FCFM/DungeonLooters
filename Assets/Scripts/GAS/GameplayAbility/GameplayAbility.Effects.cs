@@ -130,7 +130,7 @@ public abstract partial class GameplayAbility
             if (e.Effect == null || e.Effect.GrantedTags == null) continue;
             if (when.HasValue && e.When != when.Value) continue;
             if (applyTo.HasValue && e.ApplyTo != applyTo.Value) continue;
-            if (e.Effect.GrantedTags.Contains(tag)) return true;
+            if (GameplayTagTree.AnyMatches(e.Effect.GrantedTags, tag)) return true;
         }
         return false;
     }

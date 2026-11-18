@@ -407,7 +407,11 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
 - [-] **Niveles con curvas** en habilidades y efectos (un mismo GE con 10/15/20 de daño según el nivel). POSPUESTO (18 de
       noviembre, decisión de Gustavo): con 3 niveles, subclase en el 3 y el daño que ya crece con el Ataque, vale poco
       acá. Sirve para la jam o un juego con más niveles (duraciones, radios, cooldowns y daños fijos por nivel).
-- [ ] **Tags jerárquicos** (`Status.CC.Stun` cuenta como `Status.CC`): con 96 tags planos se pregunta uno por uno.
+- [x] **Tags jerárquicos** (18 de noviembre; `GAS/GameplayTagTree.cs`): grupos al final del enum (Control ⊃ Control duro,
+      Daño con el tiempo, Posturas, Hechizo, Compañero, Buffs de tótem, Auras, Cooldowns) y una tabla hijo → padre. Valen en
+      HasTag/GetTagCount, los bloqueos y condiciones, quitar por tag, la inmunidad, ReduceCooldownByTag y AnyEffectGrants.
+      Nadie da un grupo (el validador lo avisa). La resistencia al control sigue recortando solo el control duro (los tres
+      de siempre). 3 pruebas nuevas (46).
 - [x] **Eventos de juego con datos** (18 de noviembre; `GAS/GameplayEvents.cs` y `AbilitySystemComponent.Events`): al hacer
       y recibir daño, crítico hecho y recibido, por la espalda, al bloquear, al matar, al curar y recibir curación, al
       usar una habilidad; con quién, cuánto y con qué habilidad. Por código: `OnGameplayEvent`. Sin código: la sección

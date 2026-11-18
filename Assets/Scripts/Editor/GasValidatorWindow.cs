@@ -129,8 +129,14 @@ public class GasValidatorWindow : EditorWindow
 
             // Quitar e inmunidad: un tag que ningún efecto da no quita ni bloquea nada; una inmunidad sin duración no dura.
             foreach (EGameplayTag tag in (ge.RemoveEffectsWithTags ?? new List<EGameplayTag>()).Concat(ge.GrantsImmunityTo ?? new List<EGameplayTag>()))
-                if (tag != EGameplayTag.None && !grantedByAnyone.Contains(tag))
+                if (tag != EGameplayTag.None && !grantedByAnyone.Contains(tag) &&
+                    !GameplayTagTree.DescendantsOf(tag).Any(grantedByAnyone.Contains))   // un grupo vale si alguno da un hijo
                     Add(ESeverity.Warning, "Quita o da inmunidad a un tag que ningún efecto da (no hace nada)", $"{ge.name}: {tag}", ge);
+            // Los grupos (Group_*) no se DAN: se pregunta por ellos (ver GameplayTagTree).
+            if (ge.GrantedTags != null)
+                foreach (EGameplayTag tag in ge.GrantedTags)
+                    if (GameplayTagTree.IsGroup(tag))
+                        Add(ESeverity.Warning, "Da un tag de grupo (Group_*): los grupos no se dan, se pregunta por ellos", $"{ge.name}: {tag}", ge);
             if (ge.GrantsImmunityTo != null && ge.GrantsImmunityTo.Count > 0 && !ge.HasDuration)
                 Add(ESeverity.Warning, "Da inmunidad pero es instantáneo (la inmunidad no dura)", ge.name, ge);
 

@@ -245,12 +245,28 @@ public partial class AbilitySystemComponent : MonoBehaviour
     // TAGS DE ESTADO
     // =========================================================
 
-    // Consulta si el personaje tiene un tag activo ahora mismo (conteo > 0).
-    public bool HasTag(EGameplayTag tag) => GameplayTags.ContainsKey(tag);
+    // Consulta si el personaje tiene un tag activo ahora mismo (conteo > 0). Un GRUPO (Group_*, ver GameplayTagTree):
+    // si tiene cualquiera de sus hijos.
+    public bool HasTag(EGameplayTag tag)
+    {
+        if (GameplayTags.ContainsKey(tag)) return true;
+        if (!GameplayTagTree.IsGroup(tag)) return false;
+        foreach (EGameplayTag child in GameplayTagTree.DescendantsOf(tag))
+            if (GameplayTags.ContainsKey(child)) return true;
+        return false;
+    }
 
     // Cuántas fuentes están otorgando este tag (0 si no lo tiene). Sirve, por
     // ejemplo, para saber cuántas Heridas apiladas hay.
-    public int GetTagCount(EGameplayTag tag) => GameplayTags.TryGetValue(tag, out int count) ? count : 0;
+    // Un grupo cuenta los de todos sus hijos.
+    public int GetTagCount(EGameplayTag tag)
+    {
+        int count = GameplayTags.TryGetValue(tag, out int own) ? own : 0;
+        if (GameplayTagTree.IsGroup(tag))
+            foreach (EGameplayTag child in GameplayTagTree.DescendantsOf(tag))
+                if (GameplayTags.TryGetValue(child, out int c)) count += c;
+        return count;
+    }
 
     // Los tags que tiene ahora (para diagnósticos: el registro del desatascarse).
     public IEnumerable<EGameplayTag> ActiveTags => GameplayTags.Keys;

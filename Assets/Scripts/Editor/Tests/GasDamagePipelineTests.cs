@@ -770,6 +770,58 @@ public class GasDamagePipelineTests
         }
     }
 
+    // =========================================================
+    // TAGS JERÁRQUICOS (GameplayTagTree)
+    // =========================================================
+
+    [Test]
+    public void Grupo_TieneSiTieneUnHijo_ADosNiveles()
+    {
+        var target = Character(100f);
+        Assert.IsFalse(target.HasTag(EGameplayTag.Group_Control));
+        GiveTag(target, EGameplayTag.State_Stunned);
+        Assert.IsTrue(target.HasTag(EGameplayTag.Group_HardControl), "aturdido está en el control duro");
+        Assert.IsTrue(target.HasTag(EGameplayTag.Group_Control), "y el control duro está en el control");
+        Assert.IsFalse(target.HasTag(EGameplayTag.Group_DamageOverTime));
+        GiveTag(target, EGameplayTag.Status_Slow);
+        Assert.AreEqual(2, target.GetTagCount(EGameplayTag.Group_Control), "cuenta los de todos sus hijos");
+        Assert.AreEqual(1, target.GetTagCount(EGameplayTag.Group_HardControl), "la lentitud no es control duro");
+    }
+
+    [Test]
+    public void Grupo_InmunidadYQuitarPorGrupo()
+    {
+        var target = Character(100f);
+        GameplayEffect poison = Effect("Veneno", 10f, GameplayEffect.EEffectType.Debuff, EGameplayTag.Status_Poison);
+        GameplayEffect immune = Effect("Antídoto", 10f, GameplayEffect.EEffectType.Buff);
+        immune.GrantsImmunityTo = new List<EGameplayTag> { EGameplayTag.Group_DamageOverTime };
+        target.ApplyGameplayEffect(immune, null);
+        target.ApplyGameplayEffect(poison, null);
+        Assert.IsFalse(target.HasTag(EGameplayTag.Status_Poison), "inmune al grupo = inmune al veneno");
+
+        var other = Character(100f);
+        other.ApplyGameplayEffect(Effect("Aturdido", 10f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_Stunned), null);
+        other.ApplyGameplayEffect(Effect("Lento", 10f, GameplayEffect.EEffectType.Debuff, EGameplayTag.Status_Slow), null);
+        other.ApplyGameplayEffect(Effect("Veneno", 10f, GameplayEffect.EEffectType.Debuff, EGameplayTag.Status_Poison), null);
+        other.RemoveEffectsWithTag(EGameplayTag.Group_Control);
+        Assert.IsFalse(other.HasTag(EGameplayTag.State_Stunned) || other.HasTag(EGameplayTag.Status_Slow), "quitar el grupo quita los hijos");
+        Assert.IsTrue(other.HasTag(EGameplayTag.Status_Poison), "y no lo que no es del grupo");
+
+        other.ApplyGameplayEffect(Effect("Enraizado", 10f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_Rooted), null);
+        other.RemoveEffectsWithTag(EGameplayTag.State_Stunned);
+        Assert.IsTrue(other.HasTag(EGameplayTag.State_Rooted), "una hoja solo se quita a sí misma");
+    }
+
+    [Test]
+    public void Grupo_LaResistenciaAlControlSigueIgual()
+    {
+        // La resistencia recorta solo el control DURO (los tres de siempre): la lentitud y el desarme, no.
+        Assert.IsTrue(Effect("A", 2f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_Stunned).CountsAsCrowdControl);
+        Assert.IsTrue(Effect("B", 2f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_Silenced).CountsAsCrowdControl);
+        Assert.IsFalse(Effect("C", 2f, GameplayEffect.EEffectType.Debuff, EGameplayTag.Status_Slow).CountsAsCrowdControl);
+        Assert.IsFalse(Effect("D", 2f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_Disarmed).CountsAsCrowdControl);
+    }
+
     [Test]
     public void Evento_LlegaPorCodigoConSusDatos()
     {

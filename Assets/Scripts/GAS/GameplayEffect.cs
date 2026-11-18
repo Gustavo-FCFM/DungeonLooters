@@ -196,15 +196,10 @@ public class GameplayEffect : ScriptableObject
         }
     }
 
-    // Tags de control "duros" del core: un efecto que otorgue cualquiera de estos cuenta
-    // como CC aunque no tenga la casilla marcada. Existe para que los GEs que YA estaban
-    // (GE_Stun y compañía) obedezcan la resistencia sin tener que editarlos uno por uno.
-    private static readonly EGameplayTag[] CoreControlTags =
-    {
-        EGameplayTag.State_Stunned,
-        EGameplayTag.State_Rooted,
-        EGameplayTag.State_Silenced,
-    };
+    // Tags de control "duros" del core (Group_HardControl en GameplayTagTree: aturdido, enraizado, silencio): un efecto
+    // que otorgue cualquiera de estos cuenta como CC aunque no tenga la casilla marcada. Existe para que los GEs que YA
+    // estaban (GE_Stun y compañía) obedezcan la resistencia sin tener que editarlos uno por uno. Desde el 18 de noviembre
+    // de 2026 es el grupo del árbol de tags (antes, una lista aparte con los mismos tres).
 
     // True si a este efecto le corresponde que la Resistencia al control le toque la
     // duración. Lo consulta AbilitySystemComponent.ApplyGameplayEffect.
@@ -220,8 +215,7 @@ public class GameplayEffect : ScriptableObject
             if (EffectType == EEffectType.Buff) return false;
 
             foreach (EGameplayTag granted in GrantedTags)
-                foreach (EGameplayTag control in CoreControlTags)
-                    if (granted == control) return true;
+                if (GameplayTagTree.Matches(granted, EGameplayTag.Group_HardControl)) return true;
 
             return false;
         }

@@ -72,7 +72,7 @@ public partial class AbilitySystemComponent
     public void ReduceCooldownByTag(EGameplayTag tag, float amount)
     {
         foreach (var e in ActiveEffects)
-            if (e.Definition.GrantedTags.Contains(tag) && !e.IsExpired)
+            if (GameplayTagTree.AnyMatches(e.Definition.GrantedTags, tag) && !e.IsExpired)   // Group_Cooldown: todos
                 e.DurationRemaining = Mathf.Max(0, e.DurationRemaining - amount);
     }
 

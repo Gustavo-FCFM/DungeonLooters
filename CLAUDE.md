@@ -153,6 +153,10 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
 - **Los enums se amplían SOLO al final.** `EGameplayTag` y `EAttributeType` se serializan
   por número en los `.asset`; insertar un valor en el medio corre los índices y rompe
   todas las referencias ya guardadas.
+  **Los tags tienen GRUPOS** (desde el 18 de noviembre de 2026, `GameplayTagTree`): los `Group_*` del final del enum no se
+  dan, se pregunta por ellos ("¿tiene algún control?", "inmune a todo daño con el tiempo"). Un tag nuevo que sea de un
+  grupo va con su línea en la tabla hijo → padre; lo que busque efectos por el tag que dan usa `GameplayTagTree.AnyMatches`,
+  no `GrantedTags.Contains`.
 - **Los jugadores viven en la capa 7 ("Character")**, no en la 6. Los ataques melee la
   usan como máscara en sus `Physics.OverlapX`.
 - **`ASC.ActiveEffects` solo existe poblado en el servidor.** La UI remota lee de los

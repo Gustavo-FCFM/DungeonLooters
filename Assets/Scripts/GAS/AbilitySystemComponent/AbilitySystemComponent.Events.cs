@@ -43,8 +43,22 @@ public partial class AbilitySystemComponent
             Ability = ability != null ? ability : DamageContext, IsPeriodic = periodic,
         };
         OnGameplayEvent?.Invoke(data);
+        if (HasTag(EGameplayTag.State_Dead)) return;
 
-        if (s_applyingReactions || ActiveEffects.Count == 0 || HasTag(EGameplayTag.State_Dead)) return;
+        if (!s_applyingReactions && ActiveEffects.Count > 0) RunReactions(data);
+
+        // Las habilidades que se activan solas: no con lo que hizo una reacción ni otra habilidad activada así (sin
+        // ping-pong: un contraataque no dispara otro contraataque).
+        if (!s_applyingReactions && !s_activatingTriggered) QueueTriggeredAbilities(data);
+
+        if (s_holdDepth == 0) { FlushReactions(); FlushTriggered(); }
+    }
+
+    // Las "Reacciones" de los efectos activos de ESTE personaje.
+    private void RunReactions(GameplayEventData data)
+    {
+        EGameplayEvent what = data.Event; AbilitySystemComponent other = data.Other;
+        float magnitude = data.Magnitude; bool periodic = data.IsPeriodic;
 
         for (int i = 0; i < ActiveEffects.Count; i++)
         {
@@ -106,8 +120,69 @@ public partial class AbilitySystemComponent
             }
             finally { _consumedByReaction.Clear(); EndHold(); }
         }
+    }
 
-        if (s_holdDepth == 0) FlushReactions();
+    // =========================================================
+    // HABILIDADES QUE SE ACTIVAN SOLAS (GameplayAbility "Se activa sola", 18 de noviembre de 2026)
+    // =========================================================
+
+    private struct PendingTrigger { public AbilitySystemComponent Owner; public GameplayAbility Ability; public GameplayEventData Data; }
+
+    private static readonly List<PendingTrigger> s_pendingTriggered = new List<PendingTrigger>();
+    private static bool s_activatingTriggered;   // mientras corre una activación sola, los eventos no activan otras
+
+    private void QueueTriggeredAbilities(GameplayEventData data)
+    {
+        bool checkedServer = false;
+        foreach (GameplayAbility ga in GrantedAbilities)
+        {
+            if (ga == null || ga.TriggerEvent == EGameplayEvent.None || ga.TriggerEvent != data.Event) continue;
+            if (!checkedServer)
+            {
+                // Solo el servidor activa (en un cliente no llegan estos eventos, pero por las dudas).
+                NetworkAbilitySystemComponent net = GetComponent<NetworkAbilitySystemComponent>();
+                if (net != null && !net.IsServerInitialized) return;
+                checkedServer = true;
+            }
+            if (data.IsPeriodic && !ga.TriggerIncludePeriodic) continue;
+            if (ga.TriggerMinMagnitude > 0f && data.Magnitude < ga.TriggerMinMagnitude) continue;
+            if (ga.TriggerOnlyIfOwnerHas != EGameplayTag.None && !HasTag(ga.TriggerOnlyIfOwnerHas)) continue;
+            if (ga.TriggerChance < 1f && UnityEngine.Random.value >= ga.TriggerChance) continue;
+            s_pendingTriggered.Add(new PendingTrigger { Owner = this, Ability = ga, Data = data });
+        }
+    }
+
+    private static void FlushTriggered()
+    {
+        if (s_pendingTriggered.Count == 0 || s_holdDepth > 0 || s_activatingTriggered || s_applyingReactions) return;
+
+        var batch = new List<PendingTrigger>(s_pendingTriggered);
+        s_pendingTriggered.Clear();
+        s_activatingTriggered = true;
+        try
+        {
+            foreach (PendingTrigger p in batch)
+                if (p.Owner != null && !p.Owner.HasTag(EGameplayTag.State_Dead) && p.Ability != null)
+                    p.Owner.ActivateTriggered(p.Ability, p.Data);
+        }
+        finally { s_activatingTriggered = false; }
+    }
+
+    // Con red, por el NetworkASC (la mira hacia el otro, la animación a todos, incluido el dueño). Sin red (un NPC sin
+    // NetworkASC, las pruebas), directo.
+    private void ActivateTriggered(GameplayAbility ability, GameplayEventData data)
+    {
+        ability.WasTriggered = true;
+        ability.TriggeredBy  = data;
+        try
+        {
+            NetworkAbilitySystemComponent net = GetComponent<NetworkAbilitySystemComponent>();
+            if (net != null) { net.ServerActivateTriggered(ability, data); return; }
+            if (!ability.CanActivate()) return;
+            if (ability.UsesCast) ability.BeginCast();
+            else ability.Activate();
+        }
+        finally { ability.WasTriggered = false; }
     }
 
     private void QueueReaction(AbilitySystemComponent target, GameplayEffect effect, GameplayAbility ability)
@@ -137,7 +212,7 @@ public partial class AbilitySystemComponent
     }
 
     // La "espera" de todo lo que aplica, quita o recorre efectos: los encadenados de ESTE personaje y las reacciones de
-    // TODOS salen al terminar. Va en pares (BeginHold / EndHold en un finally).
+    // TODOS (y las habilidades que se activan solas) salen al terminar. Va en pares (BeginHold / EndHold en un finally).
     private void BeginHold()
     {
         _chainHold++;
@@ -148,6 +223,6 @@ public partial class AbilitySystemComponent
     {
         s_holdDepth--;
         EndChainHold();
-        if (s_holdDepth == 0) FlushReactions();
+        if (s_holdDepth == 0) { FlushReactions(); FlushTriggered(); }
     }
 }

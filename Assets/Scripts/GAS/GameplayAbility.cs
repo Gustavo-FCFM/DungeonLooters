@@ -426,4 +426,56 @@ public abstract partial class GameplayAbility : ScriptableObject, IChargedAbilit
              "tarda en volver lo que dure ese mismo cooldown.")]
     [Label("Cargas")]
     public int MaxCharges = 1;
+
+    // =========================================================
+    // SE ACTIVA SOLA (18 de noviembre de 2026, los eventos de juego)
+    //
+    // Además de (o en vez de) con su botón, la habilidad sale sola cuando a su dueño le pasa algo: al recibir daño, al
+    // bloquear un golpe, al matar... (ver GameplayEvents.cs). Valen su costo, su cooldown (que es la "espera") y lo que
+    // la bloquea, como siempre. Si el evento tiene "otro" (el que te pegó, el que mataste) y "Apunta al otro" está
+    // prendido, la habilidad apunta a él: un contraataque le pega a quien te pegó. Lo resuelve
+    // AbilitySystemComponent.SendGameplayEvent → NetworkAbilitySystemComponent.ServerActivateTriggered, en el servidor.
+    // Puede no tener botón (InputSlot None en la clase). Mejor si es instantánea: no espera a que termine lo que hacías.
+    // =========================================================
+
+    [Section(AbilitySection.Trigger, startCollapsed: true)]
+    [Tooltip("El evento que la activa sola. (ninguno) = solo con su botón.")]
+    [Label("Se activa sola cuando")]
+    public EGameplayEvent TriggerEvent = EGameplayEvent.None;
+
+    [Section(AbilitySection.Trigger)]
+    [ShowIf(nameof(TriggerEvent), EGameplayEvent.None, true)]
+    [Tooltip("Solo si su dueño tiene este tag (una postura, un buff). None = siempre.")]
+    [Label("Solo si quien la tiene tiene")]
+    public EGameplayTag TriggerOnlyIfOwnerHas = EGameplayTag.None;
+
+    [Section(AbilitySection.Trigger)]
+    [ShowIf(nameof(TriggerEvent), EGameplayEvent.None, true)]
+    [Tooltip("Solo si el daño, la curación o lo bloqueado llega a esto. 0 = cualquiera.")]
+    [Label("Mínimo (vida; 0 = cualquiera)")]
+    public float TriggerMinMagnitude = 0f;
+
+    [Section(AbilitySection.Trigger)]
+    [ShowIf(nameof(TriggerEvent), EGameplayEvent.None, true)]
+    [Tooltip("Si también la activan los ticks (un veneno, una zona). Apagado: solo los golpes directos.")]
+    [Label("También con ticks")]
+    public bool TriggerIncludePeriodic = false;
+
+    [Section(AbilitySection.Trigger)]
+    [ShowIf(nameof(TriggerEvent), EGameplayEvent.None, true)]
+    [Tooltip("Probabilidad de que salga cada vez que pasa el evento (1 = siempre).")]
+    [Label("Probabilidad (0 a 1)")]
+    [Range(0f, 1f)] public float TriggerChance = 1f;
+
+    [Section(AbilitySection.Trigger)]
+    [ShowIf(nameof(TriggerEvent), EGameplayEvent.None, true)]
+    [Tooltip("Si el evento tiene otro (el que te pegó, el que mataste...), la habilidad apunta a él. Apagado: apunta a donde " +
+             "miraba el dueño.")]
+    [Label("Apunta al otro")]
+    public bool TriggerAimsAtOther = true;
+
+    // Mientras corre una activación SOLA: qué evento la disparó (con el otro y el cuánto). La habilidad lo puede leer en
+    // su Activate() (WasTriggered = true). No se guarda en el asset.
+    [System.NonSerialized] public bool WasTriggered;
+    [System.NonSerialized] public GameplayEventData TriggeredBy;
 }

@@ -671,6 +671,52 @@ public class GasDamagePipelineTests
         Assert.IsFalse(attacker.GetActiveEffects().Exists(a => a.Definition == passive), "y la pasiva se gastó");
     }
 
+    // Una habilidad real (GA_SelfBuff: "al activarse, a mí: 'buff'") que se activa sola con 'when'.
+    private GameplayAbility TriggeredSelfBuff(AbilitySystemComponent owner, EGameplayEvent when, GameplayEffect buff)
+    {
+        var template = ScriptableObject.CreateInstance<GA_SelfBuff>();
+        _made.Add(template);
+        template.AbilityName = "Se activa sola (prueba)";
+        template.TriggerEvent = when;
+        template.Effects = new List<AbilityEffect>
+        {
+            new AbilityEffect { When = EEffectWhen.OnActivate, ApplyTo = EEffectTarget.Self, Effect = buff },
+        };
+        GameplayAbility granted = owner.GrantAbility(template);
+        _made.Add(granted);
+        return granted;
+    }
+
+    [Test]
+    public void SeActivaSola_AlRecibirDañoDeOtro()
+    {
+        var attacker = Character(100f);
+        var owner = Character(100f);
+        GameplayEffect buff = Effect("Contra", 5f, GameplayEffect.EEffectType.Buff, EGameplayTag.State_AlwaysVisible);
+        TriggeredSelfBuff(owner, EGameplayEvent.DamageTaken, buff);
+
+        owner.ApplyGameplayEffect(Hit(10f), owner);       // daño propio: no es "recibir daño"
+        Assert.IsFalse(owner.HasTag(EGameplayTag.State_AlwaysVisible));
+        owner.ApplyGameplayEffect(Hit(10f), attacker);    // de otro: se activa sola
+        Assert.IsTrue(owner.HasTag(EGameplayTag.State_AlwaysVisible));
+    }
+
+    [Test]
+    public void SeActivaSola_RespetaSuCondicion()
+    {
+        var attacker = Character(100f);
+        var owner = Character(100f);
+        GameplayEffect buff = Effect("Contra", 5f, GameplayEffect.EEffectType.Buff, EGameplayTag.State_AlwaysVisible);
+        GameplayAbility ga = TriggeredSelfBuff(owner, EGameplayEvent.DamageTaken, buff);
+        ga.TriggerOnlyIfOwnerHas = EGameplayTag.State_Rooted;
+
+        owner.ApplyGameplayEffect(Hit(10f), attacker);
+        Assert.IsFalse(owner.HasTag(EGameplayTag.State_AlwaysVisible), "sin el tag, no sale");
+        GiveTag(owner, EGameplayTag.State_Rooted);
+        owner.ApplyGameplayEffect(Hit(10f), attacker);
+        Assert.IsTrue(owner.HasTag(EGameplayTag.State_AlwaysVisible), "con el tag, sale");
+    }
+
     [Test]
     public void Evento_LlegaPorCodigoConSusDatos()
     {

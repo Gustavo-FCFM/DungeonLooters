@@ -84,6 +84,7 @@ public static class AbilitySection
     public const string General      = "General";
     public const string CostCooldown = "Costo y cooldown";
     public const string Rules        = "Reglas de activación";
+    public const string Trigger      = "Se activa sola";
     public const string Targeting    = "Objetivo";
     public const string Shape        = "Forma y alcance";
     public const string Movement     = "Movimiento";
@@ -100,7 +101,7 @@ public static class AbilitySection
     // "Tótems"...), en el orden en que se declaran.
     public static readonly string[] Order =
     {
-        General, CostCooldown, Rules, Targeting, Shape, Movement, Timing, Channel, "*",
+        General, CostCooldown, Rules, Trigger, Targeting, Shape, Movement, Timing, Channel, "*",
         Stacks, Effects, Visuals, Animation, Sound, Advanced,
     };
 }

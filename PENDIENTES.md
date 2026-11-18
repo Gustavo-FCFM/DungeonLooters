@@ -435,7 +435,14 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
     - [ ] Verlo en Play con el Monje: hasta 4 acumulaciones; un golpe a varios suma una.
   - Las demás pasivas de código (Venganza, Tácticas, compañeros, apuestas, Presa, Bendición, Danza, Cazador paciente…)
     llevan estado o cuentas propias: se quedan en código.
-  - [ ] Habilidades que se activan solas con un evento ("al bloquear, contraataca"): la base del contraataque genérico.
+  - [x] **Habilidades que se activan solas** (18 de noviembre): sección "Se activa sola" de cualquier GA (evento, "solo si
+        tiene", mínimo, ticks, probabilidad, "Apunta al otro"); su cooldown es la espera. La encola el ASC al pasar el evento
+        y la activa el servidor con `NetworkAbilitySystemComponent.ServerActivateTriggered` (la mira al otro, sin cortar lo
+        que hacía, la animación a todos incluido el dueño remoto: `ObserversPlayAbilityAnimation` con `includeOwner`). Lo
+        que hace una activada así (o una reacción) no activa otras. Puede ir sin botón (el editor de clases ya no avisa).
+        `WasTriggered` / `TriggeredBy` para el Activate. 2 pruebas nuevas (41), sin red.
+    - [ ] Probarla en Play con red: un contraataque "al bloquear un golpe" en el Guardián (botón None), con un host y un
+          cliente, y con un bot. Mirar la mira hacia el otro y la animación en el dueño remoto.
 - [ ] **Tareas de habilidad** ("esperar a soltar", "esperar X s", "esperar a que choque"): hoy cada habilidad arma sus
       corrutinas (19 en las genéricas).
 

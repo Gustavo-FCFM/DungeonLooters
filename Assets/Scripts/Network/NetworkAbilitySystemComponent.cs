@@ -1069,7 +1069,46 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
         // La velocidad se calcula ACÁ (el servidor tiene el dueño y sus stats); en el
         // observador la habilidad es el template del registro y no podría resolverla.
         ObserversPlayAbilityAnimation(animIndex, animSource.AnimationTriggerName, animSource.AnimationID,
-                                      animSource.ResolveAnimationSpeed());
+                                      animSource.ResolveAnimationSpeed(), false);
+    }
+
+    // Una habilidad que SE ACTIVA SOLA (GameplayAbility "Se activa sola", 18 de noviembre de 2026): la pide el ASC al pasar su
+    // evento, ya en el servidor. Es ServerActivateAbility sin botón ni pedido del dueño: la mira apunta al otro del evento
+    // ("Apunta al otro"), no corta lo que el dueño estaba haciendo, y la animación va a TODOS, incluido el dueño remoto,
+    // que no la predijo. Si no puede (cooldown, costo, un bloqueo) no sale, sin avisar.
+    [Server]
+    public void ServerActivateTriggered(GameplayAbility ability, GameplayEventData data)
+    {
+        if (_asc == null || ability == null) return;
+
+        PlayerController pc = GetComponent<PlayerController>();
+        if (pc != null && ability.TriggerAimsAtOther && data.Other != null && data.Other != _asc)
+        {
+            pc.NetworkAimOrigin       = transform.position + Vector3.up * 1.6f;
+            pc.NetworkAimPoint        = data.Other.transform.position + Vector3.up * 1f;
+            pc.NetworkMoveDirection   = Vector3.zero;
+            pc.NetworkPlacementYaw    = 0f;
+            pc.NetworkRequestPosition = pc.transform.position;
+        }
+
+        if (!ability.CanActivate()) return;
+        bool duringHold = IsAnotherHoldActive(ability);
+        if (duringHold && !ability.CanUseWhileHolding) return;
+
+        ability.CommittedThisActivation = false;
+        ability.StartedThisActivation   = false;
+        if (ability.UsesCast) { ability.BeginCast(); return; }
+
+        ability.Activate();
+
+        if (HoldInput.IsHold(ability) || duringHold || ability.BroadcastsOwnAnimation) return;
+        if (!ability.CommittedThisActivation && !ability.StartedThisActivation) return;
+
+        GameplayAbility animSource = ability.ResolveAnimationSource() ?? ability;
+        int animIndex = GameplayAbilityRegistry.Instance != null
+            ? GameplayAbilityRegistry.Instance.GetIndex(animSource) : -1;
+        ObserversPlayAbilityAnimation(animIndex, animSource.AnimationTriggerName, animSource.AnimationID,
+                                      animSource.ResolveAnimationSpeed(), true);
     }
 
     // Las animaciones de este juego NO viajan por el NetworkAnimator del prefab: ese
@@ -1083,10 +1122,12 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
     // directo, sin pasar por PlayerController.PlayAnimation, porque ese método
     // tiene un guard de IsOwner que justamente bloquea las copias ajenas.
     [ObserversRpc]
+    // includeOwner: la activó el servidor solo ("Se activa sola"), así que el dueño REMOTO tampoco la predijo. En el host
+    // el dueño ya se animó en su propio Activate(): ese se saltea igual.
     private void ObserversPlayAbilityAnimation(int abilityIndex, string trigger, int actionID,
-                                               float animationSpeed)
+                                               float animationSpeed, bool includeOwner)
     {
-        if (IsOwner) return;
+        if (IsOwner && (!includeOwner || IsServerInitialized)) return;
 
         // Esquema nuevo: si la habilidad trae su propio AnimationClip, se lo pedimos a
         // PlayerController (que lo mete en la ranura genérica de acción). Va por
@@ -1115,7 +1156,7 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
     [Server]
     public void ServerBroadcastAbilityAnimation(string trigger, int actionID)
     {
-        ObserversPlayAbilityAnimation(-1, trigger, actionID, -1f);
+        ObserversPlayAbilityAnimation(-1, trigger, actionID, -1f, false);
     }
 
     // =========================================================
@@ -1404,7 +1445,7 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
         int index = GameplayAbilityRegistry.Instance != null
             ? GameplayAbilityRegistry.Instance.GetIndex(ability) : -1;
         ObserversPlayAbilityAnimation(index, ability.AnimationTriggerName, ability.AnimationID,
-                                      ability.ResolveAnimationSpeed());
+                                      ability.ResolveAnimationSpeed(), false);
     }
 
     // Igual que la anterior pero TAMBIÉN en el dueño. Para un golpe que sale cuando lo

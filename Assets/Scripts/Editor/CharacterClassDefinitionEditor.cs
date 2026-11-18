@@ -126,7 +126,7 @@ public class CharacterClassDefinitionEditor : SectionedInspector
             for (int i = 0; i < c.Abilities.Count; i++)
             {
                 var a = c.Abilities[i];
-                if (a.InputSlot == EAbilityInput.None) into.Add($"• Habilidad {i}: no tiene botón (None).");
+                if (a.InputSlot == EAbilityInput.None && (a.Ability == null || a.Ability.TriggerEvent == EGameplayEvent.None)) into.Add($"• Habilidad {i}: no tiene botón (None).");
                 else if (!used.Add(a.InputSlot))     into.Add($"• Habilidad {i}: el botón {a.InputSlot} ya tiene otra habilidad.");
 
                 if (a.Ability == null) { into.Add($"• Habilidad {i} ({a.InputSlot}): está vacía."); continue; }

@@ -414,7 +414,13 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       "Reacciones (mientras dura)" del GE (cuándo, a quién, qué aplica, condiciones de tag, mínimo, ticks, probabilidad,
       espera, "y se gasta"): una pasiva es un GE infinito con reacciones. Lo que aplica una reacción no dispara otras, y
       sale cuando nadie está recorriendo efectos. 5 pruebas nuevas (37).
-  - [ ] Pasar a datos una pasiva hecha a mano (empezar por el Punto débil) y verla en Play.
+  - [x] **El Punto débil pasado a datos** (18 de noviembre): `GE_WeakPointPassive` (oculto, infinito) en los "Efectos pasivos"
+        de `Class_BattleMasterFighter`, con dos reacciones "al hacer daño, al otro": `GE_WeakPoint` si NO tiene Romper límites
+        y `GE_WeakPointEmpowered` si lo tiene, las dos "solo si llegó a la vida". Se borró `WeakPointPassive.cs` y su componente
+        de `BattleMasterBehaviours`. Reacciones nuevas: "Solo si quien lo tiene NO tiene" y "Solo si llegó a la vida". Comprobado
+        en memoria con los assets reales (normal, potenciada, escudo y daño propio, igual que el script). 38 pruebas.
+    - [ ] Verlo en Play con el Maestro de batalla: la marca en el muñeco, y la potenciada con Romper límites.
+  - [ ] Siguientes pasivas simples para pasar a datos: la Marca del cazador, parte de Artes marciales.
   - [ ] Habilidades que se activan solas con un evento ("al bloquear, contraataca"): la base del contraataque genérico.
 - [ ] **Tareas de habilidad** ("esperar a soltar", "esperar X s", "esperar a que choque"): hoy cada habilidad arma sus
       corrutinas (19 en las genéricas).
@@ -3029,7 +3035,7 @@ batalla y Comandante hechos y probados (falta el aturdido al apuntar, el jueves 
    | Clic izq. | Defensiva: el combo del Guerrero. Ofensiva: UN tajo de mandoble (`Attack2H01`), ⚙ 1.3 × ataque, 2.5 m, 180° | `GA_BattleMasterPrimary` (`GA_TagSwitch`) → `GA_GreatswordSlash` |
    | Clic der. | Defensiva: el escudo con parry. Ofensiva: **ataque cargado** como la Q de Sion, con la pose del Golpe final del Inmortal: tocar = golpe rápido; ⚙ a los 0.6 s la segunda etapa y a los 1.2 s la tercera (aturde 1 s); se suelta solo a los 1.5 s. ⚙ 1.2 / 2 / 3 × ataque, 2.5 m, 120°; ralentiza un 40 % mientras carga; un aturdido corta la carga sin golpe; 3 s de cooldown, que el botón muestra solo en ofensiva | `GA_BattleMasterGuard` (`GA_HoldTagSwitch`) → `GA_GreatswordChargedStrike` (`GA_ChargedAttack`) + `GA_ChargedStrikeStage1/2/3` |
    | E | Desarme: el enemigo de enfrente (⚙ 3 m) no puede usar sus acciones de ARMA ⚙ 2 s (la resistencia al control lo acorta); 25 s de cooldown | `GA_Disarm` (`GA_Target`) + `GE_Disarmed` (`State_Disarmed`) |
-   | Pasiva extra | Punto débil: al dañar a un enemigo lo marca ⚙ 3 s, ⚙ +10 % de daño recibido (+20 % con Romper límites). Las dos marcas no se acumulan | `WeakPointPassive` en `BattleMasterBehaviours` + `GE_WeakPoint` / `GE_WeakPointEmpowered` |
+   | Pasiva extra | Punto débil: al dañar a un enemigo lo marca ⚙ 3 s, ⚙ +10 % de daño recibido (+20 % con Romper límites). Las dos marcas no se acumulan | `GE_WeakPointPassive` (reacciones; antes `WeakPointPassive`, borrado el 18 de noviembre) + `GE_WeakPoint` / `GE_WeakPointEmpowered` |
    | R | Romper límites: ⚙ 8 s Imparable (inmune al control, limpia los debuffs) y ⚙ +30 % de ataque; Punto débil potenciado | `GA_LimitBreak` + `GE_LimitBreak` (`Status_Unstoppable` + `Status_BreakLimits`) |
    | Stats | ⚙ 200 vida, 10 ataque, el resto como el Guerrero, nivel 3. Rol: Daño | `ASDef_BattleMasterFighter` |
 

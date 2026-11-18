@@ -614,6 +614,29 @@ public class GasDamagePipelineTests
     }
 
     [Test]
+    public void Reaccion_NoTiene_YSoloSiLlegoALaVida()
+    {
+        var attacker = Character(1000f);
+        var victim = Character(1000f);
+        GameplayEffect passive = Passive(EGameplayEvent.DamageDealt, EReactionTarget.Other, Hit(5f));
+        passive.Reactions[0].OnlyIfOwnerLacks = EGameplayTag.State_AlwaysVisible;   // la versión "normal"
+        passive.Reactions[0].RequiresHealthDamage = true;
+        attacker.ApplyGameplayEffect(passive, attacker);
+
+        victim.SetCurrentAttributeValue(EAttributeType.Shield, 50f);
+        victim.ApplyGameplayEffect(Hit(10f), attacker);
+        Assert.AreEqual(1000f, Health(victim), "el escudo se comió el golpe: no llegó a la vida, no sale");
+
+        victim.SetCurrentAttributeValue(EAttributeType.Shield, 0f);
+        victim.ApplyGameplayEffect(Hit(10f), attacker);
+        Assert.AreEqual(985f, Health(victim), "llegó a la vida: 10 + 5");
+
+        GiveTag(attacker, EGameplayTag.State_AlwaysVisible);
+        victim.ApplyGameplayEffect(Hit(10f), attacker);
+        Assert.AreEqual(975f, Health(victim), "con el tag, la \"normal\" no sale");
+    }
+
+    [Test]
     public void Reaccion_AlMatar_YSeGasta()
     {
         var attacker = Character(100f);

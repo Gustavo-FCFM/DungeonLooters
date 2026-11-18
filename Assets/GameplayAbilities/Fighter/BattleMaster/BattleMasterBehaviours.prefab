@@ -162,6 +162,12 @@ MonoBehaviour:
   ParryWindow: 0.3
   ParryMeleeRange: 3.5
   ParryStunEffect: {fileID: 11400000, guid: 9b3f7211de177b14489ad50778ade8d3, type: 2}
+  UltimateSecondsPerBlock: 1
+  ReflectMeleeFraction: 0
+  ReflectProjectilesOnParry: 0
+  OnBlockAttackerEffect: {fileID: 0}
+  Omnidirectional: 0
+  OmniFlashRadius: 0.8
   FollowAimPitch: 1
   PitchPivotHeight: 1.2
   PitchFactor: 1
@@ -224,7 +230,6 @@ GameObject:
   - component: {fileID: 8607894374043660639}
   - component: {fileID: 527645651850458071}
   - component: {fileID: 1037253723856893430}
-  - component: {fileID: 1544527454422545043}
   m_Layer: 0
   m_Name: BattleMasterBehaviours
   m_TagString: Untagged
@@ -282,18 +287,3 @@ MonoBehaviour:
   Ticks: 5
   Duration: 5
   Cooldown: 60
---- !u!114 &1544527454422545043
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9026357972262154142}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ad42344cb211404a9e1a782ac3dcaa6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MarkEffect: {fileID: 11400000, guid: f71dbd5aef2b7b94e87e0c6ba24b1906, type: 2}
-  EmpoweredMark: {fileID: 11400000, guid: 6a74d59db9f481d479a53506c278803c, type: 2}
-  EmpoweredWhileTag: 58

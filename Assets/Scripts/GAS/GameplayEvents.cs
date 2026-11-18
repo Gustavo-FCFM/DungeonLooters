@@ -39,6 +39,7 @@ public struct GameplayEventData
     public AbilitySystemComponent Self;    // a quién le pasó (quien recibe el aviso)
     public AbilitySystemComponent Other;   // el otro: el golpeado / el que pegó / el muerto / el curado. Puede ser null (una zona sin autor, usar una habilidad)
     public float Magnitude;                // cuánto: el daño que entró (escudo incluido), lo curado, lo bloqueado. 0 si no aplica
+    public float ToHealth;                 // del daño, lo que llegó a la VIDA (sin lo que se comió un escudo). En los demás, = Magnitude
     public GameplayAbility Ability;        // con qué habilidad, si se sabe (AbilitySystemComponent.DamageContext)
     public bool IsPeriodic;                // vino de un tick (un veneno, una zona)
 }
@@ -75,6 +76,15 @@ public class EffectReaction
     [Tooltip("Solo si el otro tiene este tag (pegarle a uno marcado). None = siempre.")]
     [Label("Solo si el otro tiene")]
     public EGameplayTag OnlyIfOtherHas = EGameplayTag.None;
+
+    [Tooltip("NO sale si quien tiene el efecto tiene este tag: la versión normal de una pasiva que tiene otra potenciada " +
+             "(la normal con \"NO tiene Romper límites\", la potenciada con \"tiene Romper límites\"). None = siempre.")]
+    [Label("Solo si quien lo tiene NO tiene")]
+    public EGameplayTag OnlyIfOwnerLacks = EGameplayTag.None;
+
+    [Tooltip("Con el daño: solo si algo llegó a la VIDA (un golpe que se comió entero un escudo no cuenta).")]
+    [Label("Solo si llegó a la vida")]
+    public bool RequiresHealthDamage = false;
 
     [Tooltip("Solo si el daño, la curación o lo bloqueado llega a esto. 0 = cualquiera.")]
     [Label("Mínimo (vida; 0 = cualquiera)")]

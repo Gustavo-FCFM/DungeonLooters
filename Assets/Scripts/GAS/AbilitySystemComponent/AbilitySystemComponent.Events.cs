@@ -35,11 +35,11 @@ public partial class AbilitySystemComponent
     // Le pasó 'what' a este personaje. 'other': el otro de la historia (puede ser null). Solo tiene efecto en el
     // servidor, que es donde hay efectos activos.
     public void SendGameplayEvent(EGameplayEvent what, AbilitySystemComponent other, float magnitude = 0f,
-                                  bool periodic = false, GameplayAbility ability = null)
+                                  bool periodic = false, GameplayAbility ability = null, float toHealth = -1f)
     {
         var data = new GameplayEventData
         {
-            Event = what, Self = this, Other = other, Magnitude = magnitude,
+            Event = what, Self = this, Other = other, Magnitude = magnitude, ToHealth = toHealth >= 0f ? toHealth : magnitude,
             Ability = ability != null ? ability : DamageContext, IsPeriodic = periodic,
         };
         OnGameplayEvent?.Invoke(data);
@@ -60,6 +60,8 @@ public partial class AbilitySystemComponent
                 if (x.MinMagnitude > 0f && magnitude < x.MinMagnitude) continue;
                 if (x.OnlyIfOwnerHas != EGameplayTag.None && !HasTag(x.OnlyIfOwnerHas)) continue;
                 if (x.OnlyIfOtherHas != EGameplayTag.None && (other == null || !other.HasTag(x.OnlyIfOtherHas))) continue;
+                if (x.OnlyIfOwnerLacks != EGameplayTag.None && HasTag(x.OnlyIfOwnerLacks)) continue;
+                if (x.RequiresHealthDamage && data.ToHealth <= 0f) continue;
                 if (active.ReactionReadyAt != null && r < active.ReactionReadyAt.Length && Time.time < active.ReactionReadyAt[r]) continue;
                 if (x.Chance < 1f && UnityEngine.Random.value >= x.Chance) continue;
 

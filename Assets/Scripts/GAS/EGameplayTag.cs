@@ -105,7 +105,7 @@ public enum EGameplayTag
     Status_Stance,             // No lo otorga nadie: es el EffectGroup de las dos posturas (con ReplacesGroup, entrar a una saca la otra)
 
     // --- MAESTRO DE BATALLA ---
-    Status_BreakLimits,        // Romper límites activo: Punto débil aplica su marca potenciada (ver WeakPointPassive). Lo da GE_BreakLimits junto con Status_Unstoppable
+    Status_BreakLimits,        // Romper límites activo: Punto débil aplica su marca potenciada (las reacciones de GE_WeakPointPassive). Lo da GE_BreakLimits junto con Status_Unstoppable
     Status_WeakPoint,          // Marcado por Punto débil (recibe más daño). También es el EffectGroup de las dos marcas, con ReplacesGroup
 
     // --- COMANDANTE ---

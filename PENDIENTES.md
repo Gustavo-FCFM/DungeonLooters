@@ -491,7 +491,12 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       medio tapa; sin enganche no sale ni gasta; no engancha invisibles. 2 pruebas con física real (52).
   - [ ] Crear un asset de ejemplo (un gancho "te lleva" para el Explorador) y verlo en Play: el viaje (host, cliente, bot) y
         un enemigo traído con un GE de atraer.
-- [ ] Rayo continuo que sigue la mira (lanzallamas, cura en haz) — sobre ChanneledCone / Hitscan.
+- [x] **Rayo continuo** (19 de noviembre): "Forma: Rayo (sigue la mira)" en `GA_ChanneledCone` (Cono por defecto: los assets no
+      cambian). Una línea hacia la mira en vivo, cortada por la primera pared, con grosor; sin "Atraviesa" se queda en el
+      primero al que le hace algo (una cura en haz salta a los enemigos), con él a todos. "VFX del haz" opcional
+      (`VFX_LightningBeam` por `BroadcastBeams`). Hereda la mira por red, la barra, la pose, el corte y las zonas. 1 prueba con
+      física real (53).
+  - [ ] Verlo en Play: que siga la mira en un cliente, y el haz dibujado (un lanzallamas o una cura en haz de ejemplo).
 - [ ] Proyectil que vuelve o rebota en paredes — sobre ProjectileShoot.
 - [ ] Marcar y detonar — sobre las acumulaciones.
 - [x] **Contraataque / reflejo genérico** (19 de noviembre; `GA_Counterattack`): con "Se activa sola" (al bloquear, al recibir

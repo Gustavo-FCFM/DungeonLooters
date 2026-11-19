@@ -20,6 +20,10 @@ using System.Collections.Generic;
 // las marcadas "Usable While Channeling" sí). Lo corta morir o recibir cualquiera de los
 // tags de su ActivationBlockedTags (aturdido, silenciado...).
 //
+// FORMA (19 de noviembre de 2026): "Cono" (lo de siempre) o "Rayo": una línea hacia la mira, que la sigue en vivo y se
+// corta en la primera pared. Le pega al PRIMERO al que le hace algo (o atraviesa a todos). Con efectos para aliados es
+// una cura en haz; con un daño, un lanzallamas o un rayo. El haz se dibuja con "VFX del haz" (un VFX_LightningBeam).
+//
 // LA MIRA DURANTE EL CANALIZADO: el servidor solo conoce la del instante de activar. Le
 // pide al dueño que se la mande mientras dura (PlayerController.ServerStreamAimFor); en el
 // host, GetAimPoint la lee en vivo.
@@ -27,11 +31,23 @@ using System.Collections.Generic;
 [CreateAssetMenu(fileName = "GA_ChanneledCone", menuName = "GAS/Generics/Channeled Cone")]
 public class GA_ChanneledCone : GameplayAbility, IChanneledAbility
 {
+    public enum EChannelShape
+    {
+        [InspectorName("Cono")]                Cone = 0,
+        [InspectorName("Rayo (sigue la mira)")] Beam = 1,
+    }
+
     [Section(AbilitySection.Shape)]
-    [Tooltip("Alcance del cono, en metros, desde el punto de salida.")]
+    [Tooltip("Cono: todo lo que entra en el abanico. Rayo: una línea hacia la mira (el primero, o todos si atraviesa), " +
+             "cortada por las paredes.")]
+    [Label("Forma")]
+    public EChannelShape Shape = EChannelShape.Cone;
+
+    [Tooltip("Alcance del cono o del rayo, en metros, desde el punto de salida.")]
     [Label("Alcance (m)")]
     public float Range = 6f;
 
+    [ShowIf(nameof(Shape), EChannelShape.Cone)]
     [Range(0f, 360f)]
     [Tooltip("Apertura del cono, en grados (el ángulo completo). 90 = un cuarto de círculo.")]
     [Label("Apertura del cono (°)")]
@@ -46,6 +62,28 @@ public class GA_ChanneledCone : GameplayAbility, IChanneledAbility
              "Z = adelante). Un aliento sale de la boca: (0, 1.5, 0).")]
     [Label("Punto de salida (m)")]
     public Vector3 OriginOffset = new Vector3(0f, 1.5f, 0f);
+
+    [ShowIf(nameof(Shape), EChannelShape.Beam)]
+    [Tooltip("Qué tan grueso es el rayo (más = más fácil de acertar).")]
+    [Label("Grosor del rayo (m)")]
+    public float BeamWidth = 0.6f;
+
+    [ShowIf(nameof(Shape), EChannelShape.Beam)]
+    [Tooltip("Apagado: le pega solo al PRIMERO al que le hace algo (una cura en haz salta a los enemigos que no cura). " +
+             "Prendido: a todos los de la línea, hasta la pared.")]
+    [Label("Atraviesa")]
+    public bool BeamPierces = false;
+
+    [ShowIf(nameof(Shape), EChannelShape.Beam)]
+    [Tooltip("Las capas que cortan el rayo (el mapa).")]
+    [Label("Lo cortan (capas)")]
+    public LayerMask BeamWallLayer = 1;
+
+    [ShowIf(nameof(Shape), EChannelShape.Beam)]
+    [Tooltip("OPCIONAL: el haz que se ve en cada golpe, de la mano a donde llegó (un prefab con VFX_LightningBeam). " +
+             "Para un lanzallamas sirve más un VFX \"al lanzar\" pegado a la mano.")]
+    [Label("VFX del haz")]
+    public GameObject BeamPrefab;
 
     [Section(AbilitySection.Timing)]
     [Tooltip("Cuánto dura el canalizado, en segundos.")]
@@ -171,7 +209,8 @@ public class GA_ChanneledCone : GameplayAbility, IChanneledAbility
                 if (IsInterrupted()) { interrupted = true; yield break; }
 
                 Vector3 aimPoint = CurrentAimPoint(pc);
-                HitCone(aimPoint);
+                if (Shape == EChannelShape.Beam) HitBeam(aimPoint);
+                else                             HitCone(aimPoint);
                 if (TickZone != null) DropZone(aimPoint);
 
                 yield return new WaitForSeconds(tick);
@@ -242,6 +281,49 @@ public class GA_ChanneledCone : GameplayAbility, IChanneledAbility
         }
     }
 
+    // Un golpe del RAYO: hacia la mira de ahora (o el frente, sin mira), cortado en la primera pared. Del más cercano al
+    // más lejano; sin "Atraviesa", se queda en el primero al que le hizo algo.
+    private void HitBeam(Vector3 aimPoint)
+    {
+        Vector3 origin = OwnerASC.transform.TransformPoint(OriginOffset);
+        Vector3 dir = aimPoint != Vector3.zero ? aimPoint - origin : OwnerASC.transform.forward;
+        if (!UseVerticalAim) dir.y = 0f;
+        if (dir.sqrMagnitude < 0.0001f) dir = OwnerASC.transform.forward;
+        dir.Normalize();
+
+        float length = Range;
+        if (Physics.Raycast(origin, dir, out RaycastHit wall, Range, BeamWallLayer, QueryTriggerInteraction.Ignore))
+            length = wall.distance;
+        Vector3 end = origin + dir * length;
+
+        RaycastHit[] hits = Physics.SphereCastAll(origin, Mathf.Max(0.05f, BeamWidth * 0.5f), dir, length, TargetLayer,
+                                                  QueryTriggerInteraction.Collide);
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        var seen = new HashSet<AbilitySystemComponent>();
+        int applied = 0;
+        foreach (RaycastHit h in hits)
+        {
+            AbilitySystemComponent target = h.collider.GetComponentInParent<AbilitySystemComponent>();
+            if (target == null || target == OwnerASC || !seen.Add(target)) continue;
+            if (!ApplyHitEffects(target, firstHit: applied == 0)) continue;
+            applied++;
+            if (IsEnemy(target)) ChargeUltimate();
+            BroadcastHitVFX(target);
+            if (!BeamPierces) { end = target.transform.position + Vector3.up; break; }
+        }
+
+        if (BeamPrefab != null) BroadcastBeams(new[] { origin }, new[] { end });
+    }
+
+    // El haz en cada pantalla (BroadcastBeams lo manda a todos).
+    public override void PlayBeams(Vector3[] from, Vector3[] to)
+    {
+        if (BeamPrefab == null || from == null || to == null) return;
+        int n = Mathf.Min(from.Length, to.Length);
+        for (int i = 0; i < n; i++) VFX_LightningBeam.Play(BeamPrefab, from[i], to[i]);
+    }
+
     // Las zonas de este tick (ver GA_ContinuousAoE.DeployConeZones): en fila, hacia la mira de
     // ahora; rellenando, el cono de ahora, desde los pies hacia el frente del cuerpo. La que
     // cae al vacío no sale.
@@ -258,6 +340,15 @@ public class GA_ChanneledCone : GameplayAbility, IChanneledAbility
         if (origin == null) return;
 
         Gizmos.color = new Color(1f, 0.35f, 0.1f, 1f);
+
+        if (Shape == EChannelShape.Beam)
+        {
+            Vector3 from = origin.TransformPoint(OriginOffset);
+            Vector3 to   = from + origin.forward * Range;
+            Gizmos.DrawLine(from, to);
+            Gizmos.DrawWireSphere(to, Mathf.Max(0.05f, BeamWidth * 0.5f));
+            return;
+        }
 
         Vector3 center  = origin.TransformPoint(OriginOffset);
         float   halfAng = ConeAngle / 2f;
@@ -286,7 +377,8 @@ public class GA_ChanneledCone : GameplayAbility, IChanneledAbility
 
         Vector3 center = origin.TransformPoint(OriginOffset);
         AbilityHandles.Distance(this, "Range", center, origin.forward, ref Range, AbilityHandles.DistanceColor);
-        AbilityHandles.Angle(this, "Cone Angle", center, origin.forward, Range, ref ConeAngle, AbilityHandles.AngleColor);
+        if (Shape == EChannelShape.Cone)
+            AbilityHandles.Angle(this, "Cone Angle", center, origin.forward, Range, ref ConeAngle, AbilityHandles.AngleColor);
         AbilityHandles.Offset(this, "Origin Offset", origin, ref OriginOffset, AbilityHandles.OffsetColor);
         if (TickZone != null && ZoneLayout == GA_ContinuousAoE.EZoneLayout.Row)
             AbilityHandles.Distance(this, "Zone Max Range", origin.position, origin.forward, ref ZoneMaxRange,

@@ -978,6 +978,59 @@ public class GasDamagePipelineTests
         Assert.IsFalse(miss.CommittedThisActivation, "sin nada adelante no sale ni gasta");
     }
 
+    // =========================================================
+    // RAYO CONTINUO (GA_ChanneledCone con Forma = Rayo) — física de verdad
+    // =========================================================
+
+    // Un rayo de un solo golpe (la duración = un tick: sale al activar), hacia el frente del dueño.
+    private GameplayAbility Beam(AbilitySystemComponent owner, bool pierces, params GameplayEffect[] onHit)
+    {
+        var template = ScriptableObject.CreateInstance<GA_ChanneledCone>();
+        _made.Add(template);
+        template.AbilityName = "Rayo (prueba)";
+        template.Shape = GA_ChanneledCone.EChannelShape.Beam;
+        template.Range = 20f;
+        template.BeamPierces = pierces;
+        template.BeamWallLayer = 1;
+        template.TargetLayer = 1 << 7;
+        template.ChannelDuration = 1f;
+        template.TickInterval = 1f;
+        template.BlockOtherAbilities = false;   // en las pruebas el tiempo no corre: el canalizado no termina nunca
+        template.OriginOffset = new Vector3(0f, 1f, 0f);
+        template.Effects = new List<AbilityEffect>();
+        foreach (GameplayEffect e in onHit)
+            template.Effects.Add(new AbilityEffect { When = EEffectWhen.OnHit, ApplyTo = EEffectTarget.Enemies, Effect = e });
+        GameplayAbility granted = owner.GrantAbility(template);
+        _made.Add(granted);
+        return granted;
+    }
+
+    [Test]
+    public void Rayo_AlPrimero_OAtraviesa_YLaParedLoCorta()
+    {
+        var owner = Character(100f);
+        var near = Character(100f);
+        var far = Character(100f);
+        Body(owner, Vector3.zero);
+        Body(near, new Vector3(0f, 0f, 4f));
+        Body(far, new Vector3(0f, 0f, 8f));
+        Physics.SyncTransforms();
+
+        Beam(owner, false, Hit(7f)).Activate();
+        Assert.AreEqual(93f, Health(near), "le pega al primero");
+        Assert.AreEqual(100f, Health(far), "y se queda ahí");
+
+        Beam(owner, true, Hit(7f)).Activate();
+        Assert.AreEqual(86f, Health(near));
+        Assert.AreEqual(93f, Health(far), "atravesando, también al segundo");
+
+        Wall(new Vector3(0f, 1f, 6f));
+        Physics.SyncTransforms();
+        Beam(owner, true, Hit(7f)).Activate();
+        Assert.AreEqual(79f, Health(near));
+        Assert.AreEqual(93f, Health(far), "la pared lo corta");
+    }
+
     [Test]
     public void Evento_LlegaPorCodigoConSusDatos()
     {

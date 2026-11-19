@@ -484,7 +484,7 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
   - [ ] Pasar las esperas viejas (`WaitForSeconds`, que no cortan a mitad) de a una, con Play: cambiar eso cambia el juego.
   - [ ] `GA_ProjectileShoot`: mezcla varias cosas en sus rutinas; pasarlo con Play a mano.
 
-*Habilidades genéricas (la lista quedó completa el 19 de noviembre; falta verlas en Play):*
+*Habilidades genéricas que faltan (y las hechas, para verlas en Play):*
 - [x] **Gancho** (19 de noviembre; `GA_Hook`): un rayo hacia la mira engancha lo primero (un enemigo, o pared/piso si
       "Engancha paredes y piso"). "Te lleva": viaja con el camino del dash (`ServerStartDash`: dueño o bot) y frena antes.
       "Trae al enemigo": sus efectos "Al golpear" con un GE de "Atraer (hacia él)"; a una pared, te lleva. Una pared en el

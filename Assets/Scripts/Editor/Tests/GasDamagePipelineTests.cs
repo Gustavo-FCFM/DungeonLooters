@@ -1198,4 +1198,62 @@ public class GasDamagePipelineTests
         Assert.AreEqual(3f, zone.transform.position.z, 0.01f, "no pasa de su recorrido");
         Assert.IsTrue(zone.Stopped);
     }
+    // ---- Revivir (GA_Revive) ----
+
+    // Un aliado (equipo 1) que FindObjectsByType encuentra (sin HideAndDontSave: TearDown lo borra igual).
+    private AbilitySystemComponent Teammate(Vector3 at)
+    {
+        var asc = Character(100f, (EAttributeType.MaxHealth, 100f));
+        asc.gameObject.hideFlags = HideFlags.None;
+        asc.TeamID = 1;
+        asc.transform.position = at;
+        return asc;
+    }
+
+    private GameplayAbility Revive(AbilitySystemComponent owner, GA_Revive.EReviveMode mode)
+    {
+        var template = ScriptableObject.CreateInstance<GA_Revive>();
+        _made.Add(template);
+        template.AbilityName = "Revivir (prueba)";
+        template.Mode = mode;
+        template.MaxRange = 8f;
+        template.HealthFraction = 0.5f;
+        GameplayAbility granted = owner.GrantAbility(template);
+        _made.Add(granted);
+        return granted;
+    }
+
+    [Test]
+    public void Revivir_EnArea_LevantaALosCuerposCercanosConLaMitad()
+    {
+        var owner = Teammate(Vector3.zero);
+        var near = Teammate(new Vector3(3f, 0f, 0f));
+        var far = Teammate(new Vector3(20f, 0f, 0f));
+        var enemy = Character(100f, (EAttributeType.MaxHealth, 100f));
+        enemy.gameObject.hideFlags = HideFlags.None;
+        enemy.TeamID = 2;
+        enemy.transform.position = new Vector3(0f, 0f, 3f);
+        foreach (var asc in new[] { near, far, enemy }) asc.ApplyGameplayEffect(Hit(500f), owner);
+        Assert.IsTrue(near.HasTag(EGameplayTag.State_Dead), "la prueba arranca con ellos muertos");
+
+        GameplayAbility revive = Revive(owner, GA_Revive.EReviveMode.Area);
+        revive.Activate();
+        Assert.IsFalse(near.HasTag(EGameplayTag.State_Dead), "el de cerca vuelve");
+        Assert.AreEqual(50f, Health(near), "con la mitad de su vida máxima");
+        Assert.IsTrue(far.HasTag(EGameplayTag.State_Dead), "el de lejos no");
+        Assert.IsTrue(enemy.HasTag(EGameplayTag.State_Dead), "un enemigo no");
+        Assert.IsTrue(revive.CommittedThisActivation);
+    }
+
+    [Test]
+    public void Revivir_SinCuerposNoSaleNiGasta()
+    {
+        var owner = Teammate(Vector3.zero);
+        Teammate(new Vector3(3f, 0f, 0f));   // vivo
+
+        GameplayAbility revive = Revive(owner, GA_Revive.EReviveMode.Area);
+        Assert.IsFalse(revive.CanActivate(), "nadie a quien revivir");
+        revive.Activate();
+        Assert.IsFalse(revive.CommittedThisActivation);
+    }
 }

@@ -1115,7 +1115,7 @@ public class BotController : MonoBehaviour
 
         // 2b · El Clérigo de la vida con la Resurrección lista y un aliado muerto cerca: va
         //      hasta el cuerpo (Fight lo revive al llegar). Un compañero vale más que un golpe.
-        if (FindBodyToRevive(out Vector3 body, out _))
+        if (FindBodyToRevive(out Vector3 body, out _, out _))
         {
             _destination = body;
             return;
@@ -1862,9 +1862,10 @@ public class BotController : MonoBehaviour
             case GA_CannonBarrage _:
                 return EnemiesNear(_target.transform.position, AoeRadius) >= 2;
 
-            // La Resurrección (Clérigo de la vida) va aparte, antes de pelear (TryRevive): apunta al
-            // cuerpo de un aliado muerto, no al enemigo. Por acá nunca encontraría cuerpo.
-            case GA_Resurrection _:
+            // Revivir (la Resurrección del Clérigo de la vida o cualquier GA_Revive) va aparte, antes de
+            // pelear (TryRevive): apunta al cuerpo de un aliado muerto, no al enemigo. Por acá nunca
+            // encontraría cuerpo.
+            case GA_Revive _:
                 return false;
 
             // La Presa del Cazador marca a un JUGADOR (no a un NPC) a distancia: va sobre el que
@@ -2491,13 +2492,20 @@ public class BotController : MonoBehaviour
     // REVIVIR, TRAMPAS Y MARCAS (28 de octubre de 2026, revisión de los bots con las clases nuevas)
     // =========================================================
 
-    // La Resurrección (definitiva del Clérigo de la vida) lista, y un aliado muerto a buscar: el
-    // cuerpo más cercano dentro de ReviveSearchRadius. Mientras haya uno, Think lo lleva hasta ahí.
-    private bool FindBodyToRevive(out Vector3 body, out GA_Resurrection resurrection)
+    // Un revivir listo (la Resurrección del Clérigo de la vida o cualquier GA_Revive, en cualquier botón;
+    // desde el 19 de noviembre de 2026) y un aliado muerto a buscar: el cuerpo más cercano dentro de
+    // ReviveSearchRadius. Mientras haya uno, Think lo lleva hasta ahí.
+    private static readonly EAbilityInput[] s_reviveSlots =
+        { EAbilityInput.Action3, EAbilityInput.Action1, EAbilityInput.Action2, EAbilityInput.Movement };
+
+    private bool FindBodyToRevive(out Vector3 body, out GA_Revive revive, out EAbilityInput slot)
     {
         body = Vector3.zero;
-        resurrection = FindAbility(EAbilityInput.Action3) as GA_Resurrection;
-        if (resurrection == null || !resurrection.IsReady) return false;
+        revive = null;
+        slot = EAbilityInput.None;
+        foreach (EAbilityInput s in s_reviveSlots)
+            if (FindAbility(s) is GA_Revive r && r.IsReady) { revive = r; slot = s; break; }
+        if (revive == null) return false;
 
         float best = ReviveSearchRadius * ReviveSearchRadius;
         bool found = false;
@@ -2507,7 +2515,7 @@ public class BotController : MonoBehaviour
             if (asc == null || asc == _asc || !asc.HasTag(EGameplayTag.State_Dead)) continue;
             if (!_asc.IsAllyOf(asc, includeSelf: false)) continue;
 
-            Vector3 p = GA_Resurrection.BodyPosition(pc);
+            Vector3 p = GA_Revive.BodyPosition(pc);
             float d = (p - transform.position).sqrMagnitude;
             if (d >= best) continue;
             best  = d;
@@ -2520,9 +2528,9 @@ public class BotController : MonoBehaviour
     // Ya al lado del cuerpo (a su alcance, con margen): lo revive, apuntándole al cuerpo.
     private bool TryRevive()
     {
-        if (!FindBodyToRevive(out Vector3 body, out GA_Resurrection resurrection)) return false;
-        if (Vector3.Distance(transform.position, body) > resurrection.MaxRange * 0.85f) return false;
-        return Activate(EAbilityInput.Action3, body, DirectionTo(body));
+        if (!FindBodyToRevive(out Vector3 body, out GA_Revive revive, out EAbilityInput slot)) return false;
+        if (Vector3.Distance(transform.position, body) > revive.MaxRange * 0.85f) return false;
+        return Activate(slot, body, DirectionTo(body));
     }
 
     // Volviendo a curarse (sin objetivo: Think se lo saca), el Trampero deja una trampa detrás

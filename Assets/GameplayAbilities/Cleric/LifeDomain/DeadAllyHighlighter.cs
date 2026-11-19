@@ -112,7 +112,7 @@ public class DeadAllyHighlighter : MonoBehaviour
 
     private void Scan()
     {
-        GA_Resurrection resurrection = FindResurrection();
+        GA_Revive resurrection = FindResurrection();
         bool  ready = resurrection != null && resurrection.IsReady;
         float range = resurrection != null ? resurrection.MaxRange : 0f;
         Vector3 me  = _pc.transform.position;
@@ -129,7 +129,7 @@ public class DeadAllyHighlighter : MonoBehaviour
             _seen.Add(other);
             if (!_outlines.ContainsKey(other)) _outlines[other] = CreateOutline(other);
 
-            Vector3 body = GA_Resurrection.BodyPosition(other);
+            Vector3 body = GA_Revive.BodyPosition(other);
             _canRevive[other] = ready && (body - me).sqrMagnitude <= range * range;
         }
 
@@ -140,10 +140,11 @@ public class DeadAllyHighlighter : MonoBehaviour
         foreach (PlayerController key in _gone) RemoveOutline(key);
     }
 
-    private GA_Resurrection FindResurrection()
+    // Cualquier revivir (la Resurrección o un GA_Revive), desde el 19 de noviembre de 2026.
+    private GA_Revive FindResurrection()
     {
         foreach (GameplayAbility ability in _asc.GrantedAbilities)
-            if (ability is GA_Resurrection r) return r;
+            if (ability is GA_Revive r) return r;
         return null;
     }
 

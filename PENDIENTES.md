@@ -535,7 +535,15 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
   - [ ] Verlo en Play con un ejemplo (un tornado: variante de `SummonZone_Base` que avanza y crece; el Muro de fuego que
         avanza), en host y cliente: que la zona vista y la que aplica los efectos coincidan.
   - [ ] Con forma Caja no crece (sus llamas son hijos del prefab); no persigue enemigos.
-- [ ] Revivir (nueva).
+- [x] **Revivir** (19 de noviembre; `GA_Revive`): la lógica de la Resurrección del Clérigo de la vida pasada a genérico
+      (`GA_Resurrection` queda como subclase vacía: su asset no cambió, comparado campo por campo). "Revive a": "Al cuerpo
+      de la mira" o "Todos los cuerpos a su alcance"; "Vida al volver". Levantar canalizando = la sección "Canalizar" de
+      siempre ("Se lanza al terminar"; al terminar busca el cuerpo de nuevo). Solo jugadores y bots; sin cuerpos no sale ni
+      gasta; a cada revivido, sus efectos "Al golpear → Aliados". Los bots usan cualquier revivir en Q, E, R o Shift
+      (antes solo la Resurrección en la R) y `DeadAllyHighlighter` pinta los cuerpos con cualquiera. 2 pruebas (61).
+  - [ ] Ver en Play que la Resurrección del Clérigo sigue igual, y un revivir en área canalizado (3 s) en host, cliente y
+        con un bot.
+  - [ ] Revivirse a uno mismo ("burlar a la muerte") no está: la auto-revivida del Inmortal es aparte.
 - [ ] Vínculo entre dos: comparte daño o curación (nueva).
 - [ ] Definitiva global (todos los enemigos del mapa) — sobre InstantAoE.
 

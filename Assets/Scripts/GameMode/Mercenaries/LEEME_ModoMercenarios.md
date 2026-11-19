@@ -53,7 +53,7 @@ pruebas rápidas de clases.
 - **Bots** (`BotController`): jugadores de verdad con rol por clase base, que usan el kit
   completo, van por el Objetivo y respetan las salas seguras. Cada habilidad se juzga por su
   TIPO (`Classify`); las que tienen una jugada propia llevan su caso en `ShouldUse` (la
-  Resurrección va hasta el cuerpo, las marcas al que le pega a un aliado, las trampas entre él y
+  Resurrección, o cualquier `GA_Revive` en cualquier botón, va hasta el cuerpo, las marcas al que le pega a un aliado, las trampas entre él y
   el enemigo; revisadas las 32 clases el 28 de octubre de 2026). **Una habilidad nueva con una
   jugada particular necesita su caso ahí: si no, cae en "cuerpo a cuerpo".** Un combo con todos sus
   pasos a distancia (las kunais del Shinobi) cuenta como a distancia. **El Mago bot vuela** (29 de

@@ -397,6 +397,9 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   otro". Por código se escucha `ASC.OnGameplayEvent`, no un evento suelto nuevo. Un evento nuevo se agrega AL FINAL de
   `EGameplayEvent` y se manda con `SendGameplayEvent` desde donde pasa. Todo lo que aplique, quite o recorra efectos va
   entre `BeginHold` / `EndHold` (en un finally): así salen después los encadenados y las reacciones.
+  **Revivir a un aliado es `GA_Revive`** (desde el 19 de noviembre de 2026; la Resurrección del Clérigo es una subclase vacía):
+  los bots y el contorno de los cuerpos la reconocen en cualquier botón. Lo que revive pasa por `ServerResurrect` (cancela la
+  reaparición en la base), nunca por `ASC.Revive` directo con red.
   **Una habilidad que sale sola con un evento** (un contraataque) usa la sección "Se activa sola" del GA (desde el 18 de
   noviembre de 2026), no código: la activa el servidor por `ServerActivateTriggered`, que manda la animación también al dueño
   remoto. Nada que la active "a mano" desde el servidor llama a `Activate()` directo.

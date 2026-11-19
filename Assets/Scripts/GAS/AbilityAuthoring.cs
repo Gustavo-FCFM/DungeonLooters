@@ -152,12 +152,13 @@ public static class EffectSection
     public const string Cleanse  = "Quitar efectos e inmunidad";
     public const string Chain    = "Al terminar (encadenados)";
     public const string Reactions = "Reacciones (mientras dura)";
+    public const string Link     = "Vínculo (entre dos)";
     public const string Control  = "Control y desplazamiento";
     public const string Group    = "Exclusión (grupo)";
     public const string Visuals  = "VFX en el objetivo";
     public const string Sound    = "Sonido";
 
-    public static readonly string[] Order = { General, Duration, Modifiers, Tags, Cleanse, Chain, Reactions, Control, Group, Visuals, Sound, "*" };
+    public static readonly string[] Order = { General, Duration, Modifiers, Tags, Cleanse, Chain, Reactions, Link, Control, Group, Visuals, Sound, "*" };
 }
 
 // Las secciones de una clase (CharacterClassDefinition), en el orden en que se muestran.

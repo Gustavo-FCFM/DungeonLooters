@@ -142,6 +142,9 @@ public partial class AbilitySystemComponent
                 // (físico + mágico) y antes de tocar el escudo. Ver ApplyDefenses.
                 ApplyDefenses(ref physicalDamage, ref magicDamage);
 
+                // VÍNCULO: parte de lo que queda se lo lleva el que puso el vínculo (ver RedirectLinkedDamage).
+                RedirectLinkedDamage(sourceASC, ref physicalDamage, ref magicDamage);
+
                 float currentShield      = GetAttributeValue(EAttributeType.Shield);
                 float damageBeforeShield = physicalDamage + magicDamage;
                 damageEndured           += damageBeforeShield;
@@ -284,6 +287,9 @@ public partial class AbilitySystemComponent
         if (healthHealed > 0f) ShowCombatNumber(healthHealed, ECombatNumber.Heal);
         // (el escudo de la Conquista que cura lo que frena ya sumó arriba en healthHealed)
 
+        // VÍNCULO: parte de lo curado le llega también al que puso el vínculo (ver ShareLinkedHeal).
+        if (healthHealed > 0f) ShareLinkedHeal(healthHealed);
+
         // Rotura de invisibilidad: un golpe de daño delata tanto a quien lo RECIBE
         // (this) como a quien lo REPARTE (sourceASC).
         //
@@ -310,6 +316,115 @@ public partial class AbilitySystemComponent
 
         // Con un efecto que ejecuta encima (el Corte final), este golpe puede rematarlo.
         if (wasDamagingHit) CheckExecute();
+    }
+
+    // =========================================================
+    // VÍNCULO ENTRE DOS (19 de noviembre de 2026; los campos están en GameplayEffect: "Vínculo (entre dos)")
+    // =========================================================
+    //
+    // Un efecto con vínculo une a quien lo tiene (this) con quien se lo puso (su Source). Lo que pasa por el vínculo va
+    // directo al otro (escudo y vida, con su número y la baja anotada), sin volver a pasar por defensas ni por otro
+    // vínculo: s_linkDepth corta las vueltas (dos que se vinculan entre sí no se pasan el daño para siempre).
+
+    private static int s_linkDepth;
+    private readonly List<ActiveGameplayEffect> _linkBuffer = new List<ActiveGameplayEffect>();
+
+    // El otro extremo del vínculo 'active': quien lo puso, si sigue vivo y no es este mismo. null = no hay con quién.
+    private AbilitySystemComponent LinkPartner(ActiveGameplayEffect active)
+    {
+        AbilitySystemComponent partner = active.Source as AbilitySystemComponent;
+        if (partner == null || ReferenceEquals(partner, this) || partner.HasTag(EGameplayTag.State_Dead)) return null;
+        return partner;
+    }
+
+    // Saca del golpe la parte que se llevan los vínculos (en orden, hasta el 100 %) y se la da a cada uno.
+    private void RedirectLinkedDamage(AbilitySystemComponent attacker, ref float physical, ref float magic)
+    {
+        float total = physical + magic;
+        if (total <= 0f || s_linkDepth > 0) return;
+
+        _linkBuffer.Clear();
+        foreach (ActiveGameplayEffect active in ActiveEffects)
+            if (active.Definition.LinkDamageShare > 0f) _linkBuffer.Add(active);
+        if (_linkBuffer.Count == 0) return;
+
+        float kept = 1f;
+        s_linkDepth++;
+        try
+        {
+            foreach (ActiveGameplayEffect active in _linkBuffer)
+            {
+                float share = Mathf.Min(active.Definition.LinkDamageShare, kept);
+                if (share <= 0f) break;
+                AbilitySystemComponent partner = LinkPartner(active);
+                if (partner != null && partner.TakeLinkedDamage(total * share, attacker)) kept -= share;
+            }
+        }
+        finally { s_linkDepth--; }
+
+        physical *= kept;
+        magic    *= kept;
+    }
+
+    // Lo que le llega a este personaje por un vínculo: contra su escudo (1 a 1) y su vida. false = no lo tomó (muerto o
+    // inmune): el golpe se queda con quien lo recibía.
+    private bool TakeLinkedDamage(float amount, AbilitySystemComponent attacker)
+    {
+        if (amount <= 0f || HasTag(EGameplayTag.State_Dead) || HasTag(EGameplayTag.Status_Immunity)) return false;
+
+        // La baja: si muere por esto, es del que pegó.
+        if (attacker != null && !ReferenceEquals(attacker, this))
+        {
+            LastAttacker = attacker;
+            _lastHitBy[attacker] = Time.time;
+        }
+
+        float shield   = GetAttributeValue(EAttributeType.Shield);
+        float absorbed = Mathf.Min(shield, amount);
+        if (absorbed > 0f) SetCurrentAttributeValue(EAttributeType.Shield, shield - absorbed);
+        float toHealth = amount - absorbed;
+        if (toHealth > 0f) SetCurrentAttributeValue(EAttributeType.Health, GetAttributeValue(EAttributeType.Health) - toHealth);
+
+        RecordDamageTaken(attacker != null ? CreditOf(attacker) : null, amount, false);
+        ShowCombatNumber(amount, ECombatNumber.Damage, shielded: toHealth <= 0f);
+        return true;
+    }
+
+    // A cada vínculo que comparte curación, su parte de lo que se curó este personaje (una copia).
+    private void ShareLinkedHeal(float healed)
+    {
+        if (healed <= 0f || s_linkDepth > 0) return;
+
+        _linkBuffer.Clear();
+        foreach (ActiveGameplayEffect active in ActiveEffects)
+            if (active.Definition.LinkHealShare > 0f) _linkBuffer.Add(active);
+        if (_linkBuffer.Count == 0) return;
+
+        s_linkDepth++;
+        try
+        {
+            foreach (ActiveGameplayEffect active in _linkBuffer)
+            {
+                AbilitySystemComponent partner = LinkPartner(active);
+                if (partner == null) continue;
+                float before = partner.GetAttributeValue(EAttributeType.Health);
+                partner.SetCurrentAttributeValue(EAttributeType.Health, before + healed * active.Definition.LinkHealShare);
+                float got = partner.GetAttributeValue(EAttributeType.Health) - before;
+                if (got > 0f) partner.ShowCombatNumber(got, ECombatNumber.Heal);
+            }
+        }
+        finally { s_linkDepth--; }
+    }
+
+    // ¿Se cortó el vínculo 'active'? (con "Se corta a": el otro se fue, murió o está más lejos que eso)
+    private bool LinkBroken(ActiveGameplayEffect active)
+    {
+        float max = active.Definition.LinkMaxDistance;
+        if (max <= 0f) return false;
+        AbilitySystemComponent partner = active.Source as AbilitySystemComponent;
+        if (ReferenceEquals(partner, this)) return false;
+        if (partner == null || partner.HasTag(EGameplayTag.State_Dead)) return true;
+        return (partner.transform.position - transform.position).sqrMagnitude > max * max;
     }
 
     // =========================================================

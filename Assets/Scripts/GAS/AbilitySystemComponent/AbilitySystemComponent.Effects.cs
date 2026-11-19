@@ -497,6 +497,7 @@ public partial class AbilitySystemComponent
         bool isDead = HasTag(EGameplayTag.State_Dead);
 
         List<ActiveGameplayEffect> expired = null;
+        List<ActiveGameplayEffect> broken  = null;   // vínculos cortados por distancia (ver LinkBroken)
 
         foreach (var active in _tickBuffer)
         {
@@ -523,7 +524,13 @@ public partial class AbilitySystemComponent
             }
 
             if (active.IsExpired) (expired ??= new List<ActiveGameplayEffect>()).Add(active);
+            else if (LinkBroken(active)) (broken ??= new List<ActiveGameplayEffect>()).Add(active);
         }
+
+        // Un vínculo cortado se QUITA (no vence): sus "Si se lo quitan antes" encadenan.
+        if (broken != null)
+            foreach (var b in broken)
+                if (ActiveEffects.Contains(b)) RemoveActiveEffect(b, EEffectEnd.Removed);
 
         // Solo se aloca la lista si de verdad venció algo (antes se creaba una
         // lista nueva CADA frame, para todos los personajes).

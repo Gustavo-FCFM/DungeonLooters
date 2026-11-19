@@ -415,6 +415,35 @@ public class GameplayEffect : ScriptableObject
     [Label("Reacciones")]
     public List<EffectReaction> Reactions = new List<EffectReaction>();
 
+    // VÍNCULO ENTRE DOS (19 de noviembre de 2026, de las "Mejoras del GAS"): mientras dura, une a quien lo tiene con QUIEN
+    // SE LO PUSO. Un protector que se pone esto sobre un aliado se lleva parte de sus golpes; un vínculo de vida le devuelve
+    // parte de lo que lo curan. Lo resuelve AbilitySystemComponent (parte Damage: RedirectLinkedDamage, ShareLinkedHeal;
+    // y el corte por distancia en ProcessActiveEffects). Lo que llega por el vínculo no vuelve a pasar por otro vínculo.
+    [Section(EffectSection.Link, startCollapsed: true)]
+    [ShowIf(HasDurationFields, ShowIfAttribute.Positive)]
+    [Tooltip("Qué parte del daño que RECIBE quien lo tiene (ya pasado por bloqueo y defensas, antes de su escudo) se la " +
+             "lleva QUIEN SE LO PUSO en su lugar (contra su escudo y su vida; si muere por esto, la baja es del que pegó). " +
+             "0.4 = el 40 %. Si el que lo puso está muerto o es inmune, no se pasa nada. 0 = nada.")]
+    [Label("Pasa del daño al que lo puso (0 a 1)")]
+    [Range(0f, 1f)] public float LinkDamageShare = 0f;
+
+    [Section(EffectSection.Link)]
+    [ShowIf(HasDurationFields, ShowIfAttribute.Positive)]
+    [Tooltip("Qué parte de la curación que RECIBE quien lo tiene le llega TAMBIÉN a quien se lo puso (una copia: al " +
+             "curado no se le quita nada). 0 = nada.")]
+    [Label("Comparte la curación con el que lo puso (0 a 1)")]
+    [Range(0f, 1f)] public float LinkHealShare = 0f;
+
+    [Section(EffectSection.Link)]
+    [ShowIf(HasDurationFields, ShowIfAttribute.Positive)]
+    [Tooltip("Si se alejan más que esto (o el que lo puso muere o se va), el vínculo se corta: se quita el efecto (cuenta " +
+             "como \"quitado antes\" para los encadenados).")]
+    [Label("Se corta a (m; 0 = nunca)")]
+    public float LinkMaxDistance = 0f;
+
+    // ¿Es un vínculo? (algo de la sección de arriba puesto)
+    public bool IsLink => LinkDamageShare > 0f || LinkHealShare > 0f || LinkMaxDistance > 0f;
+
     [Section(EffectSection.Tags)]
     [Tooltip("Tags que tiene el objetivo mientras el efecto está activo (State_Stunned, " +
              "Status_Slow...). El PRIMERO es además la identidad del efecto: con él se bloquea un " +

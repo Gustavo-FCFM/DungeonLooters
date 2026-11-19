@@ -544,7 +544,13 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
   - [ ] Ver en Play que la Resurrección del Clérigo sigue igual, y un revivir en área canalizado (3 s) en host, cliente y
         con un bot.
   - [ ] Revivirse a uno mismo ("burlar a la muerte") no está: la auto-revivida del Inmortal es aparte.
-- [ ] Vínculo entre dos: comparte daño o curación (nueva).
+- [x] **Vínculo entre dos** (19 de noviembre): sección "Vínculo (entre dos)" de los GE (todo en 0 por defecto: los GE de hoy no
+      cambian). Une a quien lo tiene con quien se lo puso: "Pasa del daño al que lo puso" (después de bloqueo y defensas, antes
+      del escudo; al otro contra su escudo y su vida, la baja es del que pegó; muerto o inmune, no pasa nada), "Comparte la
+      curación con el que lo puso" (una copia) y "Se corta a (m)" (lejos, muerto o ido: se QUITA, encadena "Si se lo quitan
+      antes"). Lo que llega por un vínculo no vuelve a pasar por otro. Lo resuelve el ASC (parte Damage). 2 pruebas (63).
+  - [ ] Armar un GE de ejemplo ("Protegido": 0.3 del daño, se corta a 15 m) en una habilidad a un aliado y verlo en Play.
+  - [ ] Sin cuerda visible entre los dos (solo el `TargetVFX` del GE): dibujarla en todas las pantallas es cambio de red.
 - [ ] Definitiva global (todos los enemigos del mapa) — sobre InstantAoE.
 
 *Orden propuesto:* 1) depurador y validador; 2) limpiar/purgar e inmunidades por tag; 3) pruebas del daño; 4) tareas y

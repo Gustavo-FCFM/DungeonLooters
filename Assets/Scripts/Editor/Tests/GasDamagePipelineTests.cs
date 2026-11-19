@@ -1256,4 +1256,53 @@ public class GasDamagePipelineTests
         revive.Activate();
         Assert.IsFalse(revive.CommittedThisActivation);
     }
+    // ---- Vínculo entre dos (GameplayEffect "Vínculo (entre dos)") ----
+
+    private GameplayEffect Link(float damageShare, float healShare, float maxDistance)
+    {
+        GameplayEffect link = Effect("Vínculo", 30f, GameplayEffect.EEffectType.Buff, EGameplayTag.State_AlwaysVisible);
+        link.LinkDamageShare = damageShare;
+        link.LinkHealShare = healShare;
+        link.LinkMaxDistance = maxDistance;
+        return link;
+    }
+
+    [Test]
+    public void Vinculo_ElQueLoPusoSeLlevaParteDelDano()
+    {
+        var protector = Character(100f);
+        var ally = Character(100f);
+        var enemy = Character(100f);
+        ally.ApplyGameplayEffect(Link(0.4f, 0f, 0f), protector);
+
+        ally.ApplyGameplayEffect(Hit(50f), enemy);
+        Assert.AreEqual(70f, Health(ally), "se queda con el 60 %");
+        Assert.AreEqual(80f, Health(protector), "el otro 40 % se lo lleva el protector");
+
+        GiveTag(protector, EGameplayTag.Status_Immunity);
+        ally.ApplyGameplayEffect(Hit(10f), enemy);
+        Assert.AreEqual(60f, Health(ally), "con el protector inmune no se pasa nada");
+        Assert.AreEqual(80f, Health(protector));
+    }
+
+    [Test]
+    public void Vinculo_ComparteLaCuracion_YSeCortaLejos()
+    {
+        var linker = Character(100f);
+        var ally = Character(100f);
+        var enemy = Character(100f);
+        linker.ApplyGameplayEffect(Hit(40f), enemy);
+        ally.ApplyGameplayEffect(Hit(40f), enemy);
+        ally.ApplyGameplayEffect(Link(0f, 0.5f, 10f), linker);
+
+        ally.ApplyGameplayEffect(Heal(20f), ally);
+        Assert.AreEqual(80f, Health(ally), "el curado recibe todo");
+        Assert.AreEqual(70f, Health(linker), "y al otro le llega la mitad");
+
+        ally.transform.position = new Vector3(20f, 0f, 0f);
+        Tick(ally, 0.1f);
+        Assert.IsFalse(ally.HasTag(EGameplayTag.State_AlwaysVisible), "lejos, el vínculo se corta");
+        ally.ApplyGameplayEffect(Heal(10f), ally);
+        Assert.AreEqual(70f, Health(linker), "y ya no comparte");
+    }
 }

@@ -392,6 +392,9 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   tiene duración se pregunta `HasDuration` (no `Duration > 0`) y la duración a aplicar es `EffectiveDuration` (+∞ si es
   infinito; el efecto activo queda con `TotalDuration` 0 = "sin reloj"). Lo que se va solo con un evento va en "Se va
   solo" (`RemoveOn`), no en código de pasiva.
+  **Pasar daño o curación entre dos personajes es el "Vínculo (entre dos)" del GE** (desde el 19 de noviembre de 2026): une a
+  quien lo tiene con quien se lo puso. Lo resuelve el ASC dentro de `ExecuteInstantEffect` (después de las defensas); un
+  código nuevo que reparta daño no se escribe aparte.
   **Una pasiva nueva que reacciona a algo es un GE con "Reacciones"** (desde el 18 de noviembre de 2026, los eventos de
   juego: `GameplayEvents.cs`): un GE infinito con "cuando hago daño / recibo un crítico / mato…, aplica tal efecto a mí o al
   otro". Por código se escucha `ASC.OnGameplayEvent`, no un evento suelto nuevo. Un evento nuevo se agrega AL FINAL de

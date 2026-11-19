@@ -515,7 +515,13 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       ya no le suelta el ataque al dueño al terminar (`WasTriggered` dura hasta el final; `EndAbility` no avisa). 3 pruebas (49).
   - [ ] Crear un asset de prueba (el Guardián: "Al bloquear un golpe", un cono corto, cooldown ~3 s, botón None) y verlo
         en Play con host, cliente y un bot.
-- [ ] Intercambiar posición — sobre Teleport.
+- [x] **Intercambiar posición** (19 de noviembre; `GA_SwapPosition`): un rayo a la mira; con el primero que toca (enemigos,
+      aliados o los dos) se cambian de lugar, cada uno mirando hacia donde miraba. La primera pared lo tapa; sin blanco no sale
+      ni gasta; no con enemigos Imparables, invisibles, muertos, la campana ni tótems (solo lo que camina). Al otro, sus
+      efectos "Al golpear". Mueve por `ServerTeleportOwnerTo`, que ahora también mueve a los NPC (`ServerTeleportNpc`:
+      Warp al NavMesh; antes no los movía). 2 pruebas (57).
+  - [ ] Verlo en Play con un asset de ejemplo: contra un muñeco, un bot, un NPC y en un cliente (cada uno se mueve por otro
+        camino).
 - [x] **Provocar** (19 de noviembre): tag `Status_Taunted` ("Control/Provocado", en el grupo Control) y `ASC.GetTaunter()` (la
       fuente del efecto de provocar más nuevo que siga viva). Los NPC (`MercEnemyAI.FindTarget`) van por él aunque esté fuera de
       su detección, con la correa; los bots (`BotController.FindBestTarget`), si es enemigo y está cerca. Sin GA nueva: un GE

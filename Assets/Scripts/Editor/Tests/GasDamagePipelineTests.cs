@@ -1089,4 +1089,65 @@ public class GasDamagePipelineTests
         Physics.SyncTransforms();
         Assert.IsNull(GC_Projectile.FindNextEnemy(owner, hit, 8f, touched, 1), "una pared en el medio lo tapa");
     }
+    // ---- Intercambiar posición (GA_SwapPosition) ----
+
+    private GameplayAbility Swap(AbilitySystemComponent owner, GA_SwapPosition.ESwapWith with, params GameplayEffect[] onHit)
+    {
+        var template = ScriptableObject.CreateInstance<GA_SwapPosition>();
+        _made.Add(template);
+        template.AbilityName = "Intercambio (prueba)";
+        template.SwapWith = with;
+        template.MaxRange = 20f;
+        template.WallLayer = 1;   // Default
+        template.Effects = new List<AbilityEffect>();
+        foreach (GameplayEffect e in onHit)
+            template.Effects.Add(new AbilityEffect { When = EEffectWhen.OnHit, ApplyTo = EEffectTarget.Enemies, Effect = e });
+        GameplayAbility granted = owner.GrantAbility(template);
+        _made.Add(granted);
+        return granted;
+    }
+
+    [Test]
+    public void Intercambio_CambiaDeLugarConElEnemigo_YLeAplicaLoSuyo()
+    {
+        var owner = Character(100f);
+        var enemy = Character(100f);
+        Body(owner, Vector3.zero);
+        Body(enemy, new Vector3(0f, 0f, 8f));
+        Physics.SyncTransforms();
+
+        GameplayAbility swap = Swap(owner, GA_SwapPosition.ESwapWith.Enemies, Hit(7f));
+        swap.Activate();
+        Assert.AreEqual(new Vector3(0f, 0f, 8f), owner.transform.position, "el que la tira, donde estaba el otro");
+        Assert.AreEqual(Vector3.zero, enemy.transform.position, "el otro, donde estaba él");
+        Assert.AreEqual(93f, Health(enemy), "sus efectos Al golpear");
+        Assert.IsTrue(swap.CommittedThisActivation);
+    }
+
+    [Test]
+    public void Intercambio_NoConImparables_NiDetrasDeUnaPared_NiFueraDeConQuien()
+    {
+        var owner = Character(100f);
+        var enemy = Character(100f);
+        Body(owner, Vector3.zero);
+        Body(enemy, new Vector3(0f, 0f, 8f));
+        Physics.SyncTransforms();
+
+        Swap(owner, GA_SwapPosition.ESwapWith.Allies).Activate();
+        Assert.AreEqual(new Vector3(0f, 0f, 8f), enemy.transform.position, "solo aliados: al enemigo no");
+
+        GiveTag(enemy, EGameplayTag.Status_Unstoppable);
+        GameplayAbility swap = Swap(owner, GA_SwapPosition.ESwapWith.Enemies);
+        swap.Activate();
+        Assert.AreEqual(new Vector3(0f, 0f, 8f), enemy.transform.position, "imparable: no se mueve");
+        Assert.IsFalse(swap.CommittedThisActivation, "y sin blanco no gasta");
+
+        var other = Character(100f);
+        Body(other, new Vector3(0f, 0f, -8f));
+        owner.transform.rotation = Quaternion.LookRotation(Vector3.back);
+        Wall(new Vector3(0f, 1f, -4f));
+        Physics.SyncTransforms();
+        Swap(owner, GA_SwapPosition.ESwapWith.Enemies).Activate();
+        Assert.AreEqual(new Vector3(0f, 0f, -8f), other.transform.position, "una pared en el medio lo tapa");
+    }
 }

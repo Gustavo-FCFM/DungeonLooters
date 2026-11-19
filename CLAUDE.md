@@ -168,6 +168,8 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   los ejecuta el DUEÑO por TargetRpc, nunca el servidor escribiendo el transform. Un bot no
   tiene dueño: cada uno de esos movimientos tiene su ruta en `BotController` (`ServerDash`,
   `ServerLeap`, `ServerStartFlight`, `ServerDive`), y lo que no la tiene se marca `MovesThroughOwner`.
+  Un teletransporte va SIEMPRE por `NetworkAbilitySystemComponent.ServerTeleportOwnerTo`, que resuelve los tres casos: el
+  dueño, el bot y (desde el 19 de noviembre de 2026) el NPC (`ServerTeleportNpc`, Warp al NavMesh).
 - **Los registros de red.** Cada `GA_*` o `GE_*` tiene que estar en
   `GameplayAbilityRegistry` / `GameplayEffectRegistry` (los dos assets de
   `Assets/Resources/`), porque FishNet manda el ÍNDICE dentro de esas listas y no la

@@ -1902,10 +1902,28 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
         {
             PlayerController bot = GetComponent<PlayerController>();
             if (bot != null && bot.IsBot) bot.ServerTeleportBot(position, faceDir);
+            else if (bot == null) ServerTeleportNpc(position, faceDir);
             return;
         }
 
         TargetExecuteTeleport(Owner, position, faceDir, turnCamera);
+    }
+
+    // Un NPC (sin PlayerController): el servidor es su autoridad y su NetworkTransform lo lleva a todos. Con
+    // NavMeshAgent, por Warp al punto del NavMesh más cercano (si no, el agente lo devuelve caminando). Desde el 19 de
+    // noviembre de 2026 (intercambiar posición, GA_SwapPosition); antes un NPC no se teletransportaba.
+    [Server]
+    private void ServerTeleportNpc(Vector3 position, Vector3 faceDir)
+    {
+        UnityEngine.AI.NavMeshAgent agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        if (agent != null && agent.enabled &&
+            UnityEngine.AI.NavMesh.SamplePosition(position, out UnityEngine.AI.NavMeshHit hit, 2f, UnityEngine.AI.NavMesh.AllAreas))
+            agent.Warp(hit.position);
+        else
+            transform.position = position;
+
+        faceDir.y = 0f;
+        if (faceDir.sqrMagnitude > 0.0001f) transform.rotation = Quaternion.LookRotation(faceDir.normalized);
     }
 
     [TargetRpc]

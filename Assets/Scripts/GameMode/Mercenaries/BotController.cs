@@ -1440,6 +1440,12 @@ public class BotController : MonoBehaviour
     // es contra quien hay que pelear.
     private AbilitySystemComponent FindBestTarget()
     {
+        // PROVOCADO (Status_Taunted): va por el que lo provocó mientras le dure, si es enemigo y está a la vista.
+        AbilitySystemComponent forced = _asc.GetTaunter();
+        if (forced != null && !_asc.IsAllyOf(forced, includeSelf: false) &&
+            Vector3.Distance(transform.position, forced.transform.position) <= VisionRadius * 1.5f)
+            return forced;
+
         int count = Physics.OverlapSphereNonAlloc(
             transform.position, VisionRadius, _hits, CharacterLayer, QueryTriggerInteraction.Ignore);
 

@@ -497,7 +497,11 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
   - [ ] Crear un asset de prueba (el Guardián: "Al bloquear un golpe", un cono corto, cooldown ~3 s, botón None) y verlo
         en Play con host, cliente y un bot.
 - [ ] Intercambiar posición — sobre Teleport.
-- [ ] Provocar (forzar el objetivo de los NPC) — un tag y la IA.
+- [x] **Provocar** (19 de noviembre): tag `Status_Taunted` ("Control/Provocado", en el grupo Control) y `ASC.GetTaunter()` (la
+      fuente del efecto de provocar más nuevo que siga viva). Los NPC (`MercEnemyAI.FindTarget`) van por él aunque esté fuera de
+      su detección, con la correa; los bots (`BotController.FindBestTarget`), si es enemigo y está cerca. Sin GA nueva: un GE
+      que da el tag + `GA_InstantAoE` alrededor (o `GA_Counterattack` para provocar al que te pegó). 1 prueba (50).
+  - [ ] Armar un GE_Taunted y una habilidad de ejemplo y verlo en Play (un fantasma persiguiendo al que lo provocó; un bot).
 - [ ] Zona que crece o avanza (tornado, muro que avanza) — sobre SpawnSummon + Summon_Zone.
 - [ ] Revivir (nueva).
 - [ ] Vínculo entre dos: comparte daño o curación (nueva).

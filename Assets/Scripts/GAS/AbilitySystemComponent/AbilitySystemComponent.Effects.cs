@@ -214,6 +214,21 @@ public partial class AbilitySystemComponent
         net.ServerRevealToTeam(by.TeamID, float.IsPositiveInfinity(duration) ? 3600f : duration);
     }
 
+    // PROVOCADO (Status_Taunted, 19 de noviembre de 2026): ¿quién lo obliga a atacarlo? La fuente del efecto de provocar
+    // MÁS NUEVO que siga viva. null = no está provocado (o el que lo provocó murió o ya no está). Lo preguntan la IA de los
+    // NPC (MercEnemyAI.FindTarget) y la de los bots (BotController.FindBestTarget). Solo en el servidor (efectos activos).
+    public AbilitySystemComponent GetTaunter()
+    {
+        for (int i = ActiveEffects.Count - 1; i >= 0; i--)
+        {
+            ActiveGameplayEffect active = ActiveEffects[i];
+            if (!GameplayTagTree.AnyMatches(active.Definition.GrantedTags, EGameplayTag.Status_Taunted)) continue;
+            if (active.Source is AbilitySystemComponent by && by != null && by != this && !by.HasTag(EGameplayTag.State_Dead))
+                return by;
+        }
+        return null;
+    }
+
     // =========================================================
     // REPELER / ATRAER (GameplayEffect.KnockbackDistance)
     // =========================================================

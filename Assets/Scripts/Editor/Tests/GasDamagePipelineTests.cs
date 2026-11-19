@@ -876,6 +876,31 @@ public class GasDamagePipelineTests
         Assert.AreEqual(90f, Health(attacker), "le volvió la mitad: 10");
     }
 
+    // =========================================================
+    // PROVOCAR (Status_Taunted → ASC.GetTaunter)
+    // =========================================================
+
+    [Test]
+    public void Provocar_ElUltimoQueProvocoYQueSigueVivo()
+    {
+        var npc = Character(100f);
+        var tank = Character(100f);
+        var other = Character(10f);
+        GameplayEffect taunt = Effect("Provocado", 3f, GameplayEffect.EEffectType.Debuff, EGameplayTag.Status_Taunted);
+        taunt.StackingPolicy = GameplayEffect.EStackingType.Stack;
+
+        Assert.IsNull(npc.GetTaunter(), "sin provocar");
+        npc.ApplyGameplayEffect(taunt, tank);
+        Assert.AreSame(tank, npc.GetTaunter());
+        Assert.IsTrue(npc.HasTag(EGameplayTag.Group_Control), "provocar es un control (grupo Control)");
+
+        npc.ApplyGameplayEffect(taunt, other);
+        Assert.AreSame(other, npc.GetTaunter(), "el más nuevo manda");
+
+        other.ApplyGameplayEffect(Hit(50f), tank);         // el último provocador muere
+        Assert.AreSame(tank, npc.GetTaunter(), "un provocador muerto no cuenta: vuelve el anterior");
+    }
+
     [Test]
     public void Evento_LlegaPorCodigoConSusDatos()
     {

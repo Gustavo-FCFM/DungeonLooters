@@ -449,6 +449,13 @@ public class MercEnemyAI : NetworkBehaviour
     [Server]
     private AbilitySystemComponent FindTarget()
     {
+        // PROVOCADO (Status_Taunted): va por el que lo provocó, aunque esté fuera de su radio de detección; la correa sí
+        // vale (no sale de su zona). Invisible no importa: provocar es "te vi".
+        AbilitySystemComponent forced = _asc.GetTaunter();
+        if (forced != null && !forced.HasTag(EGameplayTag.Status_SafeZone) &&
+            Vector3.Distance(_homePosition, forced.transform.position) <= LeashRadius)
+            return forced;
+
         AbilitySystemComponent best = null;
         float bestDistance = float.MaxValue;
         AbilitySystemComponent taunter = null;   // el Oso del Maestro de bestias (Status_Taunting)

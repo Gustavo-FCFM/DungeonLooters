@@ -173,4 +173,7 @@ public enum EGameplayTag
     [InspectorName("Grupos/Buff de tótem")] Group_TotemBuff,           // los buffs de los tótems del Chamán (oso, lobo, águila, tigre)
     [InspectorName("Grupos/Auras del Paladín")] Group_Aura,                // las auras del Paladín (protección, devoción, venganza, conquista)
     [InspectorName("Grupos/Cooldowns (todos)")] Group_Cooldown,            // todos los cooldowns (de habilidades, de tótems, de compañeros)
+
+    // --- 19 de noviembre de 2026 ---
+    [InspectorName("Control/Provocado (ataca al que lo provocó)")] Status_Taunted,   // PROVOCADO: los NPC y los bots que lo tienen van por QUIEN se lo puso (la fuente del GE; ver ASC.GetTaunter). Distinto de Status_Taunting (el señuelo del Oso)
 }

@@ -29,6 +29,7 @@ public static class GameplayTagTree
         { EGameplayTag.State_Disarmed,        EGameplayTag.Group_Control },
         { EGameplayTag.Status_Slow,           EGameplayTag.Group_Control },
         { EGameplayTag.Status_Blinded,        EGameplayTag.Group_Control },
+        { EGameplayTag.Status_Taunted,        EGameplayTag.Group_Control },
 
         // Daño con el tiempo
         { EGameplayTag.Status_Poison,         EGameplayTag.Group_DamageOverTime },

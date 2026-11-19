@@ -497,7 +497,16 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       (`VFX_LightningBeam` por `BroadcastBeams`). Hereda la mira por red, la barra, la pose, el corte y las zonas. 1 prueba con
       física real (53).
   - [ ] Verlo en Play: que siga la mira en un cliente, y el haz dibujado (un lanzallamas o una cura en haz de ejemplo).
-- [ ] Proyectil que vuelve o rebota en paredes — sobre ProjectileShoot.
+- [x] **Proyectil que rebota o vuelve** (19 de noviembre): sección "Rebote y vuelta" de `GA_ProjectileShoot` (todo apagado por
+      defecto: los assets no cambian), resuelta en el servidor por `GC_Projectile` ("REBOTE Y VUELTA"). "Rebota en paredes
+      (veces)" sale reflejado; "Salta entre enemigos (veces)" va al enemigo más cercano no tocado, a la vista y en su alcance
+      (lo persigue un poco); "Vuelve al lanzador" da la vuelta a su distancia, a su tiempo de vuelo o al chocar ("Vuelve al
+      chocar"), atraviesa paredes y enemigos a la vuelta, "Pega otra vez a la vuelta", y se va al llegarte (tope 4 s). Un parry
+      lo apaga. La explosión "Al chocar" solo en el choque final. 2 pruebas (55).
+  - [ ] Verlo en Play con un asset de ejemplo (bumerán: el hacha con "Vuelve" a 10 m; chakram: "Salta entre enemigos" 2) en
+        host y cliente.
+  - [ ] Con "Esconder el arma mientras vuela", el arma reaparece al terminar la habilidad, no al volver el proyectil. La
+        trayectoria al apuntar no dibuja los rebotes.
 - [ ] Marcar y detonar — sobre las acumulaciones.
 - [x] **Contraataque / reflejo genérico** (19 de noviembre; `GA_Counterattack`): con "Se activa sola" (al bloquear, al recibir
       daño, al recibir un crítico...) le pega al OTRO del evento si es enemigo, vivo y a su alcance ("Alcance (m; 0 = sin

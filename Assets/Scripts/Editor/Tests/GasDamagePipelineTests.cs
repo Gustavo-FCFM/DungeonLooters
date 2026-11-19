@@ -1046,4 +1046,47 @@ public class GasDamagePipelineTests
         Assert.IsTrue(seen.Exists(d => d.Event == EGameplayEvent.DamageDealt && d.Other == victim && d.Magnitude > 0f));
         Assert.IsTrue(seen.Exists(d => d.Event == EGameplayEvent.CriticalDealt), "el golpe salió crítico");
     }
+    // ---- Proyectil que rebota o vuelve (GC_Projectile, "Rebote y vuelta") ----
+
+    [Test]
+    public void Proyectil_RebotaContraLaParedReflejado()
+    {
+        GameObject wall = Wall(new Vector3(0f, 1f, 5f));   // su cara de adelante está en z = 4.75
+        Physics.SyncTransforms();
+        Collider col = wall.GetComponent<Collider>();
+
+        Vector3 v = GC_Projectile.BounceVelocity(col, new Vector3(0f, 1f, 4.6f), new Vector3(6f, 0f, 8f));
+        Assert.AreEqual(6f, v.x, 0.01f, "lo de costado sigue igual");
+        Assert.AreEqual(-8f, v.z, 0.01f, "lo que iba contra la pared se da vuelta");
+        Assert.AreEqual(10f, v.magnitude, 0.01f, "con la misma rapidez");
+
+        v = GC_Projectile.BounceVelocity(col, new Vector3(0f, 1f, 4.6f), new Vector3(0f, 0f, 10f));
+        Assert.AreEqual(-10f, v.z, 0.01f, "de frente, vuelve por donde vino");
+    }
+
+    [Test]
+    public void Proyectil_SaltaAlEnemigoMasCercanoQueNoToco_YLaParedLoTapa()
+    {
+        var owner = Character(100f);
+        var hit = Character(100f);
+        var near = Character(100f);
+        var far = Character(100f);
+        Body(owner, Vector3.zero);
+        Body(hit, new Vector3(0f, 0f, 8f));
+        Body(near, new Vector3(3f, 0f, 8f));
+        Body(far, new Vector3(-5f, 0f, 8f));
+        Physics.SyncTransforms();
+
+        var none = new HashSet<AbilitySystemComponent> { hit };
+        Assert.AreSame(near, GC_Projectile.FindNextEnemy(owner, hit, 8f, none, 1), "el más cercano");
+        Assert.IsNull(GC_Projectile.FindNextEnemy(owner, hit, 2f, none, 1), "fuera del alcance, ninguno");
+
+        var touched = new HashSet<AbilitySystemComponent> { hit, near };
+        Assert.AreSame(far, GC_Projectile.FindNextEnemy(owner, hit, 8f, touched, 1), "al ya golpeado no vuelve");
+
+        GameObject wall = Wall(new Vector3(-2.5f, 1f, 8f));
+        wall.transform.rotation = Quaternion.Euler(0f, 90f, 0f);   // de frente al salto hacia la izquierda
+        Physics.SyncTransforms();
+        Assert.IsNull(GC_Projectile.FindNextEnemy(owner, hit, 8f, touched, 1), "una pared en el medio lo tapa");
+    }
 }

@@ -319,6 +319,9 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   proyectil se deshace como contra una pared en algo que no es el mapa, avisa en la consola
   ("[Proyectil] … se deshizo contra '…'", `GC_Projectile.WarnIfNotScenery`): es diagnóstico
   del "choca con uno mismo" (29 de octubre de 2026), no lo quites sin encontrarlo.
+  Rebotar, saltar entre enemigos y volver al lanzador son la sección "Rebote y vuelta" del GA (desde el 19 de noviembre de
+  2026), resuelta en el servidor dentro del mismo barrido: lo que cambie la dirección a mitad del barrido sube `_trajectory`
+  (lo que quedaba del tramo viejo ya no cuenta) y no toca `s_found` (se está recorriendo).
 
 - **Un tag con dos fuentes en el cliente** (el espejo de `NetTags` y algo local) cuenta
   dos veces. `State_Dead` es así: la vida en 0 llega por su SyncVar y el cliente se muere

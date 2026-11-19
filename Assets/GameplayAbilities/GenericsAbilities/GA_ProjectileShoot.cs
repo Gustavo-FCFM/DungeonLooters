@@ -91,6 +91,52 @@ public class GA_ProjectileShoot : GameplayAbility, IHoldAbility
     [Label("Entre proyectiles (s)")]
     public float BurstInterval = 0.2f;
 
+    // REBOTE Y VUELTA (19 de noviembre de 2026, de las "Mejoras del GAS"). Lo resuelve el proyectil
+    // (GC_Projectile, en el servidor) leyendo estos campos. Todo en 0 / apagado = lo de siempre.
+    [Section("Rebote y vuelta")]
+    [Tooltip("Cuántas veces rebota contra una pared o el piso en vez de deshacerse (sale reflejado, " +
+             "con la misma velocidad). Al acabarse los rebotes, el próximo choque lo deshace (o lo hace " +
+             "volver, si \"Vuelve al chocar\"). 0 = se deshace al primer choque, lo de siempre.")]
+    [Label("Rebota en paredes (veces)")]
+    [Min(0)]
+    public int WallBounces = 0;
+
+    [Tooltip("Cuántas veces SALTA de un enemigo al siguiente: al pegarle a uno, sale derecho hacia el " +
+             "enemigo más cercano que todavía no tocó (a la vista y dentro del alcance de abajo). Cada " +
+             "uno recibe la lista de efectos completa. Sin a quién saltar, sigue de largo (o se deshace, " +
+             "con \"Se deshace en el primer enemigo\"). 0 = no salta.")]
+    [Label("Salta entre enemigos (veces)")]
+    [Min(0)]
+    public int EnemyBounces = 0;
+
+    [ShowIf(nameof(EnemyBounces), 0, true)]
+    [Tooltip("Hasta dónde busca al próximo enemigo para saltar, desde el que acaba de golpear.")]
+    [Label("Alcance del salto (m)")]
+    public float EnemyBounceRange = 8f;
+
+    [Tooltip("Vuelve al que lo tiró, como un bumerán: al llegar a su distancia máxima da la vuelta y " +
+             "lo persigue hasta llegarle (ahí desaparece). A la vuelta atraviesa las paredes (no se " +
+             "pierde detrás de una) y no rebota.")]
+    [Label("Vuelve al lanzador")]
+    public bool Returns = false;
+
+    [ShowIf(nameof(Returns))]
+    [Tooltip("A qué distancia del que lo tiró da la vuelta.")]
+    [Label("Da la vuelta a (m)")]
+    public float ReturnDistance = 12f;
+
+    [ShowIf(nameof(Returns))]
+    [Tooltip("Al chocar con algo que lo desharía (una pared sin rebotes, o el primer enemigo con \"Se " +
+             "deshace en el primer enemigo\") da la vuelta en vez de deshacerse. Apagado = ese choque " +
+             "lo deshace igual.")]
+    [Label("Vuelve al chocar")]
+    public bool ReturnsOnHit = true;
+
+    [ShowIf(nameof(Returns))]
+    [Tooltip("A la vuelta les vuelve a pegar a los que ya golpeó a la ida (cada uno, una vez más).")]
+    [Label("Pega otra vez a la vuelta")]
+    public bool HitsAgainOnReturn = true;
+
     [Section("Al chocar")]
     [Tooltip("Una explosión donde choca (contra un enemigo, una pared o un escudo): un GA_InstantAoE " +
              "que se reusa tal cual —su radio, sus efectos y su VFX—, sin su costo, su cooldown ni su " +

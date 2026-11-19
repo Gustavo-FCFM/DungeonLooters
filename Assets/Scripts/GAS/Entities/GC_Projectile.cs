@@ -152,6 +152,7 @@ public class GC_Projectile : NetworkBehaviour
         if (!IsServerInitialized) return;
 
         Sweep();
+        if (!_gone) UpdateBounceAndReturn();
 
         if (!AlignToVelocity) return;
         if (_body == null) _body = GetComponent<Rigidbody>();
@@ -260,6 +261,7 @@ public class GC_Projectile : NetworkBehaviour
             if (_shooterNob.Value != null) TryApplyShooterWeaponVisuals(_shooterNob.Value);
 
             StartSweep(source);
+            SetupBounceAndReturn();
             StartCoroutine(DespawnAfterLifetime());
         }
     }
@@ -269,6 +271,9 @@ public class GC_Projectile : NetworkBehaviour
     private IEnumerator DespawnAfterLifetime()
     {
         yield return new WaitForSeconds(lifeTime);
+        // Un bumerán no se pierde por tiempo: da la vuelta (la vuelta tiene su propio tope).
+        if (CanReturn) { StartReturn(); yield break; }
+        if (_returning) yield break;
         DespawnSelf();
     }
 
@@ -350,7 +355,9 @@ public class GC_Projectile : NetworkBehaviour
         foreach (KeyValuePair<float, Collider> found in s_found)
         {
             if (_gone || trajectory != _trajectory) break;   // chocó, o un parry lo dio vuelta
-            if (found.Value == null || !_touched.Add(found.Value)) continue;
+            if (found.Value == null) continue;
+            if (found.Value == _bouncedOff && Time.time < _bouncedOffUntil) continue;   // la pared de la que acaba de rebotar
+            if (!_touched.Add(found.Value)) continue;
             HandleHit(found.Value, from + dir * found.Key);
         }
     }
@@ -508,13 +515,19 @@ public class GC_Projectile : NetworkBehaviour
 
                     // Los VFX "al golpear" sobre él (el sonido ya va con el impacto de arriba).
                     if (!_reflected) sourceAbility.BroadcastHitVFX(targetASC, withSound: false);
+
+                    // "Salta entre enemigos": sale hacia el próximo (ver REBOTE Y VUELTA).
+                    if (TryJumpToNextEnemy(targetASC, point)) return;
                 }
 
                 // "Se deshace en el primer enemigo" (GA_ProjectileShoot.StopAtFirstEnemy: los
                 // Misiles arcanos del Mago): le pegó a uno y se va. Sin la casilla, lo atraviesa
                 // y sigue (cada enemigo, una vez), como siempre.
-                if (sourceAbility is GA_ProjectileShoot shot && shot.StopAtFirstEnemy)
+                // A la vuelta de un bumerán, no: atraviesa a todos hasta llegarle al dueño.
+                if (sourceAbility is GA_ProjectileShoot shot && shot.StopAtFirstEnemy && !_returning)
                 {
+                    // "Vuelve al chocar": da la vuelta en vez de deshacerse.
+                    if (CanReturn && shot.ReturnsOnHit) { MoveShapeTo(point); StartReturn(); return; }
                     Impact(point);
                     DespawnSelf();
                     return;
@@ -541,6 +554,16 @@ public class GC_Projectile : NetworkBehaviour
         {
             // 3. ¿Es una pared / entorno sólido?
             // Si llegamos aquí, no tiene ASC y no es trigger.
+            // A la vuelta de un bumerán, las paredes se atraviesan (no se pierde detrás de una).
+            if (_returning) return;
+            // Rebota (le quedan rebotes) o da la vuelta ("Vuelve al chocar"), en vez de deshacerse.
+            if (TryBounceOffWall(other, point)) return;
+            if (CanReturn && sourceAbility is GA_ProjectileShoot back && back.ReturnsOnHit)
+            {
+                MoveShapeTo(point);
+                StartReturn();
+                return;
+            }
             WarnIfNotScenery(other, targetASC);
             Impact(point);
             DespawnSelf();
@@ -575,6 +598,232 @@ public class GC_Projectile : NetworkBehaviour
         if (_impacted || _gone || _reflected) return;
         _impacted = true;
         if (sourceAbility is GA_ProjectileShoot shot) shot.OnProjectileImpact(point, _boosted);
+    }
+
+    // =========================================================
+    // REBOTE Y VUELTA (19 de noviembre de 2026, de las "Mejoras del GAS") — servidor
+    //
+    // Lo pide la sección "Rebote y vuelta" de GA_ProjectileShoot; todo apagado = lo de siempre.
+    //   · Rebota en paredes: en vez de deshacerse, sale reflejado contra la cara que tocó.
+    //   · Salta entre enemigos: al pegarle a uno, va hacia el enemigo más cercano que no tocó
+    //     (persiguiéndolo un poco, para no errarle si se mueve).
+    //   · Vuelve al lanzador: a su distancia (o a su tiempo de vuelo, o al chocar) da la vuelta y
+    //     persigue al dueño hasta llegarle; a la vuelta atraviesa paredes y enemigos.
+    // Un parry (Reflect) apaga todo: el devuelto sigue derecho.
+    // =========================================================
+
+    private const int   CharacterLayer      = 7;
+    private const float ArriveDistance      = 1.2f;   // a esto del pecho del dueño, llegó
+    private const float MaxReturnSeconds    = 4f;     // tope de la vuelta (un dueño que huye)
+    private const float MaxChaseSeconds     = 1.5f;   // tope de la persecución de un salto
+    private const float BounceIgnoreSeconds = 0.1f;   // no vuelve a chocar con la pared de la que rebotó
+
+    private int       _wallBouncesLeft;
+    private int       _enemyBouncesLeft;
+    private bool      _returning;
+    private float     _returnStartedAt;
+    private Vector3   _launchOrigin;
+    private float     _speed;
+    private Collider  _bouncedOff;
+    private float     _bouncedOffUntil;
+    private AbilitySystemComponent _chase;
+    private float     _chaseStartedAt;
+
+    private static readonly Collider[] s_near = new Collider[32];
+
+    private GA_ProjectileShoot Shot => sourceAbility as GA_ProjectileShoot;
+
+    // Puede dar la vuelta: la habilidad lo pide, no la está dando ya y no lo devolvió un parry.
+    private bool CanReturn => !_returning && !_reflected && !_gone && Shot != null && Shot.Returns && sourceASC != null;
+
+    private void SetupBounceAndReturn()
+    {
+        _launchOrigin = transform.position;
+        GA_ProjectileShoot shot = Shot;
+        if (shot == null) return;
+        _wallBouncesLeft  = Mathf.Max(0, shot.WallBounces);
+        _enemyBouncesLeft = Mathf.Max(0, shot.EnemyBounces);
+        _speed            = Mathf.Max(1f, shot.LaunchForce);
+    }
+
+    private void StopBounceAndReturn()
+    {
+        _wallBouncesLeft  = 0;
+        _enemyBouncesLeft = 0;
+        _returning        = false;
+        _chase            = null;
+    }
+
+    // Cada paso de física, después del barrido: la persecución de un salto y la vuelta.
+    private void UpdateBounceAndReturn()
+    {
+        if (_body == null) _body = GetComponent<Rigidbody>();
+        if (_body == null || _body.isKinematic) return;
+
+        if (_returning)
+        {
+            if (sourceASC == null || sourceASC.HasTag(EGameplayTag.State_Dead) ||
+                Time.time - _returnStartedAt > MaxReturnSeconds) { DespawnSelf(); return; }
+
+            Vector3 toOwner = sourceASC.transform.position + Vector3.up - transform.position;
+            if (toOwner.magnitude <= ArriveDistance) { DespawnSelf(); return; }
+            _body.linearVelocity = toOwner.normalized * _speed;
+            return;
+        }
+
+        if (_chase != null)
+        {
+            if (enemiesHit.Contains(_chase) || _chase.HasTag(EGameplayTag.State_Dead) ||
+                Time.time - _chaseStartedAt > MaxChaseSeconds) _chase = null;
+            else
+            {
+                Vector3 toTarget = _chase.transform.position + Vector3.up - transform.position;
+                if (toTarget.sqrMagnitude > 0.01f) _body.linearVelocity = toTarget.normalized * _speed;
+            }
+        }
+
+        if (CanReturn && Vector3.Distance(transform.position, _launchOrigin) >= Shot.ReturnDistance)
+            StartReturn();
+    }
+
+    // Da la vuelta hacia el dueño. "Pega otra vez a la vuelta": se olvida de a quién golpeó (menos de
+    // lo que está tocando AHORA, que es donde dio la vuelta: no le pega dos veces seguidas).
+    private void StartReturn()
+    {
+        GA_ProjectileShoot shot = Shot;
+        _returning        = true;
+        _returnStartedAt  = Time.time;
+        _wallBouncesLeft  = 0;
+        _enemyBouncesLeft = 0;
+        _chase            = null;
+        if (_body == null) _body = GetComponent<Rigidbody>();
+        if (_body != null && !_body.isKinematic)
+        {
+            _body.useGravity = false;
+            if (sourceASC != null)
+                _body.linearVelocity = (sourceASC.transform.position + Vector3.up - transform.position).normalized * _speed;
+        }
+
+        _trajectory++;   // lo que quedaba del barrido de este paso ya no cuenta
+        if (shot != null && shot.HitsAgainOnReturn)
+        {
+            enemiesHit.Clear();
+            alliesHit.Clear();
+            _impactShown.Clear();
+            _touched.Clear();
+            float radius = Mathf.Max(CharacterHitRadius, _shape != null ? _shape.bounds.extents.magnitude : 0.5f);
+            int n = Physics.OverlapSphereNonAlloc(ShapeCenter(), radius, s_near, _mask, QueryTriggerInteraction.Collide);
+            for (int i = 0; i < n; i++) _touched.Add(s_near[i]);
+        }
+        _lastCenter = ShapeCenter();
+    }
+
+    // Pone el proyectil donde estaba al tocar algo (el barrido lo encuentra un paso tarde).
+    private void MoveShapeTo(Vector3 point) => transform.position += point - ShapeCenter();
+
+    // Rebota contra 'wall' si le quedan rebotes. false = no rebota (se deshace o da la vuelta).
+    private bool TryBounceOffWall(Collider wall, Vector3 point)
+    {
+        if (_wallBouncesLeft <= 0 || _reflected) return false;
+        if (_body == null) _body = GetComponent<Rigidbody>();
+        if (_body == null || _body.isKinematic) return false;
+
+        Vector3 velocity = BounceVelocity(wall, point, _body.linearVelocity);
+        if (velocity.sqrMagnitude < 0.01f) return false;
+
+        _wallBouncesLeft--;
+        MoveShapeTo(point);
+        transform.position += velocity.normalized * 0.05f;
+        transform.rotation  = Quaternion.LookRotation(velocity);
+        _body.linearVelocity = velocity;
+
+        // La pared sale de lo ya tocado (puede volver a rebotar en ella más tarde) pero se ignora
+        // un instante (no la vuelve a encontrar al salir); lo demás del tramo viejo ya no cuenta.
+        _touched.Remove(wall);
+        _bouncedOff      = wall;
+        _bouncedOffUntil = Time.time + BounceIgnoreSeconds;
+        _trajectory++;
+        _lastCenter = ShapeCenter();
+        return true;
+    }
+
+    // Salta hacia el próximo enemigo después de pegarle a 'hit'. false = no salta (no le quedan
+    // saltos o no hay a quién).
+    private bool TryJumpToNextEnemy(AbilitySystemComponent hit, Vector3 point)
+    {
+        if (_enemyBouncesLeft <= 0 || _reflected || _returning || Shot == null) return false;
+        if (_body == null) _body = GetComponent<Rigidbody>();
+        if (_body == null || _body.isKinematic) return false;
+
+        AbilitySystemComponent next = FindNextEnemy(sourceASC, hit, Shot.EnemyBounceRange, enemiesHit,
+                                                    _mask & ~(1 << CharacterLayer));
+        if (next == null) return false;
+
+        _enemyBouncesLeft--;
+        MoveShapeTo(point);
+        Vector3 dir = (next.transform.position + Vector3.up - transform.position).normalized;
+        _body.useGravity     = false;   // va derecho al próximo (con gravedad caería antes)
+        _body.linearVelocity = dir * _speed;
+        transform.rotation   = Quaternion.LookRotation(dir);
+        _chase          = next;
+        _chaseStartedAt = Time.time;
+        _trajectory++;   // lo que seguía en la dirección vieja ya no cuenta (lo tocado, sí: no le pega dos veces)
+        _lastCenter = ShapeCenter();
+        return true;
+    }
+
+    // La velocidad después de rebotar contra 'wall' (tocada con el centro del proyectil en 'point'):
+    // reflejada contra la cara que tocó, con la misma rapidez. Público y estático para las pruebas.
+    public static Vector3 BounceVelocity(Collider wall, Vector3 point, Vector3 velocity)
+    {
+        float speed = velocity.magnitude;
+        if (wall == null || speed < 0.01f) return Vector3.zero;
+        Vector3 dir = velocity / speed;
+
+        // La cara: un rayo hacia donde iba, desde un poco antes. Si no la toca (un roce de costado),
+        // el punto más cercano de la pared; si tampoco (una malla cóncava), vuelve por donde vino.
+        Vector3 normal = -dir;
+        if (wall.Raycast(new Ray(point - dir * 2f, dir), out RaycastHit hit, 4f)) normal = hit.normal;
+        else
+        {
+            Vector3 away = point - wall.ClosestPoint(point);
+            if (away.sqrMagnitude > 0.0001f) normal = away.normalized;
+        }
+
+        Vector3 bounced = Vector3.Reflect(velocity, normal);
+        // Un roce que ya se alejaba de la cara no se "refleja" hacia adentro.
+        if (Vector3.Dot(bounced, normal) < 0f) bounced = Vector3.ProjectOnPlane(velocity, normal) + normal * speed * 0.1f;
+        return bounced.normalized * speed;
+    }
+
+    // El enemigo de 'source' más cercano a 'hit', dentro de 'range', que no esté en 'exclude', a la
+    // vista (sin una pared de 'wallMask' en el medio), vivo y visible. null = ninguno. Público y
+    // estático para las pruebas.
+    public static AbilitySystemComponent FindNextEnemy(AbilitySystemComponent source, AbilitySystemComponent hit,
+                                                       float range, ICollection<AbilitySystemComponent> exclude,
+                                                       int wallMask)
+    {
+        if (source == null || hit == null || range <= 0f) return null;
+        Vector3 from = hit.transform.position + Vector3.up;
+
+        AbilitySystemComponent best = null;
+        float bestDist = float.MaxValue;
+        int n = Physics.OverlapSphereNonAlloc(from, range, s_near, 1 << CharacterLayer, QueryTriggerInteraction.Collide);
+        for (int i = 0; i < n; i++)
+        {
+            AbilitySystemComponent asc = s_near[i].GetComponentInParent<AbilitySystemComponent>();
+            if (asc == null || asc == hit || asc == source || (exclude != null && exclude.Contains(asc))) continue;
+            if (!source.IsEnemyOf(asc) || asc.Strikeable != null) continue;
+            if (asc.HasTag(EGameplayTag.State_Dead) || asc.IsHiddenFromEnemies) continue;
+
+            Vector3 to = asc.transform.position + Vector3.up;
+            float d = Vector3.Distance(from, to);
+            if (d >= bestDist) continue;
+            if (Physics.Linecast(from, to, wallMask, QueryTriggerInteraction.Ignore)) continue;
+            best = asc;
+            bestDist = d;
+        }
+        return best;
     }
 
     // =========================================================
@@ -663,6 +912,7 @@ public class GC_Projectile : NetworkBehaviour
         FreezeEffects(sourceASC);   // ANTES de cambiar de dueño: con los stats del que lo tiró
 
         _reflected      = true;
+        StopBounceAndReturn();   // devuelto ya no rebota ni vuelve: sigue derecho
         sourceASC       = newSource;
         ultChargeAmount = 0f;
         enemiesHit.Clear();

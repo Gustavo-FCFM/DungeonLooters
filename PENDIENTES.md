@@ -485,7 +485,12 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
   - [ ] `GA_ProjectileShoot`: mezcla varias cosas en sus rutinas; pasarlo con Play a mano.
 
 *Habilidades genéricas que faltan:*
-- [ ] Gancho (te lleva a un punto o te trae algo) — sobre Dash + Teleport.
+- [x] **Gancho** (19 de noviembre; `GA_Hook`): un rayo hacia la mira engancha lo primero (un enemigo, o pared/piso si
+      "Engancha paredes y piso"). "Te lleva": viaja con el camino del dash (`ServerStartDash`: dueño o bot) y frena antes.
+      "Trae al enemigo": sus efectos "Al golpear" con un GE de "Atraer (hacia él)"; a una pared, te lleva. Una pared en el
+      medio tapa; sin enganche no sale ni gasta; no engancha invisibles. 2 pruebas con física real (52).
+  - [ ] Crear un asset de ejemplo (un gancho "te lleva" para el Explorador) y verlo en Play: el viaje (host, cliente, bot) y
+        un enemigo traído con un GE de atraer.
 - [ ] Rayo continuo que sigue la mira (lanzallamas, cura en haz) — sobre ChanneledCone / Hitscan.
 - [ ] Proyectil que vuelve o rebota en paredes — sobre ProjectileShoot.
 - [ ] Marcar y detonar — sobre las acumulaciones.

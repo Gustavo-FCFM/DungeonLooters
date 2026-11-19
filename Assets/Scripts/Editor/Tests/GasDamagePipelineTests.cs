@@ -901,6 +901,83 @@ public class GasDamagePipelineTests
         Assert.AreSame(tank, npc.GetTaunter(), "un provocador muerto no cuenta: vuelve el anterior");
     }
 
+    // =========================================================
+    // GANCHO (GA_Hook) — con física de verdad: colliders en memoria
+    // =========================================================
+
+    private GameplayAbility Hook(AbilitySystemComponent owner, params GameplayEffect[] onHit)
+    {
+        var template = ScriptableObject.CreateInstance<GA_Hook>();
+        _made.Add(template);
+        template.AbilityName = "Gancho (prueba)";
+        template.Mode = GA_Hook.EHookMode.PullTarget;
+        template.MaxRange = 20f;
+        template.WallLayer = 1;   // Default
+        template.Effects = new List<AbilityEffect>();
+        foreach (GameplayEffect e in onHit)
+            template.Effects.Add(new AbilityEffect { When = EEffectWhen.OnHit, ApplyTo = EEffectTarget.Enemies, Effect = e });
+        GameplayAbility granted = owner.GrantAbility(template);
+        _made.Add(granted);
+        return granted;
+    }
+
+    private static void Body(AbilitySystemComponent asc, Vector3 at)
+    {
+        asc.transform.position = at;
+        asc.gameObject.layer = 7;
+        var col = asc.gameObject.AddComponent<CapsuleCollider>();
+        col.center = Vector3.up; col.height = 2f; col.radius = 0.45f;
+    }
+
+    private GameObject Wall(Vector3 at)
+    {
+        var wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        wall.hideFlags = HideFlags.HideAndDontSave;
+        _made.Add(wall);
+        wall.transform.position = at;
+        wall.transform.localScale = new Vector3(6f, 6f, 0.5f);
+        wall.layer = 0;
+        return wall;
+    }
+
+    [Test]
+    public void Gancho_EngachaAlEnemigoDeAdelante()
+    {
+        var owner = Character(100f);
+        var enemy = Character(100f);
+        Body(owner, Vector3.zero);
+        Body(enemy, new Vector3(0f, 0f, 8f));
+        Physics.SyncTransforms();
+
+        GameplayAbility hook = Hook(owner, Hit(7f));
+        hook.Activate();
+        Assert.AreEqual(93f, Health(enemy), "lo enganchó: sus efectos Al golpear");
+        Assert.IsTrue(hook.CommittedThisActivation);
+    }
+
+    [Test]
+    public void Gancho_UnaParedEnElMedioLoTapa_YSinNadaNoGasta()
+    {
+        var owner = Character(100f);
+        var enemy = Character(100f);
+        Body(owner, Vector3.zero);
+        Body(enemy, new Vector3(0f, 0f, 8f));
+        Wall(new Vector3(0f, 1.4f, 4f));
+        Physics.SyncTransforms();
+
+        GameplayAbility hook = Hook(owner, Hit(7f));
+        hook.Activate();
+        Assert.AreEqual(100f, Health(enemy), "detrás de la pared no lo engancha (engancha la pared)");
+        Assert.IsTrue(hook.CommittedThisActivation, "la pared sí se engancha");
+
+        var lonely = Character(100f);
+        Body(lonely, new Vector3(50f, 0f, 0f));
+        Physics.SyncTransforms();
+        GameplayAbility miss = Hook(lonely, Hit(7f));
+        miss.Activate();
+        Assert.IsFalse(miss.CommittedThisActivation, "sin nada adelante no sale ni gasta");
+    }
+
     [Test]
     public void Evento_LlegaPorCodigoConSusDatos()
     {

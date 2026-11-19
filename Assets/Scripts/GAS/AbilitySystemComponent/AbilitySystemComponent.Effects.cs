@@ -560,7 +560,12 @@ public partial class AbilitySystemComponent
         Cleared,    // la limpieza de morir, revivir o cambiar de clase: nada
     }
 
-    private struct PendingChain { public GameplayEffect Effect; public object Source; public GameplayAbility Ability; }
+    // Un encadenado pendiente: un efecto a aplicarle a este personaje o (Explosion) un estallido en 'At' a nombre de Source.
+    private struct PendingChain
+    {
+        public GameplayEffect Effect; public object Source; public GameplayAbility Ability;
+        public GA_InstantAoE Explosion; public Vector3 At;
+    }
 
     private readonly List<PendingChain> _pendingChains = new List<PendingChain>();
     private int _chainHold;   // > 0: hay una vuelta sobre ActiveEffects en curso; los encadenados esperan
@@ -574,14 +579,27 @@ public partial class AbilitySystemComponent
     {
         List<GameplayEffect> list = why == EEffectEnd.Expired ? gone.Definition.OnExpireEffects
                                   : why == EEffectEnd.Removed ? gone.Definition.OnRemovedEffects : null;
-        if (list == null || list.Count == 0 || HasTag(EGameplayTag.State_Dead)) return;
+
+        // La explosión de una marca (marcar y detonar): al quitarla y, con la casilla, al vencer.
+        GA_InstantAoE explosion = gone.Definition.ExplosionOnRemoved;
+        bool explodes = explosion != null &&
+                        (why == EEffectEnd.Removed || (why == EEffectEnd.Expired && gone.Definition.ExplodesOnExpire));
+
+        if ((list == null || list.Count == 0) && !explodes) return;
+        if (HasTag(EGameplayTag.State_Dead)) return;
 
         // El que lo puso ya no está (salió de la partida, una invocación que murió): sin firma, solo lo fijo.
         object source = gone.Source;
         if (source is UnityEngine.Object o && o == null) source = null;
 
-        foreach (GameplayEffect next in list)
-            if (next != null) _pendingChains.Add(new PendingChain { Effect = next, Source = source, Ability = gone.SourceAbility });
+        if (list != null)
+            foreach (GameplayEffect next in list)
+                if (next != null) _pendingChains.Add(new PendingChain { Effect = next, Source = source, Ability = gone.SourceAbility });
+
+        // Sin quien la puso no hay a nombre de quién estallar.
+        if (explodes && source is AbilitySystemComponent)
+            _pendingChains.Add(new PendingChain { Explosion = explosion, Source = source, Ability = gone.SourceAbility,
+                                                  At = transform.position });
 
         if (_chainHold == 0) FlushChainedEffects();
     }
@@ -615,6 +633,13 @@ public partial class AbilitySystemComponent
         {
             foreach (PendingChain c in batch)
             {
+                if (c.Explosion != null)
+                {
+                    // El estallido no depende de que este siga vivo: es un área (la detonación que lo mató también salpica).
+                    GA_InstantAoE area = GA_InstantAoE.DeployableFor(c.Explosion, c.Source as AbilitySystemComponent);
+                    if (area != null) area.DetonateAt(c.At);
+                    continue;
+                }
                 if (HasTag(EGameplayTag.State_Dead)) break;
                 GameplayAbility previousContext = DamageContext;
                 DamageContext = c.Ability;

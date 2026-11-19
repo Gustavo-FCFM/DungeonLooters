@@ -387,6 +387,9 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   `RemoveActiveEffect` recibe POR QUÉ se va (`EEffectEnd`): un código nuevo que quite efectos dice si es "quitado"
   (encadena), "reemplazado" o "limpieza de morir/cambiar de clase" (no encadenan); y si recorre `ActiveEffects`, sube
   `_chainHold` mientras recorre (los encadenados esperan a que termine).
+  **Una marca que se detona es un GE** (desde el 19 de noviembre de 2026): "Si se lo quitan antes, explota (GA_InstantAoE)" la
+  hace estallar al gastarla (una habilidad con "Gasta los puntos" o una reacción "Y se gasta", que puede ser "Solo si el otro
+  es quien lo puso"). Nada de código por habilidad para detonar.
   **Lo que dura "para siempre" se marca, no se finge** (desde el 18 de noviembre de 2026): casilla "Dura para siempre" (nada
   de 9999 s), y lo que un aura renueva cada medio segundo lleva "Es de aura: no mostrar tiempo". Para saber si un efecto
   tiene duración se pregunta `HasDuration` (no `Duration > 0`) y la duración a aplicar es `EffectiveDuration` (+∞ si es

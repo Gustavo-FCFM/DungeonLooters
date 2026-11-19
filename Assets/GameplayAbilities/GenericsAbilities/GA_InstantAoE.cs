@@ -265,6 +265,21 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
         return area;
     }
 
+    // La copia de 'template' de 'owner' para las explosiones que no son de una habilidad del dueño (la marca que estalla al
+    // detonarla, GameplayEffect.ExplosionOnRemoved): una por plantilla y dueño, guardada acá. null = sin dueño.
+    private static readonly Dictionary<(GA_InstantAoE, AbilitySystemComponent), GA_InstantAoE> s_deployed =
+        new Dictionary<(GA_InstantAoE, AbilitySystemComponent), GA_InstantAoE>();
+
+    public static GA_InstantAoE DeployableFor(GA_InstantAoE template, AbilitySystemComponent owner)
+    {
+        if (template == null || owner == null) return null;
+        if (s_deployed.Count > 64) s_deployed.Clear();   // dueños que ya no están (cambios de partida): se rehacen solas
+        s_deployed.TryGetValue((template, owner), out GA_InstantAoE cached);
+        if (cached == null || cached.OwnerASC != owner) cached = Deployable(template, owner, null);
+        s_deployed[(template, owner)] = cached;
+        return cached;
+    }
+
     // Gancho para que una habilidad concreta reaccione a cada enemigo alcanzado
     // (ej: los Cañones del Pirata, que además le apuestan a quien golpean).
     protected virtual void OnTargetHit(AbilitySystemComponent target) { }

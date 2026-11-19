@@ -110,4 +110,9 @@ public class EffectReaction
     [Tooltip("Al salir, este efecto se va (\"el próximo golpe hace X\"). Cuenta como quitado antes: dispara sus encadenados.")]
     [Label("Y se gasta")]
     public bool ConsumesEffect = false;
+
+    [Tooltip("Solo si el otro es QUIEN LE PUSO este efecto (marcar y detonar: la marca la revienta solo el que la puso, " +
+             "no cualquiera que pegue). Apagado = cualquiera.")]
+    [Label("Solo si el otro es quien lo puso")]
+    public bool OnlyFromSource = false;
 }

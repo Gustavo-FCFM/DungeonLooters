@@ -1349,4 +1349,69 @@ public class GasDamagePipelineTests
         Assert.AreEqual(100f, Health(ally), "a los aliados, lo que diga la lista (nada)");
         Assert.AreEqual(100f, Health(owner), "ni al que la usa");
     }
+    // ---- Marcar y detonar (GameplayEffect "Si se lo quitan antes, explota"; reacción "Solo si el otro es quien lo puso") ----
+
+    private GA_InstantAoE Blast(float radius, GameplayEffect onHit)
+    {
+        var template = ScriptableObject.CreateInstance<GA_InstantAoE>();
+        _made.Add(template);
+        template.AbilityName = "Estallido de la marca (prueba)";
+        template.Radius = radius;
+        template.TargetLayer = 1 << 7;
+        template.Effects = new List<AbilityEffect> { new AbilityEffect(onHit) };
+        return template;
+    }
+
+    [Test]
+    public void Marca_AlGastarlaExplotaAlrededorDeQuienLaTenia()
+    {
+        var marker = Character(100f);
+        var marked = Character(100f);
+        var near = Character(100f);
+        var far = Character(100f);
+        Body(marker, Vector3.zero);
+        Body(marked, new Vector3(0f, 0f, 10f));
+        Body(near, new Vector3(2f, 0f, 10f));
+        Body(far, new Vector3(0f, 0f, 30f));
+        Physics.SyncTransforms();
+
+        GameplayEffect mark = Effect("Marca", 10f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_AlwaysVisible);
+        mark.ExplosionOnRemoved = Blast(3f, Hit(10f));
+
+        marked.ApplyGameplayEffect(mark, marker);
+        Tick(marked, 11f);
+        Assert.AreEqual(100f, Health(near), "al vencer no explota (sin la casilla)");
+
+        marked.ApplyGameplayEffect(mark, marker);
+        marked.ApplyGameplayEffect(mark, marker);   // dos marcas: dos explosiones
+        marked.RemoveEffectsWithTag(EGameplayTag.State_AlwaysVisible);
+        Assert.AreEqual(80f, Health(marked), "a quien la tenía, dos estallidos");
+        Assert.AreEqual(80f, Health(near), "y al de al lado");
+        Assert.AreEqual(100f, Health(far), "lejos, nada");
+        Assert.AreEqual(100f, Health(marker), "el que la puso está lejos (y es el autor)");
+    }
+
+    [Test]
+    public void Marca_LaRevientaSoloQuienLaPuso()
+    {
+        var marker = Character(100f);
+        var other = Character(100f);
+        var marked = Character(100f);
+
+        GameplayEffect mark = Effect("Marca", 10f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_AlwaysVisible);
+        mark.Reactions.Add(new EffectReaction
+        {
+            When = EGameplayEvent.DamageTaken, ApplyTo = EReactionTarget.Self,
+            Effects = new List<GameplayEffect> { Hit(15f) }, ConsumesEffect = true, OnlyFromSource = true,
+        });
+        marked.ApplyGameplayEffect(mark, marker);
+
+        marked.ApplyGameplayEffect(Hit(5f), other);
+        Assert.AreEqual(95f, Health(marked), "otro que pega no la revienta");
+        Assert.IsTrue(marked.HasTag(EGameplayTag.State_AlwaysVisible));
+
+        marked.ApplyGameplayEffect(Hit(5f), marker);
+        Assert.AreEqual(75f, Health(marked), "el que la puso: su golpe y la detonación");
+        Assert.IsFalse(marked.HasTag(EGameplayTag.State_AlwaysVisible), "y se gastó");
+    }
 }

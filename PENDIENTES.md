@@ -484,7 +484,7 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
   - [ ] Pasar las esperas viejas (`WaitForSeconds`, que no cortan a mitad) de a una, con Play: cambiar eso cambia el juego.
   - [ ] `GA_ProjectileShoot`: mezcla varias cosas en sus rutinas; pasarlo con Play a mano.
 
-*Habilidades genéricas que faltan (y las hechas, para verlas en Play):*
+*Habilidades genéricas (la lista quedó completa el 19 de noviembre; falta verlas en Play con assets de ejemplo):*
 - [x] **Gancho** (19 de noviembre; `GA_Hook`): un rayo hacia la mira engancha lo primero (un enemigo, o pared/piso si
       "Engancha paredes y piso"). "Te lleva": viaja con el camino del dash (`ServerStartDash`: dueño o bot) y frena antes.
       "Trae al enemigo": sus efectos "Al golpear" con un GE de "Atraer (hacia él)"; a una pared, te lleva. Una pared en el
@@ -507,7 +507,15 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
         host y cliente.
   - [ ] Con "Esconder el arma mientras vuela", el arma reaparece al terminar la habilidad, no al volver el proyectil. La
         trayectoria al apuntar no dibuja los rebotes.
-- [ ] Marcar y detonar — sobre las acumulaciones.
+- [x] **Marcar y detonar** (19 de noviembre). Ya estaba casi todo (marca = GE que se acumula con tope; "Con los puntos del
+      objetivo" + "Gasta los puntos" en la habilidad; reacciones "Y se gasta"); faltaban dos piezas: "Si se lo quitan antes,
+      explota (GA_InstantAoE)" en "Al terminar" del GE (estalla donde estaba quien la tenía, a nombre de quien la puso; cada
+      marca acumulada, su estallido; también si la detonación lo mató; "También explota al vencer") y "Solo si el otro es quien
+      lo puso" en las reacciones. `GA_InstantAoE.DeployableFor` guarda la copia por plantilla y dueño. 2 pruebas (66).
+  - [ ] Armar una marca de ejemplo (GE_Mark: 8 s, hasta 3, tag propio, explota con un InstantAoE chico) y una habilidad que
+        la gaste, y verlo en Play.
+  - [ ] Al tope con "Efecto al tope" las marcas se consumen como "reemplazadas" y NO explotan: si Gustavo quiere que el tope
+        detone, es un cambio chico.
 - [x] **Contraataque / reflejo genérico** (19 de noviembre; `GA_Counterattack`): con "Se activa sola" (al bloquear, al recibir
       daño, al recibir un crítico...) le pega al OTRO del evento si es enemigo, vivo y a su alcance ("Alcance (m; 0 = sin
       tope)"); con botón, al enemigo de la mira. Le aplica sus efectos "Al golpear" y puede devolver parte del daño

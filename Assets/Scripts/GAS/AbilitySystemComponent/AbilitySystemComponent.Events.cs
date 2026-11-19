@@ -75,6 +75,7 @@ public partial class AbilitySystemComponent
                 if (x.OnlyIfOwnerHas != EGameplayTag.None && !HasTag(x.OnlyIfOwnerHas)) continue;
                 if (x.OnlyIfOtherHas != EGameplayTag.None && (other == null || !other.HasTag(x.OnlyIfOtherHas))) continue;
                 if (x.OnlyIfOwnerLacks != EGameplayTag.None && HasTag(x.OnlyIfOwnerLacks)) continue;
+                if (x.OnlyFromSource && (other == null || !ReferenceEquals(other, active.Source))) continue;
                 if (x.RequiresHealthDamage && data.ToHealth <= 0f) continue;
                 if (active.ReactionReadyAt != null && r < active.ReactionReadyAt.Length && Time.time < active.ReactionReadyAt[r]) continue;
                 if (x.OncePerFrame && active.ReactionFrame != null && r < active.ReactionFrame.Length &&

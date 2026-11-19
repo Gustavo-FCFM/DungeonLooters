@@ -405,6 +405,23 @@ public class GameplayEffect : ScriptableObject
     [Label("Si se lo quitan antes, aplica")]
     public List<GameplayEffect> OnRemovedEffects = new List<GameplayEffect>();
 
+    // MARCAR Y DETONAR (19 de noviembre de 2026, de las "Mejoras del GAS"): la marca que, al gastarla (una habilidad con
+    // "Gasta los puntos", una reacción "Y se gasta", una limpieza), explota en área alrededor de quien la tenía. Cada marca
+    // acumulada es un efecto aparte: tres marcas gastadas juntas son tres explosiones.
+    [Section(EffectSection.Chain)]
+    [ShowIf(HasDurationFields, ShowIfAttribute.Positive)]
+    [Tooltip("Si se lo quitan antes (la detonación), un GA_InstantAoE tal cual —su radio, sus efectos y su VFX— estalla " +
+             "donde está quien lo tenía, a nombre de quien se lo puso (escala con sus stats y la baja es suya; a quién le " +
+             "hace qué lo dice la lista de esa habilidad). Sin su costo, su cooldown ni su animación. Vacío = nada.")]
+    [Label("Si se lo quitan antes, explota (GA_InstantAoE)")]
+    public GA_InstantAoE ExplosionOnRemoved;
+
+    [Section(EffectSection.Chain)]
+    [ShowIf(nameof(ExplosionOnRemoved))]
+    [Tooltip("La explosión sale también cuando se le acaba el tiempo (no solo al gastarla).")]
+    [Label("También explota al vencer")]
+    public bool ExplodesOnExpire = false;
+
     // REACCIONES (18 de noviembre de 2026, los eventos de juego): mientras este efecto está activo, cuando a quien lo
     // tiene le pasa algo (hizo daño, recibió un crítico, mató...), aplica efectos. Así una pasiva es un GE infinito con
     // reacciones, sin script. Ver GameplayEvents.cs y AbilitySystemComponent.Events.

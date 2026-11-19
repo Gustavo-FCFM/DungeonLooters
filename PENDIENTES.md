@@ -489,7 +489,13 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
 - [ ] Rayo continuo que sigue la mira (lanzallamas, cura en haz) — sobre ChanneledCone / Hitscan.
 - [ ] Proyectil que vuelve o rebota en paredes — sobre ProjectileShoot.
 - [ ] Marcar y detonar — sobre las acumulaciones.
-- [ ] Contraataque / reflejo genérico — sobre ShieldBlock.
+- [x] **Contraataque / reflejo genérico** (19 de noviembre; `GA_Counterattack`): con "Se activa sola" (al bloquear, al recibir
+      daño, al recibir un crítico...) le pega al OTRO del evento si es enemigo, vivo y a su alcance ("Alcance (m; 0 = sin
+      tope)"); con botón, al enemigo de la mira. Le aplica sus efectos "Al golpear" y puede devolver parte del daño
+      ("Devuelve del daño recibido (×)"). Espinas contra espinas no rebotan. Arreglo de paso: una habilidad que salió sola
+      ya no le suelta el ataque al dueño al terminar (`WasTriggered` dura hasta el final; `EndAbility` no avisa). 3 pruebas (49).
+  - [ ] Crear un asset de prueba (el Guardián: "Al bloquear un golpe", un cono corto, cooldown ~3 s, botón None) y verlo
+        en Play con host, cliente y un bot.
 - [ ] Intercambiar posición — sobre Teleport.
 - [ ] Provocar (forzar el objetivo de los NPC) — un tag y la IA.
 - [ ] Zona que crece o avanza (tornado, muro que avanza) — sobre SpawnSummon + Summon_Zone.

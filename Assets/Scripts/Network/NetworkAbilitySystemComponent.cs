@@ -1027,6 +1027,7 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
 
         ability.CommittedThisActivation = false;
         ability.StartedThisActivation   = false;
+        ability.WasTriggered            = false;   // esta vez la pidió el dueño (ver "Se activa sola")
 
         // CANALIZA (sección Canalizar del GA): primero la canalización, y la habilidad sale
         // al terminar (o se repite mientras dura). Las animaciones las manda ella: el bucle a

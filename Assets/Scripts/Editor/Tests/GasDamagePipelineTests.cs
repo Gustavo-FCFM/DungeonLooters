@@ -822,6 +822,60 @@ public class GasDamagePipelineTests
         Assert.IsFalse(Effect("D", 2f, GameplayEffect.EEffectType.Debuff, EGameplayTag.State_Disarmed).CountsAsCrowdControl);
     }
 
+    // =========================================================
+    // CONTRAATAQUE GENÉRICO (GA_Counterattack)
+    // =========================================================
+
+    private GameplayAbility Counter(AbilitySystemComponent owner, float range, float reflect, params GameplayEffect[] onHit)
+    {
+        var template = ScriptableObject.CreateInstance<GA_Counterattack>();
+        _made.Add(template);
+        template.AbilityName = "Contraataque (prueba)";
+        template.TriggerEvent = EGameplayEvent.DamageTaken;
+        template.MaxRange = range;
+        template.ReflectFraction = reflect;
+        template.Effects = new List<AbilityEffect>();
+        foreach (GameplayEffect e in onHit)
+            template.Effects.Add(new AbilityEffect { When = EEffectWhen.OnHit, ApplyTo = EEffectTarget.Enemies, Effect = e });
+        GameplayAbility granted = owner.GrantAbility(template);
+        _made.Add(granted);
+        return granted;
+    }
+
+    [Test]
+    public void Contraataque_LePegaAlQueLePego()
+    {
+        var attacker = Character(100f);
+        var owner = Character(100f);
+        Counter(owner, 4f, 0f, Hit(7f));
+        owner.ApplyGameplayEffect(Hit(10f), attacker);
+        Assert.AreEqual(93f, Health(attacker), "el contraataque le aplicó sus efectos al que pegó");
+        Assert.AreEqual(90f, Health(owner));
+    }
+
+    [Test]
+    public void Contraataque_FueraDeAlcanceNoSale()
+    {
+        var attacker = Character(100f);
+        var owner = Character(100f);
+        attacker.transform.position = new Vector3(10f, 0f, 0f);   // un arquero lejos
+        Counter(owner, 4f, 0f, Hit(7f));
+        owner.ApplyGameplayEffect(Hit(10f), attacker);
+        Assert.AreEqual(100f, Health(attacker));
+    }
+
+    [Test]
+    public void Contraataque_DevuelveParteDelDaño_SinRebotar()
+    {
+        var attacker = Character(100f);
+        var owner = Character(100f);
+        Counter(owner, 0f, 0.5f);
+        Counter(attacker, 0f, 0.5f);   // el otro también tiene espinas: lo devuelto no dispara otro contraataque
+        owner.ApplyGameplayEffect(Hit(20f), attacker);
+        Assert.AreEqual(80f, Health(owner), "20 del golpe, y nada más");
+        Assert.AreEqual(90f, Health(attacker), "le volvió la mitad: 10");
+    }
+
     [Test]
     public void Evento_LlegaPorCodigoConSusDatos()
     {

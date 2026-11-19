@@ -251,6 +251,10 @@ public abstract partial class GameplayAbility
         // También la variante que un switch corre como repetición (ActivateAsCastTick).
         if (_castRunning || _castTicking) return;
 
+        // Salió SOLA ("Se activa sola"): el dueño no la pidió ni puso su ataque en marcha, así que no hay nada que
+        // destrabarle. Avisarle "terminó" le soltaría el ataque que SÍ está haciendo (pasaría a mitad de un golpe).
+        if (WasTriggered) { WasTriggered = false; return; }
+
         // Esto corre en el servidor (Activate() ya lo garantiza). Si el dueño
         // es un cliente remoto (no el host), pc.FinishAttack() de acá solo
         // resetea isAttacking en la copia del servidor — la copia real del

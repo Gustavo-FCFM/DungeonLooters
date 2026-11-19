@@ -475,8 +475,8 @@ public abstract partial class GameplayAbility : ScriptableObject, IChargedAbilit
     [Label("Apunta al otro")]
     public bool TriggerAimsAtOther = true;
 
-    // Mientras corre una activación SOLA: qué evento la disparó (con el otro y el cuánto). La habilidad lo puede leer en
-    // su Activate() (WasTriggered = true). No se guarda en el asset.
+    // Una activación SOLA: qué evento la disparó (con el otro y el cuánto). La habilidad lo lee en su Activate()
+    // (WasTriggered = true hasta que termina o hasta la próxima activación con botón). No se guarda en el asset.
     [System.NonSerialized] public bool WasTriggered;
     [System.NonSerialized] public GameplayEventData TriggeredBy;
 }

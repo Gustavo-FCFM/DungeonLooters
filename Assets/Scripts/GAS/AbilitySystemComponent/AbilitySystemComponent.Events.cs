@@ -172,17 +172,15 @@ public partial class AbilitySystemComponent
     // NetworkASC, las pruebas), directo.
     private void ActivateTriggered(GameplayAbility ability, GameplayEventData data)
     {
+        // WasTriggered queda prendido hasta la próxima activación con botón (ServerActivateAbility lo apaga): así su
+        // EndAbility, aunque llegue más tarde, sabe que no tiene que destrabar el ataque del dueño.
         ability.WasTriggered = true;
         ability.TriggeredBy  = data;
-        try
-        {
-            NetworkAbilitySystemComponent net = GetComponent<NetworkAbilitySystemComponent>();
-            if (net != null) { net.ServerActivateTriggered(ability, data); return; }
-            if (!ability.CanActivate()) return;
-            if (ability.UsesCast) ability.BeginCast();
-            else ability.Activate();
-        }
-        finally { ability.WasTriggered = false; }
+        NetworkAbilitySystemComponent net = GetComponent<NetworkAbilitySystemComponent>();
+        if (net != null) { net.ServerActivateTriggered(ability, data); return; }
+        if (!ability.CanActivate()) return;
+        if (ability.UsesCast) ability.BeginCast();
+        else ability.Activate();
     }
 
     private void QueueReaction(AbilitySystemComponent target, GameplayEffect effect, GameplayAbility ability)

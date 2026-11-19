@@ -1150,4 +1150,52 @@ public class GasDamagePipelineTests
         Swap(owner, GA_SwapPosition.ESwapWith.Enemies).Activate();
         Assert.AreEqual(new Vector3(0f, 0f, -8f), other.transform.position, "una pared en el medio lo tapa");
     }
+    // ---- Zona que avanza (Summon_Zone, "Crece y avanza") ----
+
+    private Summon_Zone MovingZone(float speed, float distance)
+    {
+        var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        floor.hideFlags = HideFlags.HideAndDontSave;
+        _made.Add(floor);
+        floor.transform.position = new Vector3(0f, -0.5f, 0f);   // su cara de arriba en y = 0
+        floor.transform.localScale = new Vector3(50f, 1f, 50f);
+
+        var go = new GameObject("Zona (prueba)") { hideFlags = HideFlags.HideAndDontSave };
+        _made.Add(go);
+        var zone = go.AddComponent<Summon_Zone>();
+        zone.MoveSpeed = speed;
+        zone.MoveDistance = distance;
+        zone.StopsAtWalls = true;
+        zone.GroundLayer = 1;
+        return zone;
+    }
+
+    [Test]
+    public void Zona_AvanzaHastaLaPared_YFrena()
+    {
+        Summon_Zone zone = MovingZone(10f, 0f);
+        Wall(new Vector3(0f, 1f, 5f));   // su cara de adelante en z = 4.75
+        Physics.SyncTransforms();
+
+        zone.Advance(0.2f);
+        Assert.AreEqual(2f, zone.transform.position.z, 0.01f, "10 m/s × 0.2 s");
+        Assert.AreEqual(0f, zone.transform.position.y, 0.01f, "sobre el piso");
+        zone.Advance(0.2f);
+        zone.Advance(0.2f);
+        Assert.IsTrue(zone.Stopped, "llegó a la pared");
+        Assert.AreEqual(4.25f, zone.transform.position.z, 0.01f, "medio metro antes de la pared");
+        zone.Advance(0.2f);
+        Assert.AreEqual(4.25f, zone.transform.position.z, 0.01f, "y ahí se queda");
+    }
+
+    [Test]
+    public void Zona_AvanzaSuRecorrido_YFrena()
+    {
+        Summon_Zone zone = MovingZone(10f, 3f);
+        Physics.SyncTransforms();
+
+        zone.Advance(1f);
+        Assert.AreEqual(3f, zone.transform.position.z, 0.01f, "no pasa de su recorrido");
+        Assert.IsTrue(zone.Stopped);
+    }
 }

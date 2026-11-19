@@ -527,7 +527,14 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       su detección, con la correa; los bots (`BotController.FindBestTarget`), si es enemigo y está cerca. Sin GA nueva: un GE
       que da el tag + `GA_InstantAoE` alrededor (o `GA_Counterattack` para provocar al que te pegó). 1 prueba (50).
   - [ ] Armar un GE_Taunted y una habilidad de ejemplo y verlo en Play (un fantasma persiguiendo al que lo provocó; un bot).
-- [ ] Zona que crece o avanza (tornado, muro que avanza) — sobre SpawnSummon + Summon_Zone.
+- [x] **Zona que crece o avanza** (19 de noviembre): sección "Crece y avanza" de `Summon_Zone` (apagada por defecto: las zonas
+      de hoy no cambian). "Crece (m por segundo)" hasta "Radio máximo" (solo Círculo; el VFX con `VFX_AreaVisual` crece con
+      ella); "Avanza (m/s)" hacia adelante sobre el piso (rampas), "Recorre hasta", "Frena en las paredes" y "Se termina al
+      frenar". Sin nada nuevo en la red: cada pantalla lo calcula desde que se prendió (con `NetworkTransform`, solo el
+      servidor). 2 pruebas (59).
+  - [ ] Verlo en Play con un ejemplo (un tornado: variante de `SummonZone_Base` que avanza y crece; el Muro de fuego que
+        avanza), en host y cliente: que la zona vista y la que aplica los efectos coincidan.
+  - [ ] Con forma Caja no crece (sus llamas son hijos del prefab); no persigue enemigos.
 - [ ] Revivir (nueva).
 - [ ] Vínculo entre dos: comparte daño o curación (nueva).
 - [ ] Definitiva global (todos los enemigos del mapa) — sobre InstantAoE.

@@ -305,7 +305,8 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   octubre de 2026; tótems, trampas, cuchillas, copias y compañeros). La base resuelve el equipo,
   el dueño en red (`SummonerObject`), "Dura", el máximo por dueño, si se va cuando el dueño muere,
   irse si el dueño se va o cambia de clase, su vida (`OnOwnDeath`, en Update) y la visibilidad por
-  equipo. Lo que aplica algo a los de cerca cada tanto es una **`Summon_Zone`**, sin código. Una
+  equipo. Lo que aplica algo a los de cerca cada tanto es una **`Summon_Zone`**, sin código (también la que crece o
+  avanza: su sección "Crece y avanza", que cada pantalla calcula sola desde que se prendió, sin red nueva). Una
   subclase sobreescribe `Awake`/`Update` como `override` llamando a `base.` (si no, la base no
   corre). Para apoyarla en el piso: `GroundUnderAim` (nunca arriba de un techo) o `GroundNear`.
   Lo que deja algo que muere (el veneno del zombi hinchado, la sección "Al morir" de `MercEnemyAI`) lleva **"Sigue sin su dueño"**

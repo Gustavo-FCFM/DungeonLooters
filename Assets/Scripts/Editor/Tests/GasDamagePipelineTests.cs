@@ -1305,4 +1305,48 @@ public class GasDamagePipelineTests
         ally.ApplyGameplayEffect(Heal(10f), ally);
         Assert.AreEqual(70f, Health(linker), "y ya no comparte");
     }
+    // ---- Definitiva global (GA_InstantAoE "Todo el mapa") ----
+
+    private AbilitySystemComponent OnMap(int team, Vector3 at)
+    {
+        var asc = Character(100f);
+        asc.gameObject.hideFlags = HideFlags.None;   // FindObjectsByType no ve los HideAndDontSave (TearDown lo borra igual)
+        asc.TeamID = team;
+        asc.transform.position = at;
+        return asc;
+    }
+
+    private GameplayAbility GlobalBlast(AbilitySystemComponent owner, bool global, params GameplayEffect[] onHit)
+    {
+        var template = ScriptableObject.CreateInstance<GA_InstantAoE>();
+        _made.Add(template);
+        template.AbilityName = "Definitiva global (prueba)";
+        template.Radius = 4f;
+        template.Global = global;
+        template.Effects = new List<AbilityEffect>();
+        foreach (GameplayEffect e in onHit)
+            template.Effects.Add(new AbilityEffect { When = EEffectWhen.OnHit, ApplyTo = EEffectTarget.Enemies, Effect = e });
+        GameplayAbility granted = owner.GrantAbility(template);
+        _made.Add(granted);
+        return granted;
+    }
+
+    [Test]
+    public void DefinitivaGlobal_LeLlegaATodosLosEnemigosDelMapa()
+    {
+        var owner = OnMap(1, Vector3.zero);
+        var ally = OnMap(1, new Vector3(200f, 0f, 0f));
+        var far = OnMap(2, new Vector3(0f, 0f, 300f));
+        var dead = OnMap(2, new Vector3(50f, 0f, 50f));
+        dead.ApplyGameplayEffect(Hit(500f), owner);
+        Assert.IsTrue(dead.HasTag(EGameplayTag.State_Dead));
+
+        GlobalBlast(owner, false, Hit(10f)).Activate();
+        Assert.AreEqual(100f, Health(far), "sin la casilla, el radio manda: lejos no le llega");
+
+        GlobalBlast(owner, true, Hit(10f)).Activate();
+        Assert.AreEqual(90f, Health(far), "con Todo el mapa, a 300 m también");
+        Assert.AreEqual(100f, Health(ally), "a los aliados, lo que diga la lista (nada)");
+        Assert.AreEqual(100f, Health(owner), "ni al que la usa");
+    }
 }

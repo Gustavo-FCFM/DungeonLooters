@@ -1847,6 +1847,11 @@ public class BotController : MonoBehaviour
             case GA_ImmortalWrath _:
                 return false;
 
+            // Una definitiva que alcanza a todo el mapa (GA_InstantAoE "Todo el mapa"; 19 de noviembre de
+            // 2026): no importa a cuántos tenga cerca, sale apenas pelea.
+            case GA_InstantAoE global when global.Global:
+                return _target != null;
+
             // El señuelo del Ilusionista: se planta cuando alguien está por pegarle, para
             // que le peguen a la copia. Antes salía en cualquier momento y la arena se
             // llenaba de señuelos parados.

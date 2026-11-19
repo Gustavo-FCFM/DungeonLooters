@@ -26,6 +26,11 @@ using System.Collections.Generic;
 // activarse (sección Acumulaciones), repite el golpe — los Cortes devastadores del Samurái
 // cortan una vez más por cada acumulación de Artes marciales.
 //
+// TODO EL MAPA (19 de noviembre de 2026, la definitiva global de las "Mejoras del GAS"): con la casilla, el golpe no mira
+// el radio: alcanza a todos los personajes de la partida, estén donde estén (por defecto solo jugadores y bots: un NPC
+// del otro lado del mapa no se entera). A quién le hace qué lo sigue diciendo la lista de efectos. Los VFX "en el
+// impacto" salen sobre el que la usa y los "al golpear", sobre cada uno.
+//
 // Si en cambio querés una zona que PERSISTA aplicando efectos cada tanto (charco de
 // veneno, aura, la zona de los Cañones del Pirata), usá GA_ContinuousAoE.
 // ============================================================
@@ -42,6 +47,22 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
     [Label("Dónde aparece")]
     public GA_ContinuousAoE.EAoEDeploy DeployMode = GA_ContinuousAoE.EAoEDeploy.AtOwner;
 
+    [Tooltip("Alcanza a TODOS los personajes de la partida, estén donde estén (una definitiva global): no mira el " +
+             "radio ni dónde aparece. A quién le hace qué lo sigue diciendo la lista de efectos.")]
+    [Label("Todo el mapa")]
+    public bool Global = false;
+
+    [ShowIf(nameof(Global))]
+    [Tooltip("Solo jugadores y bots: los NPC (fantasmas, el jefe) y las invocaciones no la sienten. Apagado = todos " +
+             "(menos lo que se golpea del mapa, como la campana).")]
+    [Label("Solo jugadores (sin NPCs)")]
+    public bool GlobalPlayersOnly = true;
+
+    [ShowIf(nameof(Global))]
+    [Tooltip("A los enemigos invisibles no les llega. Apagado = también a ellos.")]
+    [Label("No a los invisibles")]
+    public bool GlobalSkipsHidden = false;
+
     [ShowIf(nameof(DeployMode), GA_ContinuousAoE.EAoEDeploy.AtReticle)]
     [Tooltip("Alcance máximo al que se puede lanzar la zona.")]
     [Label("Alcance máximo (m)")]
@@ -51,7 +72,7 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
     // DeployMode es AtReticle).
     public float MaxTargetRange   => MaxRange;
     public float TargetRadius     => Radius;
-    public bool  UsesGroundTarget => DeployMode == GA_ContinuousAoE.EAoEDeploy.AtReticle;
+    public bool  UsesGroundTarget => !Global && DeployMode == GA_ContinuousAoE.EAoEDeploy.AtReticle;
 
     [Section(AbilitySection.Timing)]
     [Tooltip("Espera antes de que el golpe caiga (para acompañar la animación). Se ajusta " +
@@ -103,7 +124,7 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
     private Vector3 ResolveCenter(PlayerController pc)
     {
         Vector3 origin = OwnerASC.transform.position;
-        if (DeployMode == GA_ContinuousAoE.EAoEDeploy.AtOwner) return origin;
+        if (Global || DeployMode == GA_ContinuousAoE.EAoEDeploy.AtOwner) return origin;
 
         // Apuntada: el alcance se mide desde donde estaba al pedirla (si canalizó antes de salir,
         // cae donde soltó aunque se haya movido).
@@ -139,7 +160,7 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
                 if (OwnerASC == null) yield break;
                 if (ShouldStop(EStopWhen.Dies | EStopWhen.Stunned)) break;
 
-                if (DeployMode == GA_ContinuousAoE.EAoEDeploy.AtOwner) center = OwnerASC.transform.position;
+                if (Global || DeployMode == GA_ContinuousAoE.EAoEDeploy.AtOwner) center = OwnerASC.transform.position;
 
                 // Cada golpe extra: su animación (en todas las pantallas, también el dueño:
                 // no lo pudo anticipar) y sus efectos "al activarse" (la curación por corte).
@@ -159,13 +180,11 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
     {
         BroadcastImpactVFX(center);
 
-        Collider[] hits = Physics.OverlapSphere(center, Radius, TargetLayer);
         var seen = new HashSet<AbilitySystemComponent>();
         bool firstEnemy = true;
 
-        foreach (var hit in hits)
+        foreach (AbilitySystemComponent targetASC in Global ? GlobalTargets() : TargetsInRadius(center))
         {
-            AbilitySystemComponent targetASC = hit.GetComponentInParent<AbilitySystemComponent>();
             // Un mismo personaje puede tener varios colliders: sin este filtro le
             // aplicaríamos los efectos más de una vez (y esto es de UNA sola aplicación).
             if (targetASC == null || !seen.Add(targetASC)) continue;
@@ -189,6 +208,35 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
     }
 
     protected override bool SupportsAfterHits => true;
+
+    // Los de adentro del radio (por cada collider: Detonate descarta los repetidos).
+    private IEnumerable<AbilitySystemComponent> TargetsInRadius(Vector3 center)
+    {
+        foreach (Collider hit in Physics.OverlapSphere(center, Radius, TargetLayer))
+            yield return hit.GetComponentInParent<AbilitySystemComponent>();
+    }
+
+    // "Todo el mapa": cada personaje vivo de la partida, menos el que la usa (que recibe lo suyo por "al activarse") y lo
+    // que se golpea del mapa (la campana: desde la otra punta no tiene sentido). Con "Solo jugadores", sin NPCs ni
+    // invocaciones; con "No a los invisibles", sin enemigos ocultos. Se busca una vez por golpe, no cada frame.
+    private IEnumerable<AbilitySystemComponent> GlobalTargets()
+    {
+        foreach (AbilitySystemComponent asc in Object.FindObjectsByType<AbilitySystemComponent>(FindObjectsSortMode.None))
+        {
+            if (asc == null || ReferenceEquals(asc, OwnerASC) || asc.Strikeable != null) continue;
+            if (asc.HasTag(EGameplayTag.State_Dead)) continue;
+            if (GlobalPlayersOnly && !IsPlayerCharacter(asc)) continue;
+            if (GlobalSkipsHidden && IsEnemy(asc) && asc.IsHiddenFromEnemies) continue;
+            yield return asc;
+        }
+    }
+
+    // Un jugador o un bot (con PlayerController). Sin red (las pruebas), cualquiera que no sea una invocación.
+    private static bool IsPlayerCharacter(AbilitySystemComponent asc)
+    {
+        if (asc.GetComponent<PlayerController>() != null) return true;
+        return asc.GetComponent<NetworkAbilitySystemComponent>() == null && asc.GetComponent<Entity_Summon>() == null;
+    }
 
     // =========================================================
     // ESTALLIDO QUE PIDE OTRA HABILIDAD (la Bola de fuego del Mago, al chocar)
@@ -224,7 +272,7 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
     // Vista previa del área en el Editor.
     public override void DrawGizmos(Transform origin)
     {
-        if (origin == null) return;
+        if (origin == null || Global) return;   // todo el mapa: no hay área que dibujar
 
         Vector3 center = DeployMode == GA_ContinuousAoE.EAoEDeploy.AtReticle
             ? origin.position + origin.forward * MaxRange
@@ -237,7 +285,7 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
 #if UNITY_EDITOR
     public override void DrawSceneHandles(Transform origin)
     {
-        if (origin == null) return;
+        if (origin == null || Global) return;   // todo el mapa: no hay área que dibujar
 
         Vector3 center = origin.position;
         if (DeployMode == GA_ContinuousAoE.EAoEDeploy.AtReticle)

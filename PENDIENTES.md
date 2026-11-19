@@ -484,7 +484,7 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
   - [ ] Pasar las esperas viejas (`WaitForSeconds`, que no cortan a mitad) de a una, con Play: cambiar eso cambia el juego.
   - [ ] `GA_ProjectileShoot`: mezcla varias cosas en sus rutinas; pasarlo con Play a mano.
 
-*Habilidades genéricas que faltan:*
+*Habilidades genéricas (la lista quedó completa el 19 de noviembre; falta verlas en Play):*
 - [x] **Gancho** (19 de noviembre; `GA_Hook`): un rayo hacia la mira engancha lo primero (un enemigo, o pared/piso si
       "Engancha paredes y piso"). "Te lleva": viaja con el camino del dash (`ServerStartDash`: dueño o bot) y frena antes.
       "Trae al enemigo": sus efectos "Al golpear" con un GE de "Atraer (hacia él)"; a una pared, te lleva. Una pared en el
@@ -551,7 +551,11 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       antes"). Lo que llega por un vínculo no vuelve a pasar por otro. Lo resuelve el ASC (parte Damage). 2 pruebas (63).
   - [ ] Armar un GE de ejemplo ("Protegido": 0.3 del daño, se corta a 15 m) en una habilidad a un aliado y verlo en Play.
   - [ ] Sin cuerda visible entre los dos (solo el `TargetVFX` del GE): dibujarla en todas las pantallas es cambio de red.
-- [ ] Definitiva global (todos los enemigos del mapa) — sobre InstantAoE.
+- [x] **Definitiva global** (19 de noviembre): casilla "Todo el mapa" de `GA_InstantAoE` (apagada por defecto): el golpe no
+      mira el radio, alcanza a todos los personajes vivos de la partida (menos el que la usa y la campana); la lista de efectos
+      decide a quién qué. "Solo jugadores (sin NPCs)" prendido por defecto; "No a los invisibles" apagado. Los bots la tiran
+      apenas pelean (`ShouldUse`). 1 prueba (64).
+  - [ ] Verla en Play: una R de prueba con "Todo el mapa" contra un enemigo lejos, en host y cliente.
 
 *Orden propuesto:* 1) depurador y validador; 2) limpiar/purgar e inmunidades por tag; 3) pruebas del daño; 4) tareas y
 eventos (lo más grande).

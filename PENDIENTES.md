@@ -1,4 +1,4 @@
-# Pendientes — actualizado el 13 de noviembre de 2026
+# Pendientes — actualizado el 18 de noviembre de 2026
 
 Revisión completa contra el estado real del proyecto: **la mayoría de las tareas de
 editor de la lista anterior ya estaban hechas**. Acá quedan solo las que verifiqué que
@@ -6,6 +6,29 @@ siguen abiertas, más el plan.
 
 El proyecto compila limpio: 0 errores y 0 warnings en código propio (los 312 warnings
 del log son todos de packs importados).
+
+## ★ La partida de bots 3c3c3 del 18 de noviembre (lo que se encontró y lo que falta probar)
+
+Gustavo vio cuatro cosas: el que entregaba no peleaba, algunas animaciones de bots no salían, "se cura demasiado / la armadura no
+anda" y las barras de vida no se ven. Se midió con `Mercenarios ▸ GAS ▸ Medir el balance` (nuevo) en dos partidas.
+- **La armadura funciona**: frenó del 27 % al 54 % según la clase. No era eso.
+- **La curación de más era el aura del Paladín**: curaba el 65 % de su daño a CADA aliado dentro (él incluido); a los de su equipo,
+  más de la mitad de todo lo que se curaban. **Bajada a 0.5** en los cuatro prefabs (`PaladinBehaviours` y los tres `OathOf*Behaviours`,
+  "Curación (0 a 1 del daño)"). Gustavo descartó repartirla entre los aliados.
+  - [ ] Otra partida con la medición: ¿alcanza con 0.5? Mirar `PaladinAuraPassive.HealAura` en el informe.
+  - [ ] Pendiente de decidir: el Segundo aliento del Guerrero (`OutOfCombatRegen`, 5 % de lo que falta por segundo) curó ~1 600 por
+        partida a cada Guerrero.
+- **Un error del host que curaba**: `OnNetHealthChanged` volvía a escribir en el host una vida vieja (~10 % de la curación de cada
+  uno). Arreglado.
+- [ ] **El portador bot ahora pelea** sin salirse del camino: en la entrega, con el más cercano a 12 m ("Portador: pelea en la
+  entrega hasta (m)" del `BotController`); corriendo, solo con el que tiene encima. Sin movimiento ni definitiva. Falta verlo.
+- [ ] **Barras de vida**: de lejos se agrandan para mantener su tamaño en pantalla (desde 10 m, hasta ×3; campos del prefab
+  `Nameplate`). Ver si alcanza; si no, engrosarlas o darles borde en el prefab.
+- [ ] **Clon del Ilusionista con el Dummy**: la copia solo se vestía si la pantalla tenía jugador local (de espectador, nunca).
+  Arreglado en `Entity_PlayerCopy`; probar de espectador y jugando.
+- **Animaciones de bots**: medidas en Play, salen en casi todas las habilidades. Lo raro: el Clérigo de la Vida a veces reproduce el
+  clip de relleno `PLACEHOLDER_Hit` (en su básico y otra habilidad). Sin encontrar todavía cuál.
+  - [ ] Si Gustavo recuerda qué habilidad de qué bot no animaba, mirarla con eso.
 
 ## ★ Al retomar: lo abierto, en orden (22 de octubre)
 

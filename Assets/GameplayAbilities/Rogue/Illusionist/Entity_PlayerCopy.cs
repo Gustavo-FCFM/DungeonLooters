@@ -114,8 +114,13 @@ public class Entity_PlayerCopy : Entity_Summon
         int idx = _sourceClassIndex.Value;
         if (idx < 0) return;                                   // el índice todavía no sincronizó
 
+        // Cualquier PlayerController sabe pasar de índice a clase (la lista es la misma en todos). Antes era solo
+        // el jugador LOCAL, y una pantalla sin él (el espectador de una partida de bots) nunca vestía la copia:
+        // salía con el Dummy (18 de noviembre de 2026). Ahora, el local, o el jugador copiado, o cualquiera.
         PlayerController localPc = PlayerController.LocalPlayer;
-        if (localPc == null) return;                           // sin jugador local no se puede resolver (reintenta)
+        if (localPc == null && _sourcePlayer.Value != null) localPc = _sourcePlayer.Value.GetComponent<PlayerController>();
+        if (localPc == null) localPc = FindAnyObjectByType<PlayerController>();
+        if (localPc == null) return;                           // todavía no hay ningún jugador (reintenta)
 
         _visualsApplied = true;
 

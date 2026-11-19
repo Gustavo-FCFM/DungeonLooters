@@ -141,6 +141,12 @@ public partial class AbilitySystemComponent
             val = Mathf.Max(0f, val);
         }
 
+        // La medición del balance (ver CombatLog): toda vida que se GANA, con quién la causó. Revivir (desde 0) no
+        // cuenta: no es curación.
+        if (TraceBalance && type == EAttributeType.Health && GetAttributeValue(EAttributeType.Health) > 0f &&
+            val > GetAttributeValue(EAttributeType.Health))
+            RecordBalanceHeal(val - GetAttributeValue(EAttributeType.Health));
+
         if (Attributes.ContainsKey(type)) Attributes[type].CurrentValue = val;
         else Attributes[type] = new AttributeValue(val);
 

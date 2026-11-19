@@ -64,4 +64,15 @@ public class UI_Nameplate : MonoBehaviour
 
     [Label("Mostrar ícono de clase")]
     public bool ShowClassIcon = true;
+
+    [Header("Tamaño con la distancia")]
+    [Tooltip("Hasta esta distancia de la cámara la barra encoge como cualquier objeto del mundo; más lejos se agranda " +
+             "para verse siempre del MISMO tamaño en pantalla (18 de noviembre de 2026: de lejos no se veía). " +
+             "0 = encoge siempre, como antes.")]
+    [Label("Tamaño fijo en pantalla desde (m; 0 = nunca)")]
+    public float KeepScreenSizeFrom = 10f;
+
+    [Tooltip("Cuánto se puede agrandar como mucho, muy lejos. 3 = hasta tres veces su tamaño (desde ahí sí encoge).")]
+    [Label("Agrandar hasta (×)")]
+    public float MaxGrow = 3f;
 }

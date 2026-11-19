@@ -85,6 +85,11 @@ public class BotController : MonoBehaviour
     [Label("Soporte: distancia de seguimiento (m)")]
     public float SupportFollowDistance = 6f;
 
+    [Tooltip("El que lleva el Objetivo, ya parado en la entrega: con quién pelea sin salirse de la plataforma " +
+             "(el más cercano a esta distancia). Corriendo hacia la entrega solo le pega al que tiene encima.")]
+    [Label("Portador: pelea en la entrega hasta (m)")]
+    public float CarrierPadFightRadius = 12f;
+
     [Tooltip("El que pega de lejos (el Mago): a qué distancia se queda del que está peleando, " +
              "rodeándolo. Más cerca que esto se aleja.")]
     [Label("A distancia: se queda a (m)")]
@@ -1050,14 +1055,18 @@ public class BotController : MonoBehaviour
 
                 if (carrier == _asc)
                 {
-                    // La llevo YO: derecho al punto de entrega, sin distraerme con nadie.
-                    // Se limpia el objetivo para no frenarse a pelear en el camino — el que
-                    // lleva la carga corre, no se queda cambiando golpes.
+                    // La llevo YO: derecho al punto de entrega, sin desviarme por nadie. Pero sin
+                    // quedarse de brazos cruzados (18 de noviembre de 2026: se plantaba en la entrega y
+                    // dejaba que le pegaran sin contestar). Pelea SIN MOVERSE de su camino: en la
+                    // plataforma, con el que se acerque a cortarle la entrega; corriendo, solo con el que
+                    // tenga encima. Atacar no corta la entrega (la corta recibir daño), y matar o espantar
+                    // al que pega sí la salva. Ver Fight.
                     MercTeamBase home = gm != null ? gm.GetBase(_teamId) : null;
                     if (home != null)
                     {
+                        bool onPad = home.IsInDeliveryZone(transform.position);
                         _destination = home.DeliveryWorldPoint;
-                        _target      = null;
+                        _target      = FindEnemyNear(transform.position, onPad ? CarrierPadFightRadius : MeleeRange * 1.5f);
                         _delivering  = true;
                         return;
                     }
@@ -1610,7 +1619,7 @@ public class BotController : MonoBehaviour
         // habilidad la cortaría. Se espera a que termine; moverse sí puede.
         if (Time.time < _castingUntil) return;
 
-        // LLEVANDO LA CARGA no hay a quién pegarle, pero SÍ hay algo que hacer: gastar la
+        // LLEVANDO LA CARGA lo primero es llegar: gastar la
         // habilidad de movimiento para llegar antes al punto de entrega. Es lo que haría
         // cualquiera con la carga en la mano. Ya sobre la plataforma, no: un vuelo o un salto lo
         // sacarían de la zona de entrega, que es pegada al piso.
@@ -1623,7 +1632,11 @@ public class BotController : MonoBehaviour
             if (!onPad && Time.time >= _nextAbilityAt &&
                 Activate(EAbilityInput.Movement, _destination + Vector3.up, DirectionTo(_destination)))
                 _nextAbilityAt = Time.time + AbilityInterval;
-            return;
+
+            // Y si hay alguien a quien pegarle (ver Think), sigue abajo como cualquier pelea, pero sin
+            // habilidades de movimiento (lo sacarían de la plataforma o del camino) ni la definitiva
+            // (con la carga, ese botón la suelta).
+            if (_target == null) return;
         }
 
         // Revivir va antes que pelear (ver FindBodyToRevive). Y volviendo a curarse sin objetivo, el
@@ -1769,6 +1782,11 @@ public class BotController : MonoBehaviour
         foreach (EAbilityInput slot in CombatSlots)
         {
             GameplayAbility ability = FindAbility(slot);
+            if (ability == null) continue;
+
+            // Llevando el Objetivo: ni moverse (ver Fight) ni la definitiva (con la carga, ese botón la suelta).
+            if (_delivering && (slot == EAbilityInput.Movement || slot == EAbilityInput.Action3)) continue;
+
             if (ability == null) continue;
 
             if (immune && !UsefulAgainstImmune(ability, slot, role, dist)) continue;

@@ -24,6 +24,7 @@ public partial class AbilitySystemComponent
     // el escudo antes que la vida, y dispara robo de vida si corresponde.
     private void ExecuteInstantEffect(GameplayEffect effect, object source = null, bool isPeriodicTick = false)
     {
+        if (TraceBalance) BalanceEffect = effect;   // para la medición del balance (ver CombatLog)
         AbilitySystemComponent sourceASC = source as AbilitySystemComponent;
 
         bool wasDamagingHit = false;
@@ -190,6 +191,8 @@ public partial class AbilitySystemComponent
                 if (TraceDamage)
                     RecordTrace(effect, sourceASC, isPeriodicTick, traceCrit, isMagic, Mathf.Abs(traceBase), rawDamage,
                                 traceBlocked, damageBeforeShield, absorbedByShield, physicalDamage + magicDamage);
+                if (TraceBalance)
+                    RecordBalanceHit(sourceASC, rawDamage, damageBeforeShield, absorbedByShield, physicalDamage + magicDamage);
                 if (absorbedByShield > 0f && HasTag(EGameplayTag.Status_HealShield))
                 {
                     float before = GetAttributeValue(EAttributeType.Health);

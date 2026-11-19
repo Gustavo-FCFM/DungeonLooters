@@ -210,11 +210,33 @@ public class UI_WorldHealthbar : MonoBehaviour
 
         // Billboard: encarar la cámara (plano de pantalla, sin inclinarse).
         BarRoot.forward = cam.transform.forward;
+        KeepScreenSize(cam);
 
         ApplyXray(!isEnemy);
         UpdateHealth(isEnemy);
         UpdateClassIcon();
         UpdateFirstStrikeMarker(localASC, isEnemy);
+    }
+
+    // De lejos se agranda para no achicarse en pantalla (ver UI_Nameplate.KeepScreenSizeFrom). La escala de
+    // partida es la que trae la barra en su prefab: se guarda la primera vez.
+    private Vector3 _baseScale;
+    private bool    _baseScaleRead;
+
+    private void KeepScreenSize(Camera cam)
+    {
+        if (Nameplate == null || BarRoot == null) return;
+        if (!_baseScaleRead) { _baseScale = BarRoot.localScale; _baseScaleRead = true; }
+
+        float from = Nameplate.KeepScreenSizeFrom;
+        float grow = 1f;
+        if (from > 0f)
+        {
+            float distance = Vector3.Distance(cam.transform.position, BarRoot.position);
+            grow = Mathf.Clamp(distance / from, 1f, Mathf.Max(1f, Nameplate.MaxGrow));
+        }
+        Vector3 scale = _baseScale * grow;
+        if (BarRoot.localScale != scale) BarRoot.localScale = scale;
     }
 
     // Actualiza el relleno de vida y el del escudo (de los datos sincronizados) y el color por equipo.

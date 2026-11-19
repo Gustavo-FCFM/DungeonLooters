@@ -136,4 +136,102 @@ public partial class AbilitySystemComponent
             Armor = GetAttributeValue(EAttributeType.Def),
         });
     }
+
+    // =========================================================
+    // LA MEDICIÓN DEL BALANCE (Mercenarios ▸ GAS ▸ Medir el balance, 18 de noviembre de 2026)
+    // =========================================================
+    //
+    // Para responder "¿la armadura funciona?" y "¿de dónde sale tanta curación?" con números de una partida
+    // de verdad: mientras está prendida (TraceBalance), cada personaje suma lo que recibe (crudo, después de
+    // las defensas, lo que se comió el escudo y lo que llegó a la vida) y cada punto de vida que GANA, con
+    // quién lo causó. La curación se mide donde se escribe la vida (SetCurrentAttributeValue), así cuenta
+    // TODO, también lo que escribe la vida directo (la sala, el aura del Paladín, las pasivas): el nombre lo
+    // da la habilidad en curso o, si no hay, el método que la escribió. Apagada no cuesta nada. Solo servidor.
+    public static bool TraceBalance;
+
+    public class BalanceTally
+    {
+        public int   Hits;
+        public float Raw;            // lo que traía el golpe, con crítico y bonos del atacante
+        public float AfterDefenses;  // después de bloqueo, vulnerabilidad, resistencia y armadura
+        public float Shield;         // lo que se comió el escudo
+        public float ToHealth;       // lo que llegó a la vida
+        public float Dealt;          // lo que ESTE le hizo a otros (a la vida y al escudo)
+        public float Healed;         // vida ganada, total
+        public readonly Dictionary<string, float> HealedBy = new Dictionary<string, float>();
+        public float StartedAt;
+        // Cómo era al último registro (el personaje puede ya no existir al pedir el informe: fin de partida).
+        public string Name, ClassName;
+        public int    Team;
+        public float  MaxHealth, Armor, Resistance;
+    }
+
+    public static readonly Dictionary<AbilitySystemComponent, BalanceTally> BalanceTallies =
+        new Dictionary<AbilitySystemComponent, BalanceTally>();
+
+    private BalanceTally Tally()
+    {
+        if (!BalanceTallies.TryGetValue(this, out BalanceTally t))
+            BalanceTallies[this] = t = new BalanceTally { StartedAt = Time.time };
+        t.Name       = gameObject.name;
+        t.ClassName  = CurrentClass != null ? CurrentClass.ClassName : "-";
+        t.Team       = TeamID;
+        t.MaxHealth  = GetAttributeValue(EAttributeType.MaxHealth);
+        t.Armor      = GetAttributeValue(EAttributeType.Def);
+        t.Resistance = GetAttributeValue(EAttributeType.Resistance);
+        return t;
+    }
+
+    private void RecordBalanceHit(AbilitySystemComponent source, float raw, float afterDefenses, float shield, float toHealth)
+    {
+        BalanceTally t = Tally();
+        t.Hits++;
+        t.Raw += raw;
+        t.AfterDefenses += afterDefenses;
+        t.Shield += shield;
+        t.ToHealth += toHealth;
+        if (source != null && !ReferenceEquals(source, this)) CreditOf(source).Tally().Dealt += shield + toHealth;
+    }
+
+    private void RecordBalanceHeal(float amount)
+    {
+        if (amount <= 0f) return;
+        BalanceTally t = Tally();
+        t.Healed += amount;
+        string by = HealSourceName();
+        t.HealedBy.TryGetValue(by, out float sum);
+        t.HealedBy[by] = sum + amount;
+    }
+
+    // Quién escribió la vida, mirando la pila: el robo de vida; un efecto (con la habilidad que lo puso); o el
+    // método de afuera del ASC que la escribió directo (el aura del Paladín, la sala, una pasiva), con la habilidad
+    // que lo provocó si había una en curso. "El aura del Paladín por el Castigo" es su curación al pegar.
+    private static GameplayEffect BalanceEffect;
+
+    private static string HealSourceName()
+    {
+        string by = DamageContext != null ? $" (por {DamageContext.DisplayName})" : "";
+        var stack = new System.Diagnostics.StackTrace(2, false);
+        bool lifeSteal = false, instant = false;
+        for (int i = 0; i < stack.FrameCount; i++)
+        {
+            System.Reflection.MethodBase m = stack.GetFrame(i).GetMethod();
+            Type type = m?.DeclaringType;
+            if (type == null) continue;
+            if (type == typeof(AbilitySystemComponent))
+            {
+                if (m.Name == nameof(HandleLifeSteal)) lifeSteal = true;
+                if (m.Name == nameof(ExecuteInstantEffect)) instant = true;
+                continue;
+            }
+            if (lifeSteal) return "Robo de vida" + by;
+            if (instant || typeof(GameplayAbility).IsAssignableFrom(type))
+                return (BalanceEffect != null ? BalanceEffect.name : "efecto") + by;
+            // Las lambdas y corrutinas quedan en clases anidadas (<>c, <Rutina>d__): el nombre es el de la de afuera.
+            while (type.DeclaringType != null && type.Name.Contains("<")) type = type.DeclaringType;
+            return $"{type.Name}.{m.Name}{by}";
+        }
+        if (lifeSteal) return "Robo de vida" + by;
+        return (instant && BalanceEffect != null ? BalanceEffect.name + " (con el tiempo)" : "?") + by;
+    }
 }

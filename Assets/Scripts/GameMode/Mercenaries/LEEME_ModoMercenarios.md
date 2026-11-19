@@ -872,6 +872,7 @@ vacío media partida.
 | Cuánto hay que quedarse para entregar | `MercObjective.DeliverSeconds` (0 = al instante) | 6 s |
 | Columna de luz mientras se entrega | `BeaconHeight` / `BeaconRadius` / `BeaconAlpha` | 40 m / 1,6 m / 0,4 |
 | El portador no entra a su sala | cada `MercTeamBase` → `EjectObjectiveCarrier` | prendido |
+| Con quién pelea el portador bot, ya en la entrega | `BotController` → `CarrierPadFightRadius` (corriendo, solo con el que tiene encima; sin movimiento ni definitiva) | 12 m |
 
 ## Escenario y reglas de la arena
 

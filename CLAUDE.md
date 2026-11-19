@@ -183,6 +183,16 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   golpe). Una regla nueva del proyecto que se pueda revisar mirando los assets va como chequeo del validador
   (`GasValidatorWindow.Scan`). Desde el CLI: `GasValidatorWindow.Report()`.
 
+- **Para medir el balance con números de una partida de verdad: `Mercenarios ▸ GAS ▸ Medir el balance`** (desde el 18 de noviembre
+  de 2026): Empezar → jugar → Informe (consola y `Logs/BalanceReport.txt`). Por personaje: lo recibido crudo → tras defensas →
+  escudo → vida, lo hecho y de dónde sale cada punto de vida que GANA (también lo que escribe la vida directo: la pila dice quién).
+  Lo anota el ASC con `TraceBalance` (parte CombatLog); apagado no cuesta. Antes de opinar "está desbalanceado", medirlo así.
+
+- **En el HOST, un callback de SyncVar del lado cliente (`asServer` false) no escribe en el ASC** (desde el 18 de noviembre de
+  2026): el ASC es el mismo objeto que el del servidor y el valor que trae puede ser VIEJO. `OnNetHealthChanged` lo hacía y le
+  devolvía la vida del golpe siguiente a cualquiera en el host (la medición del balance lo vio como curación). Un espejo nuevo de
+  un atributo va con `!asServer && !IsServerInitialized`.
+
 - **El camino del daño tiene pruebas automáticas** (desde el 17 de noviembre de 2026):
   `Scripts/Editor/Tests/GasDamagePipelineTests.cs` (EditMode, sin assets ni escena). Después de tocar `ExecuteInstantEffect`,
   las defensas, el escudo o los efectos, correr `unity command test run --mode editor --filter GasDamagePipeline`. Si una
@@ -445,7 +455,8 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   sin él no se dibuja y no avisa. La **barra de vida de arriba de la cabeza** es UN prefab para todos,
   **`Prefabs/UI/Nameplate`** (`UI_Nameplate`: piezas y colores; desde el 19 de octubre de 2026): cada
   personaje lleva una instancia a su altura y `UI_WorldHealthbar` la encuentra sola. Un personaje o
-  invocación nueva con vida lleva una instancia de ese prefab, nunca una barra armada aparte.
+  invocación nueva con vida lleva una instancia de ese prefab, nunca una barra armada aparte. De lejos la barra se agranda para mantener
+  su tamaño en pantalla (`UI_Nameplate`: "Tamaño fijo en pantalla desde (m)" y "Agrandar hasta (×)", 18 de noviembre de 2026).
 
 Los detalles finos del GAS (pipeline de daño, acumulación de efectos, animaciones de
 combo) están en `DesignDocuments/GAS_Arquitectura.docx`.

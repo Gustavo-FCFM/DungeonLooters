@@ -364,7 +364,12 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
     {
         if (_asc == null) return;
 
-        if (!asServer) _asc.SetCurrentAttributeValue(EAttributeType.Health, next);
+        // En el HOST este callback llega dos veces, y la de cliente (asServer false) trae un valor que puede ser
+        // VIEJO: si entre que el servidor lo escribió y que llegó el callback le pegaron otra vez, escribirlo
+        // le devolvía esa vida. Pasaba en el host con cada golpe seguido (18 de noviembre de 2026: la medición
+        // del balance lo vio como curación de "OnNetHealthChanged", ~10 % de lo que se curaba cada uno). En el
+        // host el ASC es el mismo objeto que el del servidor: ya tiene la vida buena.
+        if (!asServer && !IsServerInitialized) _asc.SetCurrentAttributeValue(EAttributeType.Health, next);
 
         // Sonido y reacción de golpe: acá, y no en el pipeline de daño, porque este
         // callback corre en TODOS los peers y es el único lugar donde "bajó la vida"

@@ -15,6 +15,8 @@
 !/Builds/
 /Builds/**/*_BurstDebugInformation_DoNotShip/
 /Builds/**/*.zip
+# B10 (20 de noviembre de 2026) no entra en GitHub: un archivo suyo pesa 194 MB (el tope es 100). Se comparte el zip.
+/Builds/B10/
 /Builds/**/exebuild/
 /Builds/Instaladores/
 [Ll]ogs/

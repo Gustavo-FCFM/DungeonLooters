@@ -7,7 +7,7 @@ siguen abiertas, más el plan.
 El proyecto compila limpio: 0 errores y 0 warnings en código propio (los 312 warnings
 del log son todos de packs importados).
 
-## ★ Bots más humanos y más listos (20 de noviembre, pedido de Gustavo): CÓDIGO HECHO, falta probar en Play
+## ★ Bots más humanos y más listos (20 de noviembre, pedido de Gustavo): HECHO Y PROBADO ✅ (20 de noviembre: "se ven bien")
 
 "Que sean más humanos y más inteligentes: escapar del daño, afrontar los problemas, rodear el escudo." Va en
 `BotController.Instinct.cs`, una parte nueva de `BotController` (que pasó a `partial`). Sus números son la sección "Instinto" de
@@ -15,17 +15,17 @@ del log son todos de packs importados).
 del bot para probar; se pierden al salir). Para que vean lo que antes era solo un VFX, cuatro listas del servidor, sin red nueva:
 `AreaThreats` (las zonas de daño: la espera de `GA_InstantAoE`, la zona de `GA_ContinuousAoE` y las `Summon_Zone` que pegan),
 `GC_Projectile.Flying`, `Entity_ShieldBarrier.RaisedNow` y `HealthPack.All`. 1 prueba nueva (68).
-- [ ] **Esquivan proyectiles**: un paso al costado. Los mejores notan casi 8 de cada 10 y los peores 1 de cada 4; si ya lo tienen
+- [x] (visto en Play el 20 nov) **Esquivan proyectiles**: un paso al costado. Los mejores notan casi 8 de cada 10 y los peores 1 de cada 4; si ya lo tienen
       encima, no llegan. También los que caen en curva (flechas y hachas apuntadas). Que no se queden bailando.
-- [ ] **Salen de las zonas**: la explosión del jefe mientras se carga, un Muro de fuego, las trampas; con su dash o su
+- [x] (visto en Play el 20 nov) **Salen de las zonas**: la explosión del jefe mientras se carga, un Muro de fuego, las trampas; con su dash o su
       teletransporte si la salida es larga. No eligen pararse adentro, salvo el Bárbaro con más del 60 % de vida peleando.
-- [ ] **Rodean el escudo** levantado de la Paladina (de a 30°, hasta 135°). A la cápsula del Monje no: buscan a otro.
-- [ ] **Eligen mejor a quién pegarle**: siguen con el que peleaban, le responden al que les pega, rematan al que está por caer y se
+- [x] (visto en Play el 20 nov) **Rodean el escudo** levantado de la Paladina (de a 30°, hasta 135°). A la cápsula del Monje no: buscan a otro.
+- [x] (visto en Play el 20 nov) **Eligen mejor a quién pegarle**: siguen con el que peleaban, le responden al que les pega, rematan al que está por caer y se
       suman a lo que pelean sus compañeros bots. El que pega de cerca no se queda esperando a uno metido en su propio fuego.
-- [ ] **Se retiran todos**: el Bárbaro y el soporte con el 20 % de vida; el Pícaro y el Mago, como antes. También heridos (50 %) y
+- [x] (visto en Play el 20 nov) **Se retiran todos**: el Bárbaro y el soporte con el 20 % de vida; el Pícaro y el Mago, como antes. También heridos (50 %) y
       superados en número por jugadores (los fantasmas no cuentan). Van al botiquín si les queda más a mano que la base, no se van
       si el de al lado está por caer y, si los persiguen, se los sacan de encima con su dash o su teletransporte.
-- [ ] **Como una persona**: tardan en reaccionar a un enemigo nuevo, apuntan con error (si se ve exagerado, bajar "Error de
+- [x] (visto en Play el 20 nov) **Como una persona**: tardan en reaccionar a un enemigo nuevo, apuntan con error (si se ve exagerado, bajar "Error de
       puntería a 10 m") y se adelantan con los proyectiles a lo que corre. Cada bot nace con su destreza (0.45 a 0.85).
 - Un daño en área NUEVO tiene que anotarse en `AreaThreats` (ver CLAUDE.md): si no, los bots no lo ven y se quedan adentro.
 

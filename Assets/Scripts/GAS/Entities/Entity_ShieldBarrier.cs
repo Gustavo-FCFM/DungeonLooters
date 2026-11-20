@@ -322,6 +322,9 @@ public class Entity_ShieldBarrier : MonoBehaviour, IIncomingDamageModifier
             foreach (var v in _visuals)
                 if (v != null) v.gameObject.SetActive(raised);
 
+        if (raised) { if (!s_raised.Contains(this)) s_raised.Add(this); }   // la lista de los bots (ver RaisedNow)
+        else        s_raised.Remove(this);
+
         if (raised)
         {
             _raisedAt = Time.time; // arranca la ventana del parry
@@ -642,6 +645,17 @@ public class Entity_ShieldBarrier : MonoBehaviour, IIncomingDamageModifier
 
     // True si esta barrera está levantada. Lo consulta GC_Projectile al chocar.
     public bool IsRaised => _raised;
+
+    // LAS LEVANTADAS (20 de noviembre de 2026): los bots las miran para rodearlas (BotController.Instinct).
+    private static readonly List<Entity_ShieldBarrier> s_raised = new List<Entity_ShieldBarrier>();
+    public static IReadOnlyList<Entity_ShieldBarrier> RaisedNow => s_raised;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetRaised() => s_raised.Clear();
+
+    // ¿Frenaría un golpe de 'attackerPos' a 'victimPos'? (la misma cuenta que el bloqueo de verdad)
+    public bool BlocksShot(Vector3 attackerPos, Vector3 victimPos)
+        => _raised && _box != null && Blocks(attackerPos, victimPos, out _);
 
     // Le avisa a la barrera que paró un PROYECTIL físico (que se resuelve por
     // colisión con el collider, no por el pipeline de daño). Cobra

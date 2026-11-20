@@ -1438,4 +1438,33 @@ public class GasDamagePipelineTests
         hero.ApplyGameplayEffect(Hit(500f), enemy);
         Assert.IsTrue(hero.HasTag(EGameplayTag.State_Dead), "una sola vez: el segundo lo mata");
     }
+    // ---- Zonas de daño que esquivan los bots (AreaThreats) ----
+
+    [Test]
+    public void ZonaDeDanio_ElEnemigoAdentroSaleHaciaAfuera_YLaPropiaNoAsusta()
+    {
+        var owner = Character(100f);
+        var ally = Character(100f);
+        var enemy = Character(100f);
+        owner.TeamID = 1;
+        ally.TeamID = 1;
+        enemy.TeamID = 2;
+
+        int id = AreaThreats.Add(Vector3.zero, 4f, owner, 10f);
+        try
+        {
+            Assert.IsTrue(AreaThreats.Find(new Vector3(1f, 0f, 0f), enemy, 0.5f, out Vector3 dir, out float exit),
+                          "un enemigo a 1 m del centro está adentro");
+            Assert.AreEqual(1f, dir.x, 0.01f, "sale para el lado en que está");
+            Assert.AreEqual(3.5f, exit, 0.01f, "y le faltan 3.5 m (radio 4 + margen 0.5 - 1)");
+
+            Assert.IsFalse(AreaThreats.IsDangerous(new Vector3(1f, 0f, 0f), ally), "a un aliado del dueño no le hace daño");
+            Assert.IsFalse(AreaThreats.IsDangerous(new Vector3(1f, 0f, 0f), owner), "ni al dueño");
+            Assert.IsFalse(AreaThreats.IsDangerous(new Vector3(10f, 0f, 0f), enemy), "lejos, nada");
+            Assert.IsFalse(AreaThreats.IsDangerous(new Vector3(1f, -5f, 0f), enemy), "a otra altura (las catacumbas), nada");
+        }
+        finally { AreaThreats.Remove(id); }
+
+        Assert.IsFalse(AreaThreats.IsDangerous(new Vector3(1f, 0f, 0f), enemy), "borrada, ya no está");
+    }
 }

@@ -144,9 +144,20 @@ public class GA_ContinuousAoE : GameplayAbility, IGroundTargetAbility
 
     private IEnumerator DeployedZone(Vector3 center)
     {
-        if (StartDelay > 0f) yield return new WaitForSeconds(StartDelay);
+        // El anuncio también se ve (los bots se salen antes de que arranque): ver AreaThreats.
+        if (StartDelay > 0f)
+        {
+            MarkThreat(center, StartDelay);
+            yield return new WaitForSeconds(StartDelay);
+        }
         yield return AreaRoutine(center);
     }
+
+    // Anota la zona como peligro para los que pega (AreaThreats; los bots la esquivan). 0 = no hace daño a nadie.
+    private int MarkThreat(Vector3 center, float seconds)
+        => HasEnemyHitEffects
+            ? AreaThreats.Add(center, Radius, OwnerASC, seconds, ShouldFollowOwner && OwnerASC != null ? OwnerASC.transform : null)
+            : 0;
 
     // Una copia de 'template' con este dueño, lista para DeployZoneAt. Devuelve 'cached' si
     // ya era eso (la habilidad que suelta zonas la guarda y la reusa en cada lanzamiento).
@@ -348,9 +359,10 @@ public class GA_ContinuousAoE : GameplayAbility, IGroundTargetAbility
         if (StartDelay > 0)
         {
             // El amago lo cortan morir y el aturdido: la zona no sale (el cooldown ya se cobró).
+            int announced = MarkThreat(center, StartDelay / speedMultiplier);
             AbilityGuard windUp = Guard(EStopWhen.Dies | EStopWhen.Stunned);
             yield return WaitSeconds(StartDelay / speedMultiplier, windUp);
-            if (windUp.Stopped) { EndAbility(); yield break; }
+            if (windUp.Stopped) { AreaThreats.Remove(announced); EndAbility(); yield break; }
         }
 
         // Liberamos al jugador (EndAbility → isAttacking=false) APENAS arranca
@@ -424,34 +436,40 @@ public class GA_ContinuousAoE : GameplayAbility, IGroundTargetAbility
         // con una referencia acá).
         BroadcastImpactVFX(spawnPoint);
 
-        while (timeElapsed < TotalDuration)
+        // La zona, como peligro mientras dura (se borra en el finally aunque la corten).
+        int threat = MarkThreat(spawnPoint, TotalDuration + 0.1f);
+        try
         {
-            Vector3 center = ShouldFollowOwner ? OwnerASC.transform.position : spawnPoint;
-            Collider[] hits = Physics.OverlapSphere(center, Radius, TargetLayer);
-
-            foreach (var hit in hits)
+            while (timeElapsed < TotalDuration)
             {
-                AbilitySystemComponent targetASC = hit.GetComponentInParent<AbilitySystemComponent>();
-                if (targetASC == null) continue;
+                Vector3 center = ShouldFollowOwner ? OwnerASC.transform.position : spawnPoint;
+                Collider[] hits = Physics.OverlapSphere(center, Radius, TargetLayer);
 
-                // Cada entrada de la lista dice a quién va: la Zona de verdad silencia a
-                // los tres equipos y cura solo a los suyos; la Luz del amanecer quema a los
-                // enemigos y cura a los aliados que estén adentro.
-                bool enemy = IsEnemy(targetASC);
-                if (!ApplyHitEffects(targetASC, firstHit: enemy && firstEnemy)) continue;
+                foreach (var hit in hits)
+                {
+                    AbilitySystemComponent targetASC = hit.GetComponentInParent<AbilitySystemComponent>();
+                    if (targetASC == null) continue;
 
-                BroadcastHitVFX(targetASC, withSound: false);
+                    // Cada entrada de la lista dice a quién va: la Zona de verdad silencia a
+                    // los tres equipos y cura solo a los suyos; la Luz del amanecer quema a los
+                    // enemigos y cura a los aliados que estén adentro.
+                    bool enemy = IsEnemy(targetASC);
+                    if (!ApplyHitEffects(targetASC, firstHit: enemy && firstEnemy)) continue;
 
-                if (!enemy) continue;
-                firstEnemy = false;
+                    BroadcastHitVFX(targetASC, withSound: false);
 
-                OnTargetHit(targetASC);
-                if (OwnerASC.CompareTag("Player")) ChargeUltimate();
+                    if (!enemy) continue;
+                    firstEnemy = false;
+
+                    OnTargetHit(targetASC);
+                    if (OwnerASC.CompareTag("Player")) ChargeUltimate();
+                }
+
+                yield return new WaitForSeconds(tick);
+                timeElapsed += tick;
             }
-
-            yield return new WaitForSeconds(tick);
-            timeElapsed += tick;
         }
+        finally { AreaThreats.Remove(threat); }
     }
 
     // Gancho para que una habilidad concreta reaccione a cada enemigo alcanzado, en

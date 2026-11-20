@@ -105,6 +105,21 @@ public abstract partial class GameplayAbility
         }
     }
 
+    // ¿Le hace algo a los ENEMIGOS que alcanza? (un área que solo cura a los suyos no es un peligro que esquivar: lo
+    // pregunta AreaThreats al anotar una zona; 20 de noviembre de 2026)
+    public bool HasEnemyHitEffects
+    {
+        get
+        {
+            if (Effects == null) return false;
+            foreach (AbilityEffect e in Effects)
+                if (e.Effect != null && IsHitTiming(e.When) &&
+                    (e.ApplyTo == EEffectTarget.Enemies || e.ApplyTo == EEffectTarget.Everyone))
+                    return true;
+            return false;
+        }
+    }
+
     // El DAÑO PRINCIPAL: la primera entrada "al golpear, a enemigos" sin condición. Lo usa
     // la barrera para medir cuánto frenó un proyectil.
     public GameplayEffect PrimaryDamageEffect

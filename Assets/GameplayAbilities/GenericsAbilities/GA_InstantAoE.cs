@@ -147,12 +147,20 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
         float atkSpeedStat = OwnerASC.GetAttributeValue(EAttributeType.AtkSpeed);
         if (atkSpeedStat > 0) speedMultiplier = 1f / atkSpeedStat;
 
+        // El círculo de lo que va a caer, mientras se carga y entre golpes: los bots lo ven y se salen (AreaThreats).
+        // Todo el mapa no se esquiva: no se anota.
+        int threat = 0;
+        if (!Global && HasEnemyHitEffects)
+            threat = AreaThreats.Add(center, Radius, OwnerASC,
+                                     (StartDelay + RepeatInterval * (hits - 1)) / speedMultiplier + 0.1f,
+                                     DeployMode == GA_ContinuousAoE.EAoEDeploy.AtOwner ? OwnerASC.transform : null);
+
         // Lo cortan morir y el aturdido, también en el amago (antes el golpe caía igual).
         AbilityGuard guard = Guard(EStopWhen.Dies | EStopWhen.Stunned);
         if (StartDelay > 0f)
         {
             yield return WaitSeconds(StartDelay / speedMultiplier, guard);
-            if (guard.Stopped) { EndAbility(); yield break; }
+            if (guard.Stopped) { AreaThreats.Remove(threat); EndAbility(); yield break; }
         }
 
         NetworkAbilitySystemComponent netAsc = OwnerASC.GetComponent<NetworkAbilitySystemComponent>();
@@ -177,6 +185,7 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
             Detonate(center);
         }
 
+        AreaThreats.Remove(threat);
         EndAbility();
     }
 

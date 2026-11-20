@@ -29,7 +29,7 @@ using UnityEngine;
 // Una zona por invocación. Los efectos se aplican solo en el servidor.
 // ============================================================
 [RequireComponent(typeof(Entity_Summon))]
-public class Summon_Zone : MonoBehaviour
+public class Summon_Zone : MonoBehaviour, IAreaThreat
 {
     public enum EShape
     {
@@ -203,6 +203,47 @@ public class Summon_Zone : MonoBehaviour
     private readonly HashSet<AbilitySystemComponent> _seen = new HashSet<AbilitySystemComponent>();
 
     private void Awake() => _summon = GetComponent<Entity_Summon>();
+
+    // Los bots la ven como peligro mientras está prendida y pega a los enemigos (AreaThreats; 20 de noviembre de 2026).
+    private void OnEnable()  => AreaThreats.Register(this);
+    private void OnDisable() => AreaThreats.Unregister(this);
+
+    public bool Contains(AbilitySystemComponent who, Vector3 point, float margin, out Vector3 escapeDir, out float exitDistance)
+    {
+        escapeDir = Vector3.zero;
+        exitDistance = 0f;
+        if (_summon == null || who == null || !_summon.ZoneActive || Targets != ETargets.Enemies) return false;
+        if (!_summon.IsEnemy(who)) return false;
+        if (PlayersOnly && who.GetComponent<PlayerController>() == null) return false;
+
+        if (Shape == EShape.Box)
+        {
+            // En el espacio de la caja: se sale por el costado más cercano (de lado a lado o hacia adelante/atrás).
+            Vector3 local = Quaternion.Inverse(transform.rotation) * (point - BoxCenter);
+            Vector3 half = BoxHalfExtents;
+            if (Mathf.Abs(local.y) > half.y + 1f) return false;
+            float outX = half.x + margin - Mathf.Abs(local.x);
+            float outZ = half.z + margin - Mathf.Abs(local.z);
+            if (outX <= 0f || outZ <= 0f) return false;
+            bool sideways = outX < outZ;
+            exitDistance = sideways ? outX : outZ;
+            Vector3 axis = sideways ? transform.right * Mathf.Sign(local.x == 0f ? 1f : local.x)
+                                    : transform.forward * Mathf.Sign(local.z == 0f ? 1f : local.z);
+            axis.y = 0f;
+            escapeDir = axis.sqrMagnitude > 0.0001f ? axis.normalized : Vector3.zero;
+            return true;
+        }
+
+        Vector3 flat = point - transform.position;
+        if (Mathf.Abs(flat.y) > 2.5f) return false;
+        flat.y = 0f;
+        float dist = flat.magnitude;
+        float exit = CurrentRadius + margin - dist;
+        if (exit <= 0f) return false;
+        exitDistance = exit;
+        escapeDir = dist > 0.05f ? flat / dist : Vector3.zero;
+        return true;
+    }
 
     // La prende (servidor). La llama la invocación: sola al aparecer si "Empieza prendida", o
     // cuando decide.

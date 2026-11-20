@@ -59,7 +59,11 @@ pruebas rápidas de clases.
   jugada particular necesita su caso ahí: si no, cae en "cuerpo a cuerpo".** Un combo con todos sus
   pasos a distancia (las kunais del Shinobi) cuenta como a distancia. **El Mago bot vuela** (29 de
   octubre de 2026): a 8 m sobre donde va, para escapar, pelear desde arriba y cruzar el mapa (sección
-  VUELO de `BotController`). **Cámara de espectador**
+  VUELO de `BotController`). **El instinto** (20 de noviembre de 2026, `BotController.Instinct.cs`; sus números en la
+  sección 4 bis, "Los bots: el instinto"): esquivan los proyectiles, salen de las zonas de daño y no se paran adentro, rodean los
+  escudos levantados, eligen mejor a quién pegarle, se retiran todos (también superados en número, y al botiquín si les queda
+  más a mano) y pelean como una persona: tardan en reaccionar, apuntan con error y se adelantan a lo que corre, cada uno con su
+  destreza. Las zonas las ven por `AreaThreats`: **un daño en área nuevo tiene que anotarse ahí** (ver CLAUDE.md). **Cámara de espectador**
   (`Player/SpectatorCamera`) para mirar la partida sin jugar, con mouse y teclado o con control
   (mapa "Spectator" del asset de input).
 - **Menú principal y Ajustes**: un panel sobre la arena con la cámara de la sala girando
@@ -874,6 +878,25 @@ vacío media partida.
 | Columna de luz mientras se entrega | `BeaconHeight` / `BeaconRadius` / `BeaconAlpha` | 40 m / 1,6 m / 0,4 |
 | El portador no entra a su sala | cada `MercTeamBase` → `EjectObjectiveCarrier` | prendido |
 | Con quién pelea el portador bot, ya en la entrega | `BotController` → `CarrierPadFightRadius` (corriendo, solo con el que tiene encima; sin movimiento ni definitiva) | 12 m |
+
+## Los bots: el instinto (20 de noviembre de 2026)
+
+El `BotController` se agrega al nacer el bot (no está en ningún prefab), así que valen los números del código: la sección
+"Instinto" de `BotController.cs`. En Play se pueden mover en el Inspector de un bot para probar, pero se pierden al salir.
+
+| Qué | Campo | Hoy |
+|---|---|---|
+| Lo bueno que es cada bot | "Destreza (0 a 1; 0 = al azar al nacer)" (`Skill`) | al azar, 0.45 a 0.85 |
+| Cuánto tarda en reaccionar a un enemigo nuevo | "Reacción: mínimo / máximo (s)" (el mejor, cerca del mínimo; al que le está pegando, 0.6 de eso) | 0.18 / 0.5 s |
+| Cuánto falla la puntería | "Error de puntería a 10 m (m)" (más lejos, más; el mejor, menos) | 1.2 m |
+| El paso al costado de una esquiva | "Esquiva: paso al costado (m)" (`DodgeStep`) | 2.6 m |
+| Cuánto se aleja del borde de una zona al salir | "Zonas: sale con margen de (m)" (`DangerMargin`) | 1.2 m |
+| Hasta dónde rodea un escudo | "Escudos: rodea hasta (°)" (`FlankMaxDegrees`) | 135° |
+| Cuándo se retiran el Bárbaro y el soporte | "Bárbaro y soporte: se retiran con vida bajo (0 a 1)" | 0.2 |
+| Cuándo se retiran el Pícaro y el Mago | "Pícaro y Mago: se retiran con vida bajo (0 a 1)" | 0.35 |
+| Cuándo vuelven (todos) | "Todos: vuelven con vida sobre (0 a 1)" | 0.75 |
+| Superado en número (dos jugadores enemigos más que los suyos, a 10 m) | "Superado en número: se repliega con vida bajo (0 a 1)" | 0.5 |
+| Hasta dónde va por un botiquín al retirarse | "Busca botiquín hasta (m)" (herido y sin nadie a 12 m, pasa por uno a 12 m) | 20 m |
 
 ## Escenario y reglas de la arena
 

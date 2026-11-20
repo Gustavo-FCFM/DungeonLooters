@@ -44,9 +44,13 @@ public enum EBotRole
 // Las campanas no las tocan: son algo del mapa (StrikeTarget), no a quién pelear.
 //
 // Dentro de eso, cada rol se mueve distinto: ver DecideCombatPosition.
+//
+// EL INSTINTO (20 de noviembre de 2026) está en BotController.Instinct.cs: esquivar proyectiles, salir de las zonas de
+// daño, rodear escudos, elegir mejor a quién pegarle, retirarse bien y apuntar y reaccionar como una persona. Corrige lo
+// que se decide acá; sus números están en la sección "Instinto" de abajo.
 // ============================================================
 [RequireComponent(typeof(PlayerController))]
-public class BotController : MonoBehaviour
+public partial class BotController : MonoBehaviour
 {
     [Header("Rol")]
     [Tooltip("Auto lo deduce de la clase base que tenga puesta. Forzalo solo para probar.")]
@@ -72,13 +76,14 @@ public class BotController : MonoBehaviour
     [Tooltip("A qué distancia pega el Bárbaro. Es el alcance de un ataque cuerpo a cuerpo.")]
     [Label("Alcance cuerpo a cuerpo (m)")]
     public float MeleeRange = 2.6f;
-    [Tooltip("El Pícaro se retira a curarse cuando su vida baja de esta fracción.")]
-    [Label("Pícaro: se retira con vida bajo (0 a 1)")]
+    [Tooltip("El Pícaro y el Mago se retiran a curarse cuando su vida baja de esta fracción (el Bárbaro y el soporte, " +
+             "con la suya de \"Instinto\").")]
+    [Label("Pícaro y Mago: se retiran con vida bajo (0 a 1)")]
     [Range(0.05f, 0.9f)] public float AssassinRetreatBelowHealth = 0.35f;
 
-    [Tooltip("Y vuelve a la pelea cuando se recuperó hasta esta otra. La diferencia entre " +
-             "las dos evita que entre y salga sin parar en el borde exacto.")]
-    [Label("Pícaro: vuelve con vida sobre (0 a 1)")]
+    [Tooltip("Y vuelven a la pelea (todos, desde el 20 de noviembre de 2026) cuando se recuperaron hasta esta otra. La " +
+             "diferencia entre las dos evita que entren y salgan sin parar en el borde exacto.")]
+    [Label("Todos: vuelven con vida sobre (0 a 1)")]
     [Range(0.1f, 1f)] public float AssassinReturnAboveHealth = 0.75f;
 
     [Tooltip("A qué distancia sigue el Paladín a su compañero cuando no hay a quién pegarle.")]
@@ -247,6 +252,50 @@ public class BotController : MonoBehaviour
     [Label("Vuela para ir a más de (m)")]
     public float FlyTravelDistance = 20f;
 
+    [Header("Instinto (20 de noviembre de 2026)")]
+    [Tooltip("Qué tan bueno es: cuánto tarda en reaccionar, cuánto le erra, cuánto se adelanta a lo que corre y cuántos " +
+             "proyectiles ve venir. 0 = al azar al nacer (entre 0.45 y 0.85), así cada bot es distinto.")]
+    [Label("Destreza (0 a 1; 0 = al azar al nacer)")]
+    [Range(0f, 1f)] public float Skill = 0f;
+
+    [Tooltip("Lo que tarda en empezar a pegarle a un enemigo nuevo: el más hábil, el mínimo; el menos, el máximo. Al que " +
+             "le está pegando le reacciona más rápido.")]
+    [Label("Reacción: mínimo (s)")]
+    public float ReactionMin = 0.18f;
+
+    [Label("Reacción: máximo (s)")]
+    public float ReactionMax = 0.5f;
+
+    [Tooltip("Cuánto le erra a un blanco a 10 m el menos hábil (al doble de distancia, el doble). El más hábil, casi nada.")]
+    [Label("Error de puntería a 10 m (m)")]
+    public float AimErrorAt10m = 1.2f;
+
+    [Tooltip("El paso al costado con el que esquiva un proyectil que le va a pegar.")]
+    [Label("Esquiva: paso al costado (m)")]
+    public float DodgeStep = 2.6f;
+
+    [Tooltip("Al salir de una zona de daño, cuánto más allá del borde se para.")]
+    [Label("Zonas: sale con margen de (m)")]
+    public float DangerMargin = 1.2f;
+
+    [Tooltip("Hasta cuánto rodea a su objetivo para que un escudo enemigo no lo tape (de a 30°).")]
+    [Label("Escudos: rodea hasta (°)")]
+    public float FlankMaxDegrees = 135f;
+
+    [Tooltip("El Bárbaro y el soporte, que aguantan más, se van a curar recién con la vida por debajo de esto (el Pícaro " +
+             "y el que pega de lejos usan la de arriba). Vuelven con la misma de arriba.")]
+    [Label("Bárbaro y soporte: se retiran con vida bajo (0 a 1)")]
+    [Range(0.05f, 0.9f)] public float FrontlineRetreatBelowHealth = 0.2f;
+
+    [Tooltip("Superado en número (dos enemigos más que los suyos alrededor) y con la vida por debajo de esto, también se " +
+             "repliega.")]
+    [Label("Superado en número: se repliega con vida bajo (0 a 1)")]
+    [Range(0.05f, 1f)] public float OutnumberedRetreatHealth = 0.5f;
+
+    [Tooltip("Hasta dónde va a buscar un botiquín listo al retirarse (si le queda más a mano que la base).")]
+    [Label("Busca botiquín hasta (m)")]
+    public float HealthPackSeekRadius = 20f;
+
     // --- referencias, resueltas en el servidor ---
     private PlayerController              _pc;
     private AbilitySystemComponent        _asc;
@@ -348,6 +397,7 @@ public class BotController : MonoBehaviour
         if (_teamId == 0 && _netASC != null) _teamId = _netASC.NetTeamID;
 
         SetupAgent();
+        InitInstinct();
 
         // Arrancan escalonados: si los nueve piensan en el mismo frame se nota el tirón.
         _thinkTimer = Random.Range(0f, ThinkInterval);
@@ -953,7 +1003,7 @@ public class BotController : MonoBehaviour
         _thinkTimer -= Time.deltaTime;
         if (_thinkTimer <= 0f)
         {
-            _thinkTimer = ThinkInterval;
+            _thinkTimer = ThinkInterval * Random.Range(0.85f, 1.15f);   // no todos al mismo compás
 
             // Contención, antes de decidir nada: si ya está fuera del mundo, decidir a
             // quién pegarle no sirve de nada. Se saltea en pleno salto o dash, que es
@@ -1007,7 +1057,9 @@ public class BotController : MonoBehaviour
     // DECISIÓN
     // =========================================================
 
-    private void Think()
+    // Lo que quiere hacer: a quién pegarle y adónde ir. Lo llama Think (BotController.Instinct), que después lo corrige
+    // con lo que pasa alrededor (esquivar, salir de una zona).
+    private void DecideGoal()
     {
         MercenariesGameMode gm  = MercenariesGameMode.Instance;
         MercObjective       obj = gm != null ? gm.ActiveObjective : MercObjective.Instance;
@@ -1030,15 +1082,13 @@ public class BotController : MonoBehaviour
         _target     = FindBestTarget();
         TrackCombatContext();
 
-        // 1 · El Pícaro herido se va a curar y no se distrae con nada (el Mago también: de lejos
-        //     y frágil, herido no aguanta un cuerpo a cuerpo). Salvo que lleve el Objetivo: con
-        //     la bolsa no puede entrar a su sala, y la entrega queda en el mismo camino, así que
-        //     primero entrega.
+        // 1 · El herido se va a curar y no se distrae con nada (cuándo se va cada uno: EvaluateRetreat). Al botiquín
+        //     más cercano si le queda más a mano que la base. Salvo que lleve el Objetivo: con la bolsa no puede entrar
+        //     a su sala, y la entrega queda en el mismo camino, así que primero entrega.
         bool carryingObjective = _asc != null && _asc.HasTag(EGameplayTag.Status_Carrying_Objective);
-        EBotRole thinkRole = ResolveRole();
-        if (_retreating && (thinkRole == EBotRole.Assassin || thinkRole == EBotRole.Ranged) && !carryingObjective)
+        if (_retreating && !carryingObjective)
         {
-            _destination = ResolveHealSpot(gm);
+            _destination = RetreatDestination(gm);
             _target      = null;
             return;
         }
@@ -1150,6 +1200,15 @@ public class BotController : MonoBehaviour
             return;
         }
 
+        // 2e · Herido, sin nadie encima y con un botiquín a mano: pasar a buscarlo (20 de noviembre de 2026).
+        if (HealthFraction(_asc) < 0.6f &&
+            (_target == null || Vector3.Distance(transform.position, _target.transform.position) > 12f) &&
+            FindHealthPack(12f, out Vector3 pack))
+        {
+            _destination = pack;
+            return;
+        }
+
         // 3 · Sin carga en juego: pelear con lo que haya.
         if (_target != null)
         {
@@ -1192,12 +1251,24 @@ public class BotController : MonoBehaviour
         bool healing = _lastHealth >= 0f && hp > _lastHealth + 0.005f;
         _lastHealth  = hp;
 
-        if (_retreating && healing && hp > AssassinRetreatBelowHealth) return false;
+        // Cuándo se va: el que pega por la espalda o de lejos, antes; el Bárbaro y el soporte, que aguantan, más tarde
+        // (20 de noviembre de 2026: antes solo se retiraban el Pícaro y el Mago, y los demás peleaban hasta morir).
+        EBotRole role = ResolveRole();
+        float below = role == EBotRole.Assassin || role == EBotRole.Ranged ? AssassinRetreatBelowHealth
+                                                                            : FrontlineRetreatBelowHealth;
+
+        if (_retreating && healing && hp > below) return false;
 
         // Retirarse y volver tienen umbrales DISTINTOS a propósito: con uno solo, el Pícaro
         // entraba y salía sin parar bailando alrededor del valor exacto.
-        return _retreating ? hp < AssassinReturnAboveHealth
-                           : hp <= AssassinRetreatBelowHealth;
+        if (_retreating) return hp < AssassinReturnAboveHealth;
+
+        // No se va si el que tiene al lado está por caer: lo remata primero.
+        if (AboutToFinish()) return false;
+
+        // Superado en número y herido, también se repliega.
+        if (hp <= OutnumberedRetreatHealth && Outnumbered()) return true;
+        return hp <= below;
     }
 
     // Actualiza lo que las reglas de habilidad consultan: si estoy trabado en combate desde
@@ -1237,6 +1308,10 @@ public class BotController : MonoBehaviour
     private Vector3 DecideCombatPosition(AbilitySystemComponent target)
     {
         Vector3 targetPos = target.transform.position;
+
+        // Un escudo enemigo le tapa al objetivo: a un costado desde donde no lo tape (ver TryFlankShield).
+        float flankKeep = FightsFromAfar(ResolveRole()) ? RangedDistance * 0.8f : MeleeRange * 0.8f;
+        if (TryFlankShield(target, flankKeep, out Vector3 flank)) return flank;
 
         switch (ResolveRole())
         {
@@ -1335,6 +1410,7 @@ public class BotController : MonoBehaviour
         {
             _strafeSign   = Random.value < 0.5f ? -1f : 1f;
             _strafeFlipAt = Time.time + StrafeFlipSeconds * Random.Range(0.6f, 1.6f);
+            _orbitScale   = Random.Range(0.85f, 1.15f);   // y un anillo un poco distinto: nadie pelea a una distancia fija
         }
 
         Vector3 away = transform.position - center;
@@ -1342,7 +1418,7 @@ public class BotController : MonoBehaviour
         if (away.sqrMagnitude < 0.01f) away = -transform.forward;
 
         away = Quaternion.Euler(0f, _strafeSign * StrafeDegreesPerThink, 0f) * away.normalized;
-        return center + away * radius;
+        return center + away * (radius * _orbitScale);
     }
 
     // Un punto a "distance" del centro, del lado en el que ya estoy. Sin rodeo: lo usan
@@ -1477,6 +1553,10 @@ public class BotController : MonoBehaviour
             // cualquier otro a la vista va antes (23 de octubre de 2026).
             if (IsImmune(other)) score += ImmuneTargetPenalty;
 
+            // El instinto: el que venía peleando, el que le pega, el que está por caer, el de los compañeros, el que
+            // tiene un escudo que lo cubre todo (ver InstinctScore).
+            score += InstinctScore(other);
+
             if (score >= bestScore) continue;
             bestScore = score;
             best      = other;
@@ -1558,7 +1638,9 @@ public class BotController : MonoBehaviour
     {
         if (_agent == null || !_agent.enabled || !_agent.isOnNavMesh) return;
 
-        _agent.SetDestination(AvoidEnemySafeRooms(_destination));
+        // Adónde AHORA: el paso al costado de una esquiva, la salida de una zona, o lo que decidió (ver CurrentGoal).
+        Vector3 goal = CurrentGoal();
+        _agent.SetDestination(AvoidEnemySafeRooms(goal));
 
         // El NavMesh de la arena tiene cortes: escalones más altos de lo que el agente
         // puede subir, y bordes donde el horneado no llegó. Cuando el destino queda del
@@ -1570,7 +1652,7 @@ public class BotController : MonoBehaviour
         // moviendo y rodea en vez de quedarse clavado contra un escalón.
         if (!_agent.pathPending && _agent.pathStatus != NavMeshPathStatus.PathComplete)
         {
-            if (NavMesh.SamplePosition(_destination, out NavMeshHit hit, 12f, NavMesh.AllAreas))
+            if (NavMesh.SamplePosition(goal, out NavMeshHit hit, 12f, NavMesh.AllAreas))
                 _agent.SetDestination(hit.position);
         }
 
@@ -1661,6 +1743,13 @@ public class BotController : MonoBehaviour
             return;
         }
 
+        // Retirándose con alguien encima: se lo saca de encima con su dash o su teletransporte (ver TryEscapeChaser).
+        if (_target == null && _retreating && Time.time >= _nextAbilityAt && TryEscapeChaser())
+        {
+            _nextAbilityAt = Time.time + AbilityInterval;
+            return;
+        }
+
         if (_target == null) return;
         if (_target.HasTag(EGameplayTag.State_Dead)) { _target = null; return; }
         if (!CanPerceive(_target))   // se volvió invisible: lo pierdo (y el Maestro de bestias saca al Búho)
@@ -1672,9 +1761,12 @@ public class BotController : MonoBehaviour
 
         float dist = Vector3.Distance(transform.position, _target.transform.position);
 
+        // Recién lo vio: todavía no reaccionó (ver ReactToTargetChange). Una persona no pega en el mismo instante.
+        if (StillReacting) return;
+
         // Punto de mira: el pecho, no los pies. Las habilidades que trazan un rayo desde
-        // el personaje fallarían contra el piso.
-        Vector3 aim     = _target.transform.position + Vector3.up * 1.2f;
+        // el personaje fallarían contra el piso. Con el error de su puntería (ver AimError).
+        Vector3 aim     = _target.transform.position + Vector3.up * 1.2f + AimError(dist);
         Vector3 moveDir = transform.forward;
 
         EBotRole role = ResolveRole();
@@ -2352,6 +2444,9 @@ public class BotController : MonoBehaviour
         // Un dash (el corte avanzando del Filo danzante, el del Pícaro) va derecho, no hacia el pecho:
         // desde los pies, apuntar al pecho lo tiraba en diagonal hacia arriba.
         if (effective is GA_Dash) aim.y = transform.position.y + 0.3f;
+
+        // Un proyectil a su objetivo, adelantado a lo que corre (como apunta una persona; ver LeadFor).
+        if (effective is GA_ProjectileShoot shot && AimsAtTarget(aim)) aim += LeadFor(shot.LaunchForce);
 
         // Un teletransporte de movimiento (el Destello del Clérigo) va a donde convenga, no encima del
         // enemigo (ver TeleportAim).

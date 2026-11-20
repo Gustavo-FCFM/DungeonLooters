@@ -326,6 +326,17 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   2026), resuelta en el servidor dentro del mismo barrido: lo que cambie la dirección a mitad del barrido sube `_trajectory`
   (lo que quedaba del tramo viejo ya no cuenta) y no toca `s_found` (se está recorriendo).
 
+- **Lo que hace daño en un área AVISA a los bots: `AreaThreats`** (desde el 20 de noviembre de 2026, el instinto de los bots,
+  `BotController.Instinct.cs`). Un bot no ve VFX: la espera de `GA_InstantAoE`, la zona de `GA_ContinuousAoE` y las `Summon_Zone`
+  que pegan a enemigos se anotan solas, en el servidor. **Una pieza NUEVA que haga daño en un área** (otra habilidad de zona, un
+  peligro del mapa) se anota con `AreaThreats.Add(centro, radio, dueño, segundos)` (y `Remove` si se corta antes) o, si vive y
+  decide sola, implementa `IAreaThreat` y se anota con `Register` / `Unregister`: si no, los bots se quedan parados adentro. Lo que
+  solo cura o ayuda a los suyos no se anota (`HasEnemyHitEffects`). Del mismo modo miran los proyectiles en vuelo
+  (`GC_Projectile.Flying`), los escudos levantados (`Entity_ShieldBarrier.RaisedNow`) y los botiquines (`HealthPack.All`): listas
+  estáticas del servidor que se vacían al arrancar (`SubsystemRegistration`). **`BotController` es `partial`** (como el ASC): el
+  instinto va en su parte y un campo nuevo del Inspector, en el archivo principal. El componente se agrega al nacer el bot (no
+  está en ningún prefab): sus números son los del código.
+
 - **Un tag con dos fuentes en el cliente** (el espejo de `NetTags` y algo local) cuenta
   dos veces. `State_Dead` es así: la vida en 0 llega por su SyncVar y el cliente se muere
   solo, y además llega el tag. Por eso `OnNetTagsChanged` le saca TODAS las cuentas cuando

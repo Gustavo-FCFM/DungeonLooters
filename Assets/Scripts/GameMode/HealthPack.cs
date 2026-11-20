@@ -1,4 +1,5 @@
 using FishNet.Object;
+using System.Collections.Generic;
 using FishNet.Object.Synchronizing;
 using UnityEngine;
 
@@ -90,6 +91,7 @@ public class HealthPack : NetworkBehaviour
 
     private void Awake()
     {
+        if (!s_all.Contains(this)) s_all.Add(this);   // la lista de los bots (ver All)
         _trigger = GetComponent<SphereCollider>();
         _trigger.isTrigger = true;
         _trigger.radius    = PickupRadius;
@@ -108,6 +110,15 @@ public class HealthPack : NetworkBehaviour
     {
         _visual.Refresh(IsReady, RechargeNormalized);
     }
+
+    // Todos los de la escena (20 de noviembre de 2026): un bot herido va al más cercano (BotController.Instinct).
+    private static readonly List<HealthPack> s_all = new List<HealthPack>();
+    public static IReadOnlyList<HealthPack> All => s_all;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetAll() => s_all.Clear();
+
+    private void OnDestroy() => s_all.Remove(this);
 
     // ¿Se puede levantar ahora? Lo calculan todos los peers igual, con el tick.
     public bool IsReady

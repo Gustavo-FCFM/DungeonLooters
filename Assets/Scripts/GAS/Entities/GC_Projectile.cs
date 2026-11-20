@@ -262,6 +262,8 @@ public class GC_Projectile : NetworkBehaviour
 
             StartSweep(source);
             SetupBounceAndReturn();
+            if (_body == null) _body = GetComponent<Rigidbody>();
+            if (!s_flying.Contains(this)) s_flying.Add(this);
             StartCoroutine(DespawnAfterLifetime());
         }
     }
@@ -633,6 +635,23 @@ public class GC_Projectile : NetworkBehaviour
 
     private GA_ProjectileShoot Shot => sourceAbility as GA_ProjectileShoot;
 
+    // =========================================================
+    // LOS QUE ESTÁN VOLANDO (20 de noviembre de 2026): los bots los ven venir y se corren (BotController.Instinct). Solo
+    // en el servidor, que es donde piensan.
+    // =========================================================
+
+    private static readonly List<GC_Projectile> s_flying = new List<GC_Projectile>();
+    public static IReadOnlyList<GC_Projectile> Flying => s_flying;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetFlying() => s_flying.Clear();
+
+    // Quién lo tiró (o lo devolvió con un parry), su velocidad y con qué grosor pega a un personaje.
+    public AbilitySystemComponent Shooter => sourceASC;
+    public Vector3 Velocity => _body != null ? _body.linearVelocity : Vector3.zero;
+    public bool Falls => _body != null && _body.useGravity;   // cae en curva (para calcular por dónde pasa)
+    public float HitRadius => Mathf.Max(CharacterHitRadius, _shape != null ? _shape.bounds.extents.x : 0.3f);
+
     // Avisa UNA vez a la habilidad que lo tiró que este proyectil se fue (el arma escondida vuelve con el último bumerán).
     // Al que lo tiró, no al que lo devolvió con un parry: el arma es la suya.
     private GA_ProjectileShoot _thrownBy;
@@ -878,6 +897,7 @@ public class GC_Projectile : NetworkBehaviour
     private void OnDestroy()
     {
         NotifyThrownGone();   // por si se fue sin DespawnSelf (fin de partida, cambio de escena)
+        s_flying.Remove(this);
         foreach (GameplayEffect copy in _frozen.Values)
             if (copy != null && !copy.HasDuration) Destroy(copy);
     }
@@ -968,6 +988,7 @@ public class GC_Projectile : NetworkBehaviour
     // borren su copia) — un Destroy() normal solo lo sacaría del servidor.
     private void DespawnSelf()
     {
+        s_flying.Remove(this);
         NotifyThrownGone();
         _gone = true;
         if (IsServerInitialized && IsSpawned)

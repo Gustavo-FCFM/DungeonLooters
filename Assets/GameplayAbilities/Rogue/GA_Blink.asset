@@ -14,15 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AbilityName: Blink
   AbilityNameEs: Golpe mortal
-  Description: "Appear behind the enemy. Damage grows with their missing health. If you kill them, the cooldown resets."
-  DescriptionEs: "Apareces a la espalda del enemigo. El daño sube con la vida que le falta. Si lo matas, se reinicia la espera."
   AbilityIcon: {fileID: 21300000, guid: 83c757b6e1ff941448d5b798247c0d90, type: 3}
+  Description: Appear behind the enemy. Damage grows with their missing health. If
+    you kill them, the cooldown resets.
+  DescriptionEs: "Apareces a la espalda del enemigo. El da\xF1o sube con la vida
+    que le falta. Si lo matas, se reinicia la espera."
   CostEffect: {fileID: 0}
   CooldownEffect: {fileID: 11400000, guid: edc8f7b5f2c7d684d8f67cdabbccd4df, type: 2}
   CooldownDuration: 0
   UseAttackSpeedAsCooldown: 0
   UltimateChargeAmount: 1
-  ActivationBlockedTags: 0100000002000000
+  ActivationBlockedTags: 010000000200000035000000
   ActivationRequiredTags: 
   UsableWhileChanneling: 0
   UsableWhileHolding: 0
@@ -48,12 +50,26 @@ MonoBehaviour:
     OnlyIfTargetHas: 0
     StackScaling: 0
     PerStack: 0
+    PerTargetCooldown: 0
+    TargetStacksTag: 0
+    TargetScaling: 0
+    TargetPerStack: 0
+    TargetMinimum: 0
+    TargetMaximum: 0
+    ConsumeTargetStacks: 0
   - When: 0
     ApplyTo: 0
     Effect: {fileID: 11400000, guid: 2bb212c0914c9384998afb11c54f0ce8, type: 2}
     OnlyIfTargetHas: 0
     StackScaling: 0
     PerStack: 0
+    PerTargetCooldown: 0
+    TargetStacksTag: 0
+    TargetScaling: 0
+    TargetPerStack: 0
+    TargetMinimum: 0
+    TargetMaximum: 0
+    ConsumeTargetStacks: 0
   Visuals:
   - When: 0
     VFXPrefab: {fileID: 4809171458859421548, guid: 4e91ed1a8efe7044785b9bd97a47d87f, type: 3}
@@ -85,7 +101,21 @@ MonoBehaviour:
   TargetLayer:
     serializedVersion: 2
     m_Bits: 128
+  CastMode: 0
+  CastSeconds: 1
+  CastTickSeconds: 0.5
+  CastBlocksOthers: 1
+  CastBreaksOnDamage: 0
+  CastStartAnimation: {fileID: 0}
+  CastLoopAnimation: {fileID: 0}
+  CastReleaseAnimation: {fileID: 0}
   MaxCharges: 1
+  TriggerEvent: 0
+  TriggerOnlyIfOwnerHas: 0
+  TriggerMinMagnitude: 0
+  TriggerIncludePeriodic: 0
+  TriggerChance: 1
+  TriggerAimsAtOther: 1
   MaxRange: 10
   SelectionAngle: 25
   BehindDistance: 1.5

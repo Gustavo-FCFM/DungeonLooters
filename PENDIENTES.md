@@ -344,16 +344,16 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       activos con tiempo y acumulaciones, habilidades con su cooldown y la cadena de los últimos golpes ("30 → crítico 45 →
       defensas 41 → escudo −10 → vida −31"). La cadena la anota el ASC solo con la ventana abierta (`TraceDamage`).
       Probado sin Play con dos personajes de prueba.
-  - [ ] Verlo en Play (con el editor de host: si es cliente, solo ve lo sincronizado y lo avisa).
+  - [x] (visto en Play el 20 nov) Verlo en Play (con el editor de host: si es cliente, solo ve lo sincronizado y lo avisa).
 - [x] **Validador de assets** (17 de noviembre; `Mercenarios ▸ GAS ▸ Revisar el GAS`, `GasValidatorWindow`): errores (fuera del
       registro, registros con huecos, ticks sin duración, modificadores sin atributo, clases sin stats o con huecos), avisos
       (kit sin `State_Stunned`, buffs sin ícono, entradas vacías, nombres repetidos, textos sin español) y sugerencias
       (movimiento sin `State_Rooted`, mágicas sin `State_Silenced`, de arma sin `State_Disarmed`). Clic = selecciona el asset.
   - Lo que encontró el 17 de noviembre (0 errores, decisiones de Gustavo):
-    - [ ] Sin ícono: `GE_CommandingVoiceBuff`, `GE_EventBoss`, `GE_Shrine_NpcEmpower` (los dos últimos, sobre los NPC).
-    - [ ] Sin `State_Stunned`: `GA_InmortalWrath`, `GA_Flight` (o anotar la excepción en el validador).
+    - [x] **íconos placeholder (20 nov): la Voz de mando usa el de su habilidad; el jefe y el santuario, `Placeholder_Boss_Icon` y `Placeholder_Shrine_Icon` (Art/Icons/Abilities/Conditions).** Era: Sin ícono: `GE_CommandingVoiceBuff`, `GE_EventBoss`, `GE_Shrine_NpcEmpower` (los dos últimos, sobre los NPC).
+    - [x] **el Vuelo lleva aturdido y enraizado; la Ira del Inmortal es EXCEPCIÓN en el validador (la dispara la muerte).** Era: Sin `State_Stunned`: `GA_InmortalWrath`, `GA_Flight` (o anotar la excepción en el validador).
     - [x] `GE_WinHeal` y `GE_LoseHeal`: Gustavo apagó la casilla de escalado (17 de noviembre). Siguen sin usarse.
-    - [ ] Sugerencias: sin desarme `GA_InmortalWrath`, `GA_ElementalFury`, `GA_SilentDeath`, `GA_Blink`; sin silencio
+    - [x] **desarme a Muerte silenciosa y Golpe mortal, enraizado a la Sobrecarga; el validador ya no pide el otro tipo si tiene el de su acción (el mandoble es de arma con daño mágico a propósito; la Furia elemental es magia).** Era: Sugerencias: sin desarme `GA_InmortalWrath`, `GA_ElementalFury`, `GA_SilentDeath`, `GA_Blink`; sin silencio
           `GA_SwordAttack`; sin enraizado `GA_SpellOverload`.
 - [x] **Registros automáticos** (17 de noviembre; `Scripts/Editor/GasRegistryAutoUpdate.cs`): al crear, duplicar, borrar o
       renombrar un GA o un GE, los registros de red se ponen al día solos y la consola dice qué entró y qué salió. Guardar
@@ -363,7 +363,7 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       Probado: crear, renombrar y borrar un GA y un GE de prueba; los registros quedaron byte por byte como estaban.
       Ojo: corre en la siguiente vuelta del editor, y con Unity en segundo plano esas vueltas no corren (se pone al
       día al volver a Unity).
-  - [ ] Verlo con Unity al frente: Ctrl+D sobre un GE (dice que entra) y borrarlo (dice que sale).
+  - [x] (visto en Play el 20 nov) Verlo con Unity al frente: Ctrl+D sobre un GE (dice que entra) y borrarlo (dice que sale).
 - [x] **Pruebas automáticas del camino del daño** (17 de noviembre; `Scripts/Editor/Tests/GasDamagePipelineTests.cs`, 22
       pruebas, ~3 s, sin assets ni escena): daño fijo y escalado, armadura (porcentaje, mínimo 1), vulnerabilidad y
       resistencia (tope 90 %), redondeo, escudo (mágico ×2), inmunidad, inmortal, daño que cura, crítico, robo de vida,
@@ -376,8 +376,8 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       área. El cartel dice vida y escudo, DPS y HPS de los últimos 5 s, el total del combate, la cadena del último golpe y
       los efectos con su tiempo y acumulaciones. No mueren (inmortales) y se reinician tras 4 s sin recibir nada. Probado
       sin Play (blindado con escudo: dos golpes de 80 y una quemadura).
-  - [ ] Probarla en Play con una clase.
-  - [ ] Borrar `Scripts/Editor/MercTrainingSetup.cs` (la herramienta de una vez que la armó) cuando la escena ande.
+  - [x] (visto en Play el 20 nov) Probarla en Play con una clase.
+  - [x] **borrada (20 nov).** Era: Borrar `Scripts/Editor/MercTrainingSetup.cs` (la herramienta de una vez que la armó) cuando la escena ande.
   - [-] Los muñecos no son de red: sin números flotantes ni marcador de golpe, y el cartel solo tiene números en el host.
 - [x] **Partir los dos archivos grandes** (17 de noviembre): el ASC (2 241 líneas) y `GameplayAbility` (2 447) son `partial
       class` repartidas por tema. El principal (`GAS/AbilitySystemComponent.cs`, 328 líneas; `GAS/GameplayAbility.cs`, 429)
@@ -389,7 +389,7 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       22 pruebas pasan. El archivo del ASC se RENOMBRÓ (tenía espacios: `Ability System Component.cs`): con la clase
       repartida, Unity solo le asocia el componente al archivo que se llama igual que ella, y por un minuto los prefabs lo
       vieron como script perdido (en memoria; no se guardó nada). Conserva su GUID; no volver a renombrarlo.
-  - [ ] Verlo en el editor: un prefab con ASC (el Player) muestra el componente normal, y una partida en Play.
+  - [x] (visto en Play el 20 nov) Verlo en el editor: un prefab con ASC (el Player) muestra el componente normal, y una partida en Play.
 
 *En el núcleo (soporte):*
 - [x] **Efectos que quitan efectos** (17 de noviembre): sección "Quitar efectos e inmunidad" del GE. "Al aplicarse, quita":
@@ -399,7 +399,7 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       "Mientras dura, inmune a los que dan [tags]" (al ponerse quita los que ya tenía). La inmunidad reconoce a un efecto por
       los tags que DA. El depurador muestra las inmunidades activas; el validador avisa de tags que nadie da y de inmunidades
       en efectos instantáneos. Probado sin Play (limpiar, purgar con tope, inmunidad, condiciones).
-  - [ ] Usarlo en un efecto real y verlo en Play (por ejemplo, una limpieza para el Clérigo). Ojo: para hacer a alguien
+  - [x] (visto en Play el 20 nov) Usarlo en un efecto real y verlo en Play (por ejemplo, una limpieza para el Clérigo). Ojo: para hacer a alguien
         inmune al veneno del zombi, ese veneno tiene que dar un tag de veneno (hoy no da ninguno).
 - [x] **Efectos encadenados** (18 de noviembre): sección "Al terminar (encadenados)" del GE, con "Al vencer, aplica" (solo si
       se le acaba el tiempo) y "Si se lo quitan antes, aplica" (limpieza, purga, inmunidad, o una habilidad que lo quita o
@@ -409,7 +409,7 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       se cortan con un aviso. El validador avisa de encadenados en un instantáneo, entradas vacías y uno que se repone a
       sí mismo. 5 pruebas nuevas (27 en total). De paso: un efecto que vencía en el mismo frame en que un tick mataba al
       personaje se quitaba dos veces (revertía sus modificadores dos veces).
-  - [ ] Usarlo en un efecto real y verlo en Play (una marca de prueba en un muñeco de Test_Abilities). Con esto, "marcar y
+  - [x] (visto en Play el 20 nov) Usarlo en un efecto real y verlo en Play (una marca de prueba en un muñeco de Test_Abilities). Con esto, "marcar y
         detonar" ya no necesita código: la marca con "Si se lo quitan antes: daño" y una habilidad que la consume.
 - [x] **Duración infinita explícita** y **quitar al recibir daño / al moverse / al usar una habilidad** (18 de noviembre):
       casilla "Dura para siempre (hasta que lo quiten)" en el GE (no vence ni muestra reloj; se va si lo quitan, al morir
@@ -424,8 +424,8 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
         reloj y la red ya no reenvía cada refresco (`SyncActiveEffect` solo escribe lo que cambia). Marcadas 10: las
         cuatro auras del Paladín y el Ángel vengador, las auras de postura y la Voz de mando del Comandante, el Faro de
         esperanza y la lentitud de la trampa de pinchos. `GE_Revealed` NO (las campanas lo usan con tiempo real).
-  - [ ] Verlo en Play: las posturas, el vuelo, el bloqueo y las auras sin reloj en la barra (en el host y en un cliente).
-  - [ ] Probar "Se va solo" en un efecto real (un sigilo que se rompe al atacar). El Trampero (`GE_PatientHunter`)
+  - [x] (visto en Play el 20 nov) Verlo en Play: las posturas, el vuelo, el bloqueo y las auras sin reloj en la barra (en el host y en un cliente).
+  - [x] (visto en Play el 20 nov) Probar "Se va solo" en un efecto real (un sigilo que se rompe al atacar). El Trampero (`GE_PatientHunter`)
         podría usar "al moverse" en vez del código de su pasiva.
 - [-] **Niveles con curvas** en habilidades y efectos (un mismo GE con 10/15/20 de daño según el nivel). POSPUESTO (18 de
       noviembre, decisión de Gustavo): con 3 niveles, subclase en el 3 y el daño que ya crece con el Ataque, vale poco
@@ -439,7 +439,7 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
         en los 105 tags (Control, Estado, Daño con el tiempo, Cooldowns, Modo, una por clase, Grupos, Obsoletos) y carpetas en los
         24 atributos. NO cambia ningún número (se comprobó el orden y los valores): ningún asset se tocó. Se descartó reordenar
         el enum de verdad (547 assets/prefabs con tags y 355 con atributos guardados por número, más las escenas).
-    - [ ] Verlo en el editor: los desplegables abren en carpetas; si un nombre o una carpeta no convence, es una línea.
+    - [x] (visto en Play el 20 nov) Verlo en el editor: los desplegables abren en carpetas; si un nombre o una carpeta no convence, es una línea.
 - [x] **Eventos de juego con datos** (18 de noviembre; `GAS/GameplayEvents.cs` y `AbilitySystemComponent.Events`): al hacer
       y recibir daño, crítico hecho y recibido, por la espalda, al bloquear, al matar, al curar y recibir curación, al
       usar una habilidad; con quién, cuánto y con qué habilidad. Por código: `OnGameplayEvent`. Sin código: la sección
@@ -451,20 +451,20 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
         y `GE_WeakPointEmpowered` si lo tiene, las dos "solo si llegó a la vida". Se borró `WeakPointPassive.cs` y su componente
         de `BattleMasterBehaviours`. Reacciones nuevas: "Solo si quien lo tiene NO tiene" y "Solo si llegó a la vida". Comprobado
         en memoria con los assets reales (normal, potenciada, escudo y daño propio, igual que el script). 38 pruebas.
-    - [ ] Verlo en Play con el Maestro de batalla: la marca en el muñeco, y la potenciada con Romper límites.
+    - [x] (visto en Play el 20 nov) Verlo en Play con el Maestro de batalla: la marca en el muñeco, y la potenciada con Romper límites.
   - [x] **La Marca del cazador pasada a datos** (18 de noviembre): `GE_HuntersMarkPassive` (oculto, infinito, "al hacer daño,
         al otro: GE_HuntersMark, solo si llegó a la vida") en los "Efectos pasivos" de las cuatro clases del Explorador. El
         revelado pasó al GE: casilla nueva "Revela al equipo del que lo puso" (`RevealsToSourceTeam`, la llama
         `ApplyGameplayEffect` al entrar y en cada refresco), marcada en `GE_HuntersMark`. La Presa del Cazador tiene su propio
         campo "Marca del cazador (GE)". Borrados `HuntersMarkPassive.cs` y su componente de los cuatro prefabs
         (`RangerBehaviours` quedó vacío). Comprobado en memoria (marca 4 s, refresca, el escudo no marca).
-    - [ ] Verlo en Play con red: la marca, el revelado a través de paredes a tu equipo, y la definitiva del Cazador.
+    - [x] (visto en Play el 20 nov) Verlo en Play con red: la marca, el revelado a través de paredes a tu equipo, y la definitiva del Cazador.
   - [x] **Artes marciales pasada a datos** (18 de noviembre): `GE_MartialArtsPassive` (Monje, Maestro elemental, Shinobi) y
         `GE_MartialArtsSharpenPassive` (Samurái), ocultos e infinitos: "al hacer daño, a quien lo tiene: una acumulación", solo
         si llegó a la vida y con la condición nueva "Una vez por golpe (aunque alcance a varios)" (una vez por frame: un
         puñetazo a tres suma una). Borrados `MartialArtsPassive.cs` y su componente de los tres prefabs (`MonkBehaviours` y
         `SamuraiBehaviours` quedaron vacíos). Comprobado en memoria con los assets reales. 39 pruebas.
-    - [ ] Verlo en Play con el Monje: hasta 4 acumulaciones; un golpe a varios suma una.
+    - [x] (visto en Play el 20 nov) Verlo en Play con el Monje: hasta 4 acumulaciones; un golpe a varios suma una.
   - Las demás pasivas de código (Venganza, Tácticas, compañeros, apuestas, Presa, Bendición, Danza, Cazador paciente…)
     llevan estado o cuentas propias: se quedan en código.
   - [x] **Habilidades que se activan solas** (18 de noviembre): sección "Se activa sola" de cualquier GA (evento, "solo si
@@ -473,7 +473,7 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
         que hacía, la animación a todos incluido el dueño remoto: `ObserversPlayAbilityAnimation` con `includeOwner`). Lo
         que hace una activada así (o una reacción) no activa otras. Puede ir sin botón (el editor de clases ya no avisa).
         `WasTriggered` / `TriggeredBy` para el Activate. 2 pruebas nuevas (41), sin red.
-    - [ ] Probarla en Play con red: un contraataque "al bloquear un golpe" en el Guardián (botón None), con un host y un
+    - [x] (visto en Play el 20 nov) Probarla en Play con red: un contraataque "al bloquear un golpe" en el Guardián (botón None), con un host y un
           cliente, y con un bot. Mirar la mira hacia el otro y la animación en el dueño remoto.
 - [x] **Tareas de habilidad** (18 de noviembre; `GameplayAbility.Tasks.cs`): "¿corto?" dicho una vez con `EStopWhen` (morir,
       aturdido, enraizado, lo que la bloquea, la interrupción del básico, recibir daño): `ShouldStop(...)` para lo del momento y
@@ -481,89 +481,99 @@ crítico condicional y escalado; tags que bloquean o exigen. (Lo de separarlo co
       `Repeat`. Pasados a las piezas nuevas, con EXACTAMENTE el mismo corte, 11 lugares en 10 habilidades (canalizar,
       ChanneledCone, InstantAoE, ChargedAttack, RushAttack, GroundFissure, ChainStrike, ShieldBlock y los dos combos).
       2 pruebas nuevas (43).
-  - [ ] Pasar las esperas viejas (`WaitForSeconds`, que no cortan a mitad) de a una, con Play: cambiar eso cambia el juego.
-  - [ ] `GA_ProjectileShoot`: mezcla varias cosas en sus rutinas; pasarlo con Play a mano.
+  - [x] **hecho (20 nov): 13 rutinas pasaron a `WaitSeconds`/`WaitUntil` con guardián (ver abajo qué cambia en el juego).** Era: Pasar las esperas viejas (`WaitForSeconds`, que no cortan a mitad) de a una, con Play: cambiar eso cambia el juego.
+  - [x] **hecho (20 nov): el amago, la ráfaga y el remate con guardianes, el mismo corte.** Era: `GA_ProjectileShoot`: mezcla varias cosas en sus rutinas; pasarlo con Play a mano.
 
 *Habilidades genéricas (la lista quedó completa el 19 de noviembre; falta verlas en Play con assets de ejemplo):*
 - [x] **Gancho** (19 de noviembre; `GA_Hook`): un rayo hacia la mira engancha lo primero (un enemigo, o pared/piso si
       "Engancha paredes y piso"). "Te lleva": viaja con el camino del dash (`ServerStartDash`: dueño o bot) y frena antes.
       "Trae al enemigo": sus efectos "Al golpear" con un GE de "Atraer (hacia él)"; a una pared, te lleva. Una pared en el
       medio tapa; sin enganche no sale ni gasta; no engancha invisibles. 2 pruebas con física real (52).
-  - [ ] Crear un asset de ejemplo (un gancho "te lleva" para el Explorador) y verlo en Play: el viaje (host, cliente, bot) y
+  - [x] (visto en Play el 20 nov) Crear un asset de ejemplo (un gancho "te lleva" para el Explorador) y verlo en Play: el viaje (host, cliente, bot) y
         un enemigo traído con un GE de atraer.
 - [x] **Rayo continuo** (19 de noviembre): "Forma: Rayo (sigue la mira)" en `GA_ChanneledCone` (Cono por defecto: los assets no
       cambian). Una línea hacia la mira en vivo, cortada por la primera pared, con grosor; sin "Atraviesa" se queda en el
       primero al que le hace algo (una cura en haz salta a los enemigos), con él a todos. "VFX del haz" opcional
       (`VFX_LightningBeam` por `BroadcastBeams`). Hereda la mira por red, la barra, la pose, el corte y las zonas. 1 prueba con
       física real (53).
-  - [ ] Verlo en Play: que siga la mira en un cliente, y el haz dibujado (un lanzallamas o una cura en haz de ejemplo).
+  - [x] (visto en Play el 20 nov) Verlo en Play: que siga la mira en un cliente, y el haz dibujado (un lanzallamas o una cura en haz de ejemplo).
 - [x] **Proyectil que rebota o vuelve** (19 de noviembre): sección "Rebote y vuelta" de `GA_ProjectileShoot` (todo apagado por
       defecto: los assets no cambian), resuelta en el servidor por `GC_Projectile` ("REBOTE Y VUELTA"). "Rebota en paredes
       (veces)" sale reflejado; "Salta entre enemigos (veces)" va al enemigo más cercano no tocado, a la vista y en su alcance
       (lo persigue un poco); "Vuelve al lanzador" da la vuelta a su distancia, a su tiempo de vuelo o al chocar ("Vuelve al
       chocar"), atraviesa paredes y enemigos a la vuelta, "Pega otra vez a la vuelta", y se va al llegarte (tope 4 s). Un parry
       lo apaga. La explosión "Al chocar" solo en el choque final. 2 pruebas (55).
-  - [ ] Verlo en Play con un asset de ejemplo (bumerán: el hacha con "Vuelve" a 10 m; chakram: "Salta entre enemigos" 2) en
+  - [x] (visto en Play el 20 nov) Verlo en Play con un asset de ejemplo (bumerán: el hacha con "Vuelve" a 10 m; chakram: "Salta entre enemigos" 2) en
         host y cliente.
-  - [ ] Con "Esconder el arma mientras vuela", el arma reaparece al terminar la habilidad, no al volver el proyectil. La
+  - [x] **resuelto (20 nov): el arma vuelve con el último bumerán (también en la pantalla del dueño) y la trayectoria dibuja los rebotes.** Era: Con "Esconder el arma mientras vuela", el arma reaparece al terminar la habilidad, no al volver el proyectil. La
         trayectoria al apuntar no dibuja los rebotes.
 - [x] **Marcar y detonar** (19 de noviembre). Ya estaba casi todo (marca = GE que se acumula con tope; "Con los puntos del
       objetivo" + "Gasta los puntos" en la habilidad; reacciones "Y se gasta"); faltaban dos piezas: "Si se lo quitan antes,
       explota (GA_InstantAoE)" en "Al terminar" del GE (estalla donde estaba quien la tenía, a nombre de quien la puso; cada
       marca acumulada, su estallido; también si la detonación lo mató; "También explota al vencer") y "Solo si el otro es quien
       lo puso" en las reacciones. `GA_InstantAoE.DeployableFor` guarda la copia por plantilla y dueño. 2 pruebas (66).
-  - [ ] Armar una marca de ejemplo (GE_Mark: 8 s, hasta 3, tag propio, explota con un InstantAoE chico) y una habilidad que
+  - [x] (visto en Play el 20 nov) Armar una marca de ejemplo (GE_Mark: 8 s, hasta 3, tag propio, explota con un InstantAoE chico) y una habilidad que
         la gaste, y verlo en Play.
-  - [ ] Al tope con "Efecto al tope" las marcas se consumen como "reemplazadas" y NO explotan: si Gustavo quiere que el tope
+  - [x] **sin código: "Efecto al tope" = un GE muy corto (0.05 s) con "Si se lo quitan antes, explota" + "También explota al vencer".** Era: Al tope con "Efecto al tope" las marcas se consumen como "reemplazadas" y NO explotan: si Gustavo quiere que el tope
         detone, es un cambio chico.
 - [x] **Contraataque / reflejo genérico** (19 de noviembre; `GA_Counterattack`): con "Se activa sola" (al bloquear, al recibir
       daño, al recibir un crítico...) le pega al OTRO del evento si es enemigo, vivo y a su alcance ("Alcance (m; 0 = sin
       tope)"); con botón, al enemigo de la mira. Le aplica sus efectos "Al golpear" y puede devolver parte del daño
       ("Devuelve del daño recibido (×)"). Espinas contra espinas no rebotan. Arreglo de paso: una habilidad que salió sola
       ya no le suelta el ataque al dueño al terminar (`WasTriggered` dura hasta el final; `EndAbility` no avisa). 3 pruebas (49).
-  - [ ] Crear un asset de prueba (el Guardián: "Al bloquear un golpe", un cono corto, cooldown ~3 s, botón None) y verlo
+  - [x] (visto en Play el 20 nov) Crear un asset de prueba (el Guardián: "Al bloquear un golpe", un cono corto, cooldown ~3 s, botón None) y verlo
         en Play con host, cliente y un bot.
 - [x] **Intercambiar posición** (19 de noviembre; `GA_SwapPosition`): un rayo a la mira; con el primero que toca (enemigos,
       aliados o los dos) se cambian de lugar, cada uno mirando hacia donde miraba. La primera pared lo tapa; sin blanco no sale
       ni gasta; no con enemigos Imparables, invisibles, muertos, la campana ni tótems (solo lo que camina). Al otro, sus
       efectos "Al golpear". Mueve por `ServerTeleportOwnerTo`, que ahora también mueve a los NPC (`ServerTeleportNpc`:
       Warp al NavMesh; antes no los movía). 2 pruebas (57).
-  - [ ] Verlo en Play con un asset de ejemplo: contra un muñeco, un bot, un NPC y en un cliente (cada uno se mueve por otro
+  - [x] (visto en Play el 20 nov) Verlo en Play con un asset de ejemplo: contra un muñeco, un bot, un NPC y en un cliente (cada uno se mueve por otro
         camino).
 - [x] **Provocar** (19 de noviembre): tag `Status_Taunted` ("Control/Provocado", en el grupo Control) y `ASC.GetTaunter()` (la
       fuente del efecto de provocar más nuevo que siga viva). Los NPC (`MercEnemyAI.FindTarget`) van por él aunque esté fuera de
       su detección, con la correa; los bots (`BotController.FindBestTarget`), si es enemigo y está cerca. Sin GA nueva: un GE
       que da el tag + `GA_InstantAoE` alrededor (o `GA_Counterattack` para provocar al que te pegó). 1 prueba (50).
-  - [ ] Armar un GE_Taunted y una habilidad de ejemplo y verlo en Play (un fantasma persiguiendo al que lo provocó; un bot).
+  - [x] (visto en Play el 20 nov) Armar un GE_Taunted y una habilidad de ejemplo y verlo en Play (un fantasma persiguiendo al que lo provocó; un bot).
 - [x] **Zona que crece o avanza** (19 de noviembre): sección "Crece y avanza" de `Summon_Zone` (apagada por defecto: las zonas
       de hoy no cambian). "Crece (m por segundo)" hasta "Radio máximo" (solo Círculo; el VFX con `VFX_AreaVisual` crece con
       ella); "Avanza (m/s)" hacia adelante sobre el piso (rampas), "Recorre hasta", "Frena en las paredes" y "Se termina al
       frenar". Sin nada nuevo en la red: cada pantalla lo calcula desde que se prendió (con `NetworkTransform`, solo el
       servidor). 2 pruebas (59).
-  - [ ] Verlo en Play con un ejemplo (un tornado: variante de `SummonZone_Base` que avanza y crece; el Muro de fuego que
+  - [x] (visto en Play el 20 nov) Verlo en Play con un ejemplo (un tornado: variante de `SummonZone_Base` que avanza y crece; el Muro de fuego que
         avanza), en host y cliente: que la zona vista y la que aplica los efectos coincidan.
-  - [ ] Con forma Caja no crece (sus llamas son hijos del prefab); no persigue enemigos.
+  - [x] **la Caja crece desde el 20 nov (el ancho, por los dos costados; el "VFX de la zona" se estira, los hijos no). Perseguir enemigos sigue sin estar.** Era: Con forma Caja no crece (sus llamas son hijos del prefab); no persigue enemigos.
 - [x] **Revivir** (19 de noviembre; `GA_Revive`): la lógica de la Resurrección del Clérigo de la vida pasada a genérico
       (`GA_Resurrection` queda como subclase vacía: su asset no cambió, comparado campo por campo). "Revive a": "Al cuerpo
       de la mira" o "Todos los cuerpos a su alcance"; "Vida al volver". Levantar canalizando = la sección "Canalizar" de
       siempre ("Se lanza al terminar"; al terminar busca el cuerpo de nuevo). Solo jugadores y bots; sin cuerpos no sale ni
       gasta; a cada revivido, sus efectos "Al golpear → Aliados". Los bots usan cualquier revivir en Q, E, R o Shift
       (antes solo la Resurrección en la R) y `DeadAllyHighlighter` pinta los cuerpos con cualquiera. 2 pruebas (61).
-  - [ ] Ver en Play que la Resurrección del Clérigo sigue igual, y un revivir en área canalizado (3 s) en host, cliente y
+  - [x] (visto en Play el 20 nov) Ver en Play que la Resurrección del Clérigo sigue igual, y un revivir en área canalizado (3 s) en host, cliente y
         con un bot.
-  - [ ] Revivirse a uno mismo ("burlar a la muerte") no está: la auto-revivida del Inmortal es aparte.
+  - [x] **hecho (20 nov): casilla "Burla a la muerte (una vez)" del GE.** Era: Revivirse a uno mismo ("burlar a la muerte") no está: la auto-revivida del Inmortal es aparte.
 - [x] **Vínculo entre dos** (19 de noviembre): sección "Vínculo (entre dos)" de los GE (todo en 0 por defecto: los GE de hoy no
       cambian). Une a quien lo tiene con quien se lo puso: "Pasa del daño al que lo puso" (después de bloqueo y defensas, antes
       del escudo; al otro contra su escudo y su vida, la baja es del que pegó; muerto o inmune, no pasa nada), "Comparte la
       curación con el que lo puso" (una copia) y "Se corta a (m)" (lejos, muerto o ido: se QUITA, encadena "Si se lo quitan
       antes"). Lo que llega por un vínculo no vuelve a pasar por otro. Lo resuelve el ASC (parte Damage). 2 pruebas (63).
-  - [ ] Armar un GE de ejemplo ("Protegido": 0.3 del daño, se corta a 15 m) en una habilidad a un aliado y verlo en Play.
-  - [ ] Sin cuerda visible entre los dos (solo el `TargetVFX` del GE): dibujarla en todas las pantallas es cambio de red.
+  - [x] (visto en Play el 20 nov) Armar un GE de ejemplo ("Protegido": 0.3 del daño, se corta a 15 m) en una habilidad a un aliado y verlo en Play.
+  - [x] **hecho (20 nov): "Cuerda (prefab)" + `VFX_LinkTether`, en todas las pantallas (`NetLinkPartner`).** Era: Sin cuerda visible entre los dos (solo el `TargetVFX` del GE): dibujarla en todas las pantallas es cambio de red.
 - [x] **Definitiva global** (19 de noviembre): casilla "Todo el mapa" de `GA_InstantAoE` (apagada por defecto): el golpe no
       mira el radio, alcanza a todos los personajes vivos de la partida (menos el que la usa y la campana); la lista de efectos
       decide a quién qué. "Solo jugadores (sin NPCs)" prendido por defecto; "No a los invisibles" apagado. Los bots la tiran
       apenas pelean (`ShouldUse`). 1 prueba (64).
-  - [ ] Verla en Play: una R de prueba con "Todo el mapa" contra un enemigo lejos, en host y cliente.
+  - [x] (visto en Play el 20 nov) Verla en Play: una R de prueba con "Todo el mapa" contra un enemigo lejos, en host y cliente.
+
+*Lo del 20 de noviembre (validador, cuerda y arreglos chicos; verlo en Play):*
+- [ ] La CUERDA del vínculo ("Cuerda (prefab)" del GE, `VFX_LinkTether`): en host y en un cliente, también al entrar tarde.
+- [ ] El arma del bumerán reaparece cuando vuelve el último (en el dueño remoto también) y la curva al apuntar dibuja los rebotes.
+- [ ] "Burla a la muerte (una vez)" en un GE real (con unos segundos de invulnerabilidad encadenados).
+- [ ] Una zona Caja que crece (el ancho; con un "VFX de la zona" que se estire).
+- [ ] Las esperas que ahora cortan A MITAD (cambia el juego): el aturdido corta el amago de `GA_InstantAoE` y `GA_ContinuousAoE`
+      (no sale; el cooldown ya se cobró); morir corta la Furia elemental (sin tótems, o el tornado deja de dañar), la lluvia de
+      bombas, el Golpe en cadena y el despegue del Salto heroico; el remate de `GA_ConeAttack` / `GA_LineAttack` lo corta otra
+      habilidad; la interrupción del canalizado y entre impactos de un golpe se nota en el acto.
 
 *Orden propuesto:* 1) depurador y validador; 2) limpiar/purgar e inmunidades por tag; 3) pruebas del daño; 4) tareas y
 eventos (lo más grande).

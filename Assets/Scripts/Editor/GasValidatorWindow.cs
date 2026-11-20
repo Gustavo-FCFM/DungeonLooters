@@ -197,7 +197,11 @@ public class GasValidatorWindow : EditorWindow
             if (!kitAbilities.Contains(ga)) continue;
             var blocked = ga.ActivationBlockedTags ?? new List<EGameplayTag>();
 
-            if (!blocked.Contains(EGameplayTag.State_Stunned))
+            // EXCEPCIÓN (20 de noviembre de 2026, decisión de Gustavo): la Ira del Inmortal no se aprieta, la dispara la
+            // MUERTE (PlayerController.HandlePlayerDeath). Que la frene un aturdido o un desarme dejaría morir de verdad.
+            bool firesOnDeath = ga is GA_ImmortalWrath;
+
+            if (!blocked.Contains(EGameplayTag.State_Stunned) && !firesOnDeath)
                 Add(ESeverity.Warning, "Habilidad de un kit que el aturdido no bloquea (falta State_Stunned)", ga.name, ga);
 
             if (string.IsNullOrWhiteSpace(ga.AbilityNameEs) || string.IsNullOrWhiteSpace(ga.DescriptionEs))
@@ -206,9 +210,14 @@ public class GasValidatorWindow : EditorWindow
             // Sugerencias por cómo está hecha (pueden tener excepciones: el escudo no es de arma, etc.).
             if (IsMovement(ga) && !blocked.Contains(EGameplayTag.State_Rooted))
                 Add(ESeverity.Suggestion, "De movimiento sin State_Rooted (el enraizado no la frena)", ga.name, ga);
-            if (ScalesWith(ga, EAttributeType.MagicDamage) && !blocked.Contains(EGameplayTag.State_Silenced))
+            // Si ya tiene el tag de su TIPO de acción, no se le pide el otro (20 de noviembre de 2026, decisión de Gustavo): el
+            // mandoble del Inmortal es de arma aunque una parte de su daño sea mágica (lo frena el desarme, no el silencio), y
+            // la Furia elemental es magia aunque escale con el ataque (la frena el silencio).
+            if (ScalesWith(ga, EAttributeType.MagicDamage) && !blocked.Contains(EGameplayTag.State_Silenced) &&
+                !blocked.Contains(EGameplayTag.State_Disarmed))
                 Add(ESeverity.Suggestion, "Escala con daño mágico sin State_Silenced (el silencio no la frena)", ga.name, ga);
-            if (ScalesWith(ga, EAttributeType.Attack) && !blocked.Contains(EGameplayTag.State_Disarmed) && !(ga is GA_ShieldBlock) && !IsMovement(ga))
+            if (ScalesWith(ga, EAttributeType.Attack) && !blocked.Contains(EGameplayTag.State_Disarmed) && !(ga is GA_ShieldBlock) && !IsMovement(ga) &&
+                !firesOnDeath && !blocked.Contains(EGameplayTag.State_Silenced))
                 Add(ESeverity.Suggestion, "Escala con ataque sin State_Disarmed (el desarme no la frena)", ga.name, ga);
         }
 

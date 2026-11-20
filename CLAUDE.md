@@ -389,7 +389,8 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   `_chainHold` mientras recorre (los encadenados esperan a que termine).
   **Una marca que se detona es un GE** (desde el 19 de noviembre de 2026): "Si se lo quitan antes, explota (GA_InstantAoE)" la
   hace estallar al gastarla (una habilidad con "Gasta los puntos" o una reacción "Y se gasta", que puede ser "Solo si el otro
-  es quien lo puso"). Nada de código por habilidad para detonar.
+  es quien lo puso"). Nada de código por habilidad para detonar. "Burla a la muerte (una vez)" es otra casilla del GE (20 de
+  noviembre): lo resuelve `SetCurrentAttributeValue` antes de morir; lo de después, en "Si se lo quitan antes".
   **Lo que dura "para siempre" se marca, no se finge** (desde el 18 de noviembre de 2026): casilla "Dura para siempre" (nada
   de 9999 s), y lo que un aura renueva cada medio segundo lleva "Es de aura: no mostrar tiempo". Para saber si un efecto
   tiene duración se pregunta `HasDuration` (no `Duration > 0`) y la duración a aplicar es `EffectiveDuration` (+∞ si es
@@ -397,7 +398,8 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   solo" (`RemoveOn`), no en código de pasiva.
   **Pasar daño o curación entre dos personajes es el "Vínculo (entre dos)" del GE** (desde el 19 de noviembre de 2026): une a
   quien lo tiene con quien se lo puso. Lo resuelve el ASC dentro de `ExecuteInstantEffect` (después de las defensas); un
-  código nuevo que reparta daño no se escribe aparte.
+  código nuevo que reparta daño no se escribe aparte. Su cuerda visible es el "Cuerda (prefab)" del GE (`LinkTether`): el
+  servidor sincroniza el otro extremo en `NetworkAbilitySystemComponent.NetLinkPartner` y cada pantalla la dibuja.
   **Una pasiva nueva que reacciona a algo es un GE con "Reacciones"** (desde el 18 de noviembre de 2026, los eventos de
   juego: `GameplayEvents.cs`): un GE infinito con "cuando hago daño / recibo un crítico / mato…, aplica tal efecto a mí o al
   otro". Por código se escucha `ASC.OnGameplayEvent`, no un evento suelto nuevo. Un evento nuevo se agrega AL FINAL de
@@ -412,6 +414,8 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   **Una rutina de habilidad nueva dice qué la corta con `EStopWhen`** (desde el 18 de noviembre de 2026, las tareas:
   `GameplayAbility.Tasks.cs`): `ShouldStop(...)` o un `Guard(...)` (`guard.Check()` en cada vuelta) y las esperas `WaitSeconds`,
   `WaitUntil` y `Repeat`, en vez de chequear tags y el `CancelSerial` a mano. Con `Damaged`, el guardián se suelta (`using`).
+  **Nada de `WaitForSeconds` en una rutina de habilidad** (desde el 20 de noviembre de 2026 no queda ninguno): no corta a mitad.
+  Solo lo llevan lo que no es una rutina que se corte (VFX con retraso, recarga de cargas, el proyectil, la zona desplegada).
 
 - **Los efectos de una habilidad van en su lista `Effects`** (desde el 7 de octubre de
   2026): cada entrada dice cuándo (al golpear, al primer golpe, al activarse, al matar),

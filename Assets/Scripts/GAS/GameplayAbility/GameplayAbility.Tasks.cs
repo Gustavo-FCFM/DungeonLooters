@@ -17,7 +17,9 @@ using System.Collections.Generic;
 //   · ESPERAR: WaitSeconds, WaitUntil y Repeat, que ya traen el guardián: si algo corta, la espera termina antes (y
 //     guard.Stopped lo dice).
 // Una habilidad NUEVA usa esto en vez de sus propios chequeos. Las viejas se fueron pasando donde el corte era EXACTAMENTE
-// el mismo (ver el historial); sus WaitForSeconds se dejaron como estaban (no cortan a mitad: cambiar eso cambia el juego).
+// el mismo (ver el historial), y el 20 de noviembre de 2026 (pedido de Gustavo) también sus WaitForSeconds: ahora cortan
+// A MITAD de la espera. Quedan con WaitForSeconds solo lo que no es una rutina de habilidad que se corte: los VFX con
+// retraso, la recarga de las cargas, el proyectil, la zona ya desplegada y las pasivas que corren solas.
 // ============================================================
 
 // Lo que corta una rutina de habilidad (se combinan con |).

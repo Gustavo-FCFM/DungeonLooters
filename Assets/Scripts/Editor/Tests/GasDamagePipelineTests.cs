@@ -1414,4 +1414,28 @@ public class GasDamagePipelineTests
         Assert.AreEqual(75f, Health(marked), "el que la puso: su golpe y la detonación");
         Assert.IsFalse(marked.HasTag(EGameplayTag.State_AlwaysVisible), "y se gastó");
     }
+    // ---- Burlar a la muerte (GameplayEffect "Burla a la muerte") ----
+
+    [Test]
+    public void BurlarALaMuerte_UnaVez_YEncadenaLoQueSigue()
+    {
+        var hero = Character(100f, (EAttributeType.MaxHealth, 100f));
+        var enemy = Character(100f);
+
+        GameplayEffect after = Effect("Después de burlarla", 3f, GameplayEffect.EEffectType.Buff, EGameplayTag.State_AlwaysVisible);
+        GameplayEffect cheat = Effect("Burla a la muerte", 0f, GameplayEffect.EEffectType.Buff);
+        cheat.Infinite = true;
+        cheat.PreventsDeath = true;
+        cheat.PreventDeathHealth = 0.3f;
+        cheat.OnRemovedEffects.Add(after);
+        hero.ApplyGameplayEffect(cheat, hero);
+
+        hero.ApplyGameplayEffect(Hit(500f), enemy);
+        Assert.IsFalse(hero.HasTag(EGameplayTag.State_Dead), "el golpe mortal no lo mata");
+        Assert.AreEqual(30f, Health(hero), 0.01f, "queda con el 30 %");
+        Assert.IsTrue(hero.HasTag(EGameplayTag.State_AlwaysVisible), "y encadena lo de después");
+
+        hero.ApplyGameplayEffect(Hit(500f), enemy);
+        Assert.IsTrue(hero.HasTag(EGameplayTag.State_Dead), "una sola vez: el segundo lo mata");
+    }
 }

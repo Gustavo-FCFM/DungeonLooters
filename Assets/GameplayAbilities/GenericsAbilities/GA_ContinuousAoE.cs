@@ -346,7 +346,12 @@ public class GA_ContinuousAoE : GameplayAbility, IGroundTargetAbility
         if (atkSpeedStat > 0) speedMultiplier = 1f / atkSpeedStat;
 
         if (StartDelay > 0)
-            yield return new WaitForSeconds(StartDelay / speedMultiplier);
+        {
+            // El amago lo cortan morir y el aturdido: la zona no sale (el cooldown ya se cobró).
+            AbilityGuard windUp = Guard(EStopWhen.Dies | EStopWhen.Stunned);
+            yield return WaitSeconds(StartDelay / speedMultiplier, windUp);
+            if (windUp.Stopped) { EndAbility(); yield break; }
+        }
 
         // Liberamos al jugador (EndAbility → isAttacking=false) APENAS arranca
         // el área, no al final. Este AoE es una zona persistente que dura

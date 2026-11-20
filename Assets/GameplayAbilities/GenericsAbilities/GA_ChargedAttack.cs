@@ -363,7 +363,7 @@ public class GA_ChargedAttack : GameplayAbility, IHoldAbility
 
     private IEnumerator EndAfter(float seconds, int shotId)
     {
-        yield return new WaitForSeconds(seconds);
+        yield return WaitSeconds(seconds, Guard(EStopWhen.Dies));
         if (shotId != _shotId || _holding) yield break;   // ya empezó otro disparo: ese avisa solo
         EndAbility();
     }

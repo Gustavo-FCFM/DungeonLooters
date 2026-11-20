@@ -147,7 +147,13 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
         float atkSpeedStat = OwnerASC.GetAttributeValue(EAttributeType.AtkSpeed);
         if (atkSpeedStat > 0) speedMultiplier = 1f / atkSpeedStat;
 
-        if (StartDelay > 0f) yield return new WaitForSeconds(StartDelay / speedMultiplier);
+        // Lo cortan morir y el aturdido, también en el amago (antes el golpe caía igual).
+        AbilityGuard guard = Guard(EStopWhen.Dies | EStopWhen.Stunned);
+        if (StartDelay > 0f)
+        {
+            yield return WaitSeconds(StartDelay / speedMultiplier, guard);
+            if (guard.Stopped) { EndAbility(); yield break; }
+        }
 
         NetworkAbilitySystemComponent netAsc = OwnerASC.GetComponent<NetworkAbilitySystemComponent>();
 
@@ -155,7 +161,7 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
         {
             if (i > 0)
             {
-                yield return new WaitForSeconds(RepeatInterval / speedMultiplier);
+                yield return WaitSeconds(RepeatInterval / speedMultiplier, guard);
 
                 if (OwnerASC == null) yield break;
                 if (ShouldStop(EStopWhen.Dies | EStopWhen.Stunned)) break;

@@ -129,6 +129,11 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
     // indexado por EFECTO, no por instancia — ver SyncActiveEffect.
     public readonly SyncDictionary<int, int> NetActiveEffectStacks = new SyncDictionary<int, int>();
 
+    // El otro extremo de cada VÍNCULO con cuerda que tiene este personaje (GameplayEffect "Cuerda"; 20 de noviembre de
+    // 2026): índice del efecto en el registro → el objeto de red de quien se lo puso. Con eso cada pantalla dibuja la cuerda
+    // (LinkTether). Va aparte de los de arriba porque un vínculo puede ser "Hidden" (sin ícono) y esos no se sincronizan.
+    public readonly SyncDictionary<int, NetworkObject> NetLinkPartner = new SyncDictionary<int, NetworkObject>();
+
     // =========================================================
     // STATS DERIVADOS EN RED (AtkSpeed, MovSpeed, Atq, Def, etc.)
     //
@@ -243,8 +248,10 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
         NetTags.OnChange       -= OnNetTagsChanged;
         NetStats.OnChange      -= OnNetStatChanged;
         NetActiveEffectDuration.OnChange -= OnNetActiveEffectVfxChanged;
+        NetLinkPartner.OnChange -= OnNetLinkPartnerChanged;
 
         DespawnAllEffectVfx();
+        DespawnAllTethers();
     }
 
     public override void OnStartServer()
@@ -292,6 +299,8 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
         NetTags.OnChange       += OnNetTagsChanged;
         NetStats.OnChange      += OnNetStatChanged;
         NetActiveEffectDuration.OnChange += OnNetActiveEffectVfxChanged;
+        NetLinkPartner.OnChange += OnNetLinkPartnerChanged;
+        foreach (var kvp in NetLinkPartner) SpawnTether(kvp.Key, kvp.Value);   // el que entra tarde ve las que ya estaban
 
         // OnChange solo dispara para cambios FUTUROS — aplicamos de una los
         // stats que ya venían sincronizados al momento de conectarnos (ej: un
@@ -670,6 +679,8 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
     {
         if (!IsServerInitialized || _asc == null || effect == null) return;
 
+        SyncLinkPartner(effect);   // la cuerda de un vínculo, aunque el efecto sea "Hidden"
+
         // Los efectos "Hidden" son mecánicas internas (ej: el propio CooldownEffect,
         // que ya se sincroniza aparte) — no muestran icono en la barra.
         if (effect.EffectType == GameplayEffect.EEffectType.Hidden) return;
@@ -719,6 +730,67 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
         NetActiveEffectStartTick[index] = TimeManager.Tick > elapsedTicks ? TimeManager.Tick - elapsedTicks : 0;
         NetActiveEffectDuration[index]  = longestTotal;
         NetActiveEffectStacks[index]    = stacks;
+    }
+
+    // =========================================================
+    // LA CUERDA DE UN VÍNCULO (GameplayEffect "Cuerda"; 20 de noviembre de 2026)
+    // =========================================================
+
+    // Servidor: anota (o borra) quién es el otro extremo del vínculo 'effect', con el más nuevo si hay varios.
+    private void SyncLinkPartner(GameplayEffect effect)
+    {
+        if (effect.Template.LinkTetherPrefab == null) return;
+        int index = ResolveEffectIndex(effect);
+        if (index < 0) return;
+
+        NetworkObject partner = null;
+        foreach (var active in _asc.GetActiveEffects())
+        {
+            if (active.Definition.Template != effect.Template) continue;
+            AbilitySystemComponent source = active.Source as AbilitySystemComponent;
+            if (source != null && source != _asc) partner = source.GetComponent<NetworkObject>();
+        }
+
+        if (partner == null) { NetLinkPartner.Remove(index); return; }
+        if (!NetLinkPartner.TryGetValue(index, out NetworkObject shown) || shown != partner) NetLinkPartner[index] = partner;
+    }
+
+    // Las cuerdas vivas en esta pantalla (índice del efecto → la cuerda).
+    private readonly Dictionary<int, LinkTether> _tethers = new Dictionary<int, LinkTether>();
+
+    private void OnNetLinkPartnerChanged(SyncDictionaryOperation op, int effectIndex, NetworkObject partner, bool asServer)
+    {
+        if (asServer) return;
+        switch (op)
+        {
+            case SyncDictionaryOperation.Add:
+            case SyncDictionaryOperation.Set:    DespawnTether(effectIndex); SpawnTether(effectIndex, partner); break;
+            case SyncDictionaryOperation.Remove: DespawnTether(effectIndex); break;
+            case SyncDictionaryOperation.Clear:  DespawnAllTethers(); break;
+        }
+    }
+
+    private void SpawnTether(int effectIndex, NetworkObject partner)
+    {
+        if (partner == null || _tethers.ContainsKey(effectIndex)) return;
+        GameplayEffectRegistry registry = GameplayEffectRegistry.Instance;
+        GameplayEffect definition = registry != null ? registry.GetEffect(effectIndex) : null;
+        if (definition == null || definition.LinkTetherPrefab == null) return;
+        LinkTether tether = LinkTether.Create(definition.LinkTetherPrefab, transform, partner.transform);
+        if (tether != null) _tethers[effectIndex] = tether;
+    }
+
+    private void DespawnTether(int effectIndex)
+    {
+        if (_tethers.TryGetValue(effectIndex, out LinkTether tether) && tether != null) Destroy(tether.gameObject);
+        _tethers.Remove(effectIndex);
+    }
+
+    private void DespawnAllTethers()
+    {
+        foreach (var kvp in _tethers)
+            if (kvp.Value != null) Destroy(kvp.Value.gameObject);
+        _tethers.Clear();
     }
 
     // Busca el índice de un GameplayEffect en GameplayEffectRegistry (ver
@@ -2412,10 +2484,21 @@ public class NetworkAbilitySystemComponent : NetworkBehaviour
     // o se ven dos armas. Es puramente cosmético, pero tiene que verse igual en todas
     // las pantallas — por eso va por RPC y no localmente en el servidor.
     [Server]
-    public void ServerSetWeaponVisible(bool visible)
+    // includeOwner: también al dueño REMOTO, que normalmente lo anticipa con su reloj y por eso se lo saltea. Lo usa el
+    // bumerán (20 de noviembre de 2026): el dueño no puede saber cuándo vuelve.
+    public void ServerSetWeaponVisible(bool visible, bool includeOwner = false)
     {
         SetWeaponVisibleLocal(visible);   // el host ve el cambio ya mismo
         ObserversSetWeaponVisible(visible);
+        if (includeOwner && HasOwnerConnection() && !Owner.IsLocalClient) TargetSetWeaponVisible(Owner, visible);
+    }
+
+    [TargetRpc]
+    private void TargetSetWeaponVisible(NetworkConnection conn, bool visible)
+    {
+        PlayerController pc = GetComponent<PlayerController>();
+        if (pc != null) pc.CancelWeaponHide();   // la anticipación del dueño esperaba para siempre
+        SetWeaponVisibleLocal(visible);
     }
 
     // Al dueño se lo salteamos: él lo anticipa con su propio reloj, en el frame en que

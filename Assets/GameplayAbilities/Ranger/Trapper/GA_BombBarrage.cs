@@ -98,9 +98,10 @@ public class GA_BombBarrage : GameplayAbility, IGroundTargetAbility
     private IEnumerator DropRoutine(List<Vector3> spots)
     {
         float wait = spots.Count > 1 ? DropSeconds / (spots.Count - 1) : 0f;
+        AbilityGuard guard = Guard(EStopWhen.Dies);   // si el Trampero muere, dejan de caer
         foreach (Vector3 spot in spots)
         {
-            if (OwnerASC == null) yield break;
+            if (OwnerASC == null || guard.Check()) yield break;
             Vector3 ground = Entity_Summon.GroundNear(spot, spot.y);   // los puntos están a la altura del centro, ya en el piso
             // Las bombas no cuentan para el límite de trampas (lo dice su prefab: "Cuenta para el
             // límite" apagado; y por las dudas, también acá).
@@ -108,7 +109,7 @@ public class GA_BombBarrage : GameplayAbility, IGroundTargetAbility
                                     countsTowardLimit: false) != null)
                 BroadcastImpactVFX(ground);
 
-            if (wait > 0f) yield return new WaitForSeconds(wait);
+            if (wait > 0f) yield return WaitSeconds(wait, guard);
         }
     }
 

@@ -14,15 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AbilityName: Silent Death
   AbilityNameEs: Muerte silenciosa
-  Description: "ULTIMATE. Appear behind an enemy and chain between targets, adding part of their missing health. You cannot be damaged meanwhile."
-  DescriptionEs: "DEFINITIVA. Apareces a la espalda del enemigo y saltas de uno a otro sumando parte de su vida faltante. Nadie te puede dañar mientras dura."
   AbilityIcon: {fileID: 21300000, guid: b00f07b8e9ae3794d8fd15a588bcf6f7, type: 3}
+  Description: ULTIMATE. Appear behind an enemy and chain between targets, adding
+    part of their missing health. You cannot be damaged meanwhile.
+  DescriptionEs: "DEFINITIVA. Apareces a la espalda del enemigo y saltas de uno a
+    otro sumando parte de su vida faltante. Nadie te puede da\xF1ar mientras dura."
   CostEffect: {fileID: 0}
   CooldownEffect: {fileID: 11400000, guid: 4165da9d9de274a4aa511261df047340, type: 2}
   CooldownDuration: 0
   UseAttackSpeedAsCooldown: 0
   UltimateChargeAmount: 0
-  ActivationBlockedTags: 0100000002000000
+  ActivationBlockedTags: 010000000200000035000000
   ActivationRequiredTags: 
   UsableWhileChanneling: 0
   UsableWhileHolding: 0
@@ -48,6 +50,13 @@ MonoBehaviour:
     OnlyIfTargetHas: 0
     StackScaling: 0
     PerStack: 0
+    PerTargetCooldown: 0
+    TargetStacksTag: 0
+    TargetScaling: 0
+    TargetPerStack: 0
+    TargetMinimum: 0
+    TargetMaximum: 0
+    ConsumeTargetStacks: 0
   Visuals:
   - When: 0
     VFXPrefab: {fileID: 4809171458859421548, guid: 4e91ed1a8efe7044785b9bd97a47d87f, type: 3}
@@ -79,7 +88,21 @@ MonoBehaviour:
   TargetLayer:
     serializedVersion: 2
     m_Bits: 128
+  CastMode: 0
+  CastSeconds: 1
+  CastTickSeconds: 0.5
+  CastBlocksOthers: 1
+  CastBreaksOnDamage: 0
+  CastStartAnimation: {fileID: 0}
+  CastLoopAnimation: {fileID: 0}
+  CastReleaseAnimation: {fileID: 0}
   MaxCharges: 1
+  TriggerEvent: 0
+  TriggerOnlyIfOwnerHas: 0
+  TriggerMinMagnitude: 0
+  TriggerIncludePeriodic: 0
+  TriggerChance: 1
+  TriggerAimsAtOther: 1
   MaxRange: 10
   SelectionAngle: 25
   JumpRange: 10

@@ -633,6 +633,17 @@ public class GC_Projectile : NetworkBehaviour
 
     private GA_ProjectileShoot Shot => sourceAbility as GA_ProjectileShoot;
 
+    // Avisa UNA vez a la habilidad que lo tiró que este proyectil se fue (el arma escondida vuelve con el último bumerán).
+    // Al que lo tiró, no al que lo devolvió con un parry: el arma es la suya.
+    private GA_ProjectileShoot _thrownBy;
+    private void NotifyThrownGone()
+    {
+        if (_thrownBy == null) return;
+        GA_ProjectileShoot by = _thrownBy;
+        _thrownBy = null;
+        by.OnThrownProjectileGone();
+    }
+
     // Puede dar la vuelta: la habilidad lo pide, no la está dando ya y no lo devolvió un parry.
     private bool CanReturn => !_returning && !_reflected && !_gone && Shot != null && Shot.Returns && sourceASC != null;
 
@@ -641,6 +652,7 @@ public class GC_Projectile : NetworkBehaviour
         _launchOrigin = transform.position;
         GA_ProjectileShoot shot = Shot;
         if (shot == null) return;
+        _thrownBy = shot;
         _wallBouncesLeft  = Mathf.Max(0, shot.WallBounces);
         _enemyBouncesLeft = Mathf.Max(0, shot.EnemyBounces);
         _speed            = Mathf.Max(1f, shot.LaunchForce);
@@ -865,6 +877,7 @@ public class GC_Projectile : NetworkBehaviour
     // puede apuntar a ellas. Son chicas y se liberan al cambiar de escena.
     private void OnDestroy()
     {
+        NotifyThrownGone();   // por si se fue sin DespawnSelf (fin de partida, cambio de escena)
         foreach (GameplayEffect copy in _frozen.Values)
             if (copy != null && !copy.HasDuration) Destroy(copy);
     }
@@ -955,6 +968,7 @@ public class GC_Projectile : NetworkBehaviour
     // borren su copia) — un Destroy() normal solo lo sacaría del servidor.
     private void DespawnSelf()
     {
+        NotifyThrownGone();
         _gone = true;
         if (IsServerInitialized && IsSpawned)
             ServerManager.Despawn(gameObject);

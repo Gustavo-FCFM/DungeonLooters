@@ -155,7 +155,8 @@ public abstract partial class GameplayAbility
         foreach (float time in hitTimes)
         {
             float wait = (time - elapsed) / speedMultiplier;
-            if (wait > 0f) yield return new WaitForSeconds(wait);
+            if (wait > 0f)   // corta apenas lo interrumpen (abajo lo nota), no al próximo impacto
+                yield return WaitUntil(() => IsInterruptible && OwnerASC != null && OwnerASC.CancelSerial != cancelSerial, null, wait);
             elapsed = time;
 
             if (IsInterruptible && OwnerASC != null && OwnerASC.CancelSerial != cancelSerial)

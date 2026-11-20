@@ -148,7 +148,7 @@ public class GA_AlternatingCombo : GameplayAbility
                 }
 
                 if (step.DelayAfter > 0)
-                    yield return new WaitForSeconds(step.DelayAfter / speed);
+                    yield return WaitSeconds(step.DelayAfter / speed, interruption);
 
                 if (interruption.Check()) yield break;
             }

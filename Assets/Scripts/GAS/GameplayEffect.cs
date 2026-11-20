@@ -416,6 +416,22 @@ public class GameplayEffect : ScriptableObject
     [Label("Si se lo quitan antes, explota (GA_InstantAoE)")]
     public GA_InstantAoE ExplosionOnRemoved;
 
+    // BURLAR A LA MUERTE (20 de noviembre de 2026): mientras dura, el golpe que lo mataría lo deja con vida y se gasta (cuenta
+    // como "quitado antes": sus "Si se lo quitan antes" son lo que viene después, una invulnerabilidad corta, un VFX). Lo
+    // resuelve AbilitySystemComponent.SetCurrentAttributeValue antes de morir. La Ira del Inmortal es aparte (su habilidad).
+    [Section(EffectSection.Chain)]
+    [ShowIf(HasDurationFields, ShowIfAttribute.Positive)]
+    [Tooltip("El golpe que mataría a quien lo tiene lo deja con la vida de abajo, y este efecto se gasta (una vez). Lo que " +
+             "venga después (unos segundos de invulnerabilidad, un VFX) va en \"Si se lo quitan antes, aplica\".")]
+    [Label("Burla a la muerte (una vez)")]
+    public bool PreventsDeath = false;
+
+    [Section(EffectSection.Chain)]
+    [ShowIf(nameof(PreventsDeath))]
+    [Tooltip("Con cuánta vida queda al burlar a la muerte, como fracción de su vida máxima (al menos 1 de vida).")]
+    [Label("Queda con (0 a 1 de la vida)")]
+    [Range(0f, 1f)] public float PreventDeathHealth = 0.3f;
+
     [Section(EffectSection.Chain)]
     [ShowIf(nameof(ExplosionOnRemoved))]
     [Tooltip("La explosión sale también cuando se le acaba el tiempo (no solo al gastarla).")]
@@ -458,8 +474,15 @@ public class GameplayEffect : ScriptableObject
     [Label("Se corta a (m; 0 = nunca)")]
     public float LinkMaxDistance = 0f;
 
+    [Section(EffectSection.Link)]
+    [ShowIf(HasDurationFields, ShowIfAttribute.Positive)]
+    [Tooltip("La cuerda que se ve entre los dos mientras dura, en todas las pantallas: un prefab con LineRenderer (y, si " +
+             "se quiere, LinkTether para su altura y su comba). VFX_LinkTether es la de siempre. Vacío = no se ve.")]
+    [Label("Cuerda (prefab)")]
+    public GameObject LinkTetherPrefab;
+
     // ¿Es un vínculo? (algo de la sección de arriba puesto)
-    public bool IsLink => LinkDamageShare > 0f || LinkHealShare > 0f || LinkMaxDistance > 0f;
+    public bool IsLink => LinkDamageShare > 0f || LinkHealShare > 0f || LinkMaxDistance > 0f || LinkTetherPrefab != null;
 
     [Section(EffectSection.Tags)]
     [Tooltip("Tags que tiene el objetivo mientras el efecto está activo (State_Stunned, " +

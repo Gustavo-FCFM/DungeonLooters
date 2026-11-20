@@ -77,9 +77,13 @@ public class GA_ElementalFury : GameplayAbility
         PlayerController pc = OwnerASC.GetComponent<PlayerController>();
         Vector3 centerPos = OwnerASC.transform.position;
 
-        yield return new WaitForSeconds(0.5f);
+        // Lo corta morir (20 de noviembre de 2026, las esperas pasadas a las tareas): en el amago no salen los tótems, y
+        // durante el tornado deja de dañar. El aturdido no: la definitiva ya salió.
+        AbilityGuard guard = Guard(EStopWhen.Dies);
+        yield return WaitSeconds(0.5f, guard);
 
         if (pc != null) pc.FinishAttack();
+        if (guard.Stopped) { EndAbility(); yield break; }
 
         // Crear tótems en esquinas del cuadrado
         List<Entity_Summon> ultimateTotems = new List<Entity_Summon>();
@@ -145,7 +149,8 @@ public class GA_ElementalFury : GameplayAbility
                 if (enemy) firstEnemy = false;
             }
 
-            yield return new WaitForSeconds(tick);
+            yield return WaitSeconds(tick, guard);
+            if (guard.Stopped) break;
             timeElapsed += tick;
         }
 

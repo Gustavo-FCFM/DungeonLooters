@@ -213,7 +213,7 @@ public class GA_ChanneledCone : GameplayAbility, IChanneledAbility
                 else                             HitCone(aimPoint);
                 if (TickZone != null) DropZone(aimPoint);
 
-                yield return new WaitForSeconds(tick);
+                yield return WaitUntil(IsInterrupted, null, tick);   // corta apenas lo interrumpen (arriba lo nota)
             }
         }
         finally

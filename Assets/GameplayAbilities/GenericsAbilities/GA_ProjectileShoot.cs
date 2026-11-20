@@ -387,8 +387,7 @@ public class GA_ProjectileShoot : GameplayAbility, IHoldAbility
             {
                 bool cut = hasCast
                     ? CastInterrupted(OwnerASC, cancelSerial, damaged)
-                    : OwnerASC == null || OwnerASC.HasTag(EGameplayTag.State_Dead) ||
-                      OwnerASC.HasTag(EGameplayTag.State_Stunned);
+                    : ShouldStop(EStopWhen.Dies | EStopWhen.Stunned);
                 if (cut)
                 {
                     if (channeling) HideCastBar(true);
@@ -482,7 +481,7 @@ public class GA_ProjectileShoot : GameplayAbility, IHoldAbility
 
         if (!HideWeaponWhileFlying) return;
         ResolveThrowTiming(true, out float releaseDelay, out float backswing);
-        pc.PredictWeaponHide(releaseDelay, releaseDelay + backswing);
+        pc.PredictWeaponHide(releaseDelay, WaitsForReturn ? float.PositiveInfinity : releaseDelay + backswing);
     }
 
     // ¿Este Animator tiene ese parámetro, del tipo esperado? Pedirle algo que no tiene
@@ -500,12 +499,13 @@ public class GA_ProjectileShoot : GameplayAbility, IHoldAbility
 
     // Le pide a la capa de red que muestre/oculte el arma del lanzador en TODOS los
     // peers. Sin NetworkASC (un NPC suelto, o pruebas sin red) se aplica local.
-    private void SetOwnerWeaponVisible(bool visible)
+    // includeOwner: también al dueño remoto (que normalmente lo anticipa él solo; el bumerán no puede: no sabe cuándo vuelve).
+    private void SetOwnerWeaponVisible(bool visible, bool includeOwner = false)
     {
         if (OwnerASC == null) return;
 
         var netAsc = OwnerASC.GetComponent<NetworkAbilitySystemComponent>();
-        if (netAsc != null) { netAsc.ServerSetWeaponVisible(visible); return; }
+        if (netAsc != null) { netAsc.ServerSetWeaponVisible(visible, includeOwner); return; }
 
         PlayerController pc = OwnerASC.GetComponent<PlayerController>();
         if (pc != null) pc.SetMainWeaponVisible(visible);
@@ -530,7 +530,12 @@ public class GA_ProjectileShoot : GameplayAbility, IHoldAbility
 
         int cancelSerial = OwnerASC != null ? OwnerASC.CancelSerial : 0;
 
-        if (releaseDelay > 0f) yield return new WaitForSeconds(releaseDelay);
+        // Los guardianes (las tareas, 20 de noviembre de 2026): la interrupción (otra habilidad, si es interrumpible) corta
+        // el amago y el remate; la ráfaga la cortan además morir y el aturdido. Los dos recuerdan el cancelSerial de AHORA.
+        AbilityGuard interrupt = Guard(EStopWhen.Interrupted);
+        AbilityGuard burst     = Guard(EStopWhen.Interrupted | EStopWhen.Dies | EStopWhen.Stunned);
+
+        if (releaseDelay > 0f) yield return WaitSeconds(releaseDelay, interrupt);
 
         if (Cancelled(cancelSerial))
         {
@@ -568,44 +573,55 @@ public class GA_ProjectileShoot : GameplayAbility, IHoldAbility
         float waited = 0f;
         for (int shot = 1; shot < BurstCount; shot++)
         {
-            float next = shot * BurstInterval;
-            while (waited < next)
+            float started = Time.time;
+            yield return WaitSeconds(shot * BurstInterval - waited, burst);
+            waited += Time.time - started;
+            if (burst.Stopped)
             {
-                yield return null;
-                waited += Time.deltaTime;
-
-                if (!Cancelled(cancelSerial) && !OwnerASC.HasTag(EGameplayTag.State_Dead) &&
-                    !OwnerASC.HasTag(EGameplayTag.State_Stunned)) continue;
-
-                if (HideWeaponWhileFlying) SetOwnerWeaponVisible(true);
+                ShowWeaponAfterThrow();
                 if (!Cancelled(cancelSerial)) EndAbility();
                 yield break;
             }
             SpawnProjectile();
         }
 
-        // El remate se espera de a pedacitos para poder mirar la cancelación en el
-        // medio. Con un solo WaitForSeconds habría que aguantar el remate entero aunque
-        // el jugador ya hubiera apretado otra cosa, que es justo lo que queremos evitar.
-        while (waited < backswing)
+        // El remate, cortable: si otra habilidad lo interrumpe, el arma vuelve YA a la mano (la rutina que la devolvía
+        // no va a terminar) y el fin lo manda la nueva.
+        if (backswing > waited) yield return WaitSeconds(backswing - waited, interrupt);
+        if (interrupt.Stopped)
         {
-            yield return null;
-            waited += Time.deltaTime;
-
-            if (!Cancelled(cancelSerial)) continue;
-
-            // El arma vuelve YA a la mano: la rutina que la devolvía no va a terminar.
-            if (HideWeaponWhileFlying) SetOwnerWeaponVisible(true);
+            ShowWeaponAfterThrow();
             yield break;
         }
 
-        if (HideWeaponWhileFlying) SetOwnerWeaponVisible(true);
+        ShowWeaponAfterThrow();
 
         EndAbility();
     }
 
     private bool Cancelled(int cancelSerial)
         => IsInterruptible && OwnerASC != null && OwnerASC.CancelSerial != cancelSerial;
+
+    // EL ARMA VUELVE CON EL BUMERÁN (20 de noviembre de 2026). Con "Esconder el arma mientras vuela" y "Vuelve al
+    // lanzador", el arma no reaparece al terminar el remate sino cuando el último proyectil de este lanzamiento se va
+    // (vuelve a la mano, choca o vence: GC_Projectile avisa con OnThrownProjectileGone).
+    private bool WaitsForReturn => HideWeaponWhileFlying && Returns && !IsEcho;
+    [System.NonSerialized] private int _projectilesOut;
+
+    // Al terminar (o cortar) el lanzamiento: el arma vuelve a la mano, salvo que haya un bumerán en el aire.
+    private void ShowWeaponAfterThrow()
+    {
+        if (!HideWeaponWhileFlying) return;
+        if (WaitsForReturn && _projectilesOut > 0) return;
+        SetOwnerWeaponVisible(true);
+    }
+
+    // Lo llama el proyectil (servidor) al irse. Con el último afuera, el arma vuelve, también en la pantalla del dueño.
+    public void OnThrownProjectileGone()
+    {
+        if (!WaitsForReturn || _projectilesOut <= 0) return;
+        if (--_projectilesOut == 0) SetOwnerWeaponVisible(true, includeOwner: true);
+    }
 
     // El dueño hace la MISMA cuenta de su lado y esconde el arma cuando su propia
     // animacion suelta, sin esperar el aviso del servidor — que le llega dos viajes
@@ -615,7 +631,7 @@ public class GA_ProjectileShoot : GameplayAbility, IHoldAbility
         if (pc == null || !HideWeaponWhileFlying) return;
 
         ResolveThrowTiming(false, out float releaseDelay, out float backswing);
-        pc.PredictWeaponHide(releaseDelay, releaseDelay + backswing);
+        pc.PredictWeaponHide(releaseDelay, WaitsForReturn ? float.PositiveInfinity : releaseDelay + backswing);
     }
 
     // Cuando sale el proyectil (releaseDelay) y cuanto dura el remate hasta devolver el
@@ -759,6 +775,7 @@ public class GA_ProjectileShoot : GameplayAbility, IHoldAbility
             // ignorando como siempre; si tiene, se lo aplica a los que atraviese (la
             // estela del Castigo divino, que cura al pasar).
             projectileScript.Initialize(OwnerASC, ultCharge, this, LifeTime);
+            if (WaitsForReturn) _projectilesOut++;   // el arma espera a que vuelva (ver OnThrownProjectileGone)
         }
 
         Rigidbody rb = newProjectile.GetComponent<Rigidbody>();

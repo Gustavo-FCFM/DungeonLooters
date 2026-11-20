@@ -124,13 +124,14 @@ public class Summon_Zone : MonoBehaviour
     public LayerMask CharacterLayer = 1 << 7;
 
     [Header("Crece y avanza")]
-    [Tooltip("Cuántos metros crece el radio por segundo desde que se prende (solo con forma Círculo; el " +
-             "VFX crece con ella si trae VFX_AreaVisual). 0 = no crece.")]
+    [Tooltip("Cuántos metros crece por segundo desde que se prende. Círculo: el radio (el VFX crece con ella si trae " +
+             "VFX_AreaVisual). Caja: cada costado (el ancho crece el doble); el \"VFX de la zona\", si tiene, se estira " +
+             "de lado a lado, pero los hijos del prefab (las llamas de cada casilla) no. 0 = no crece.")]
     [Label("Crece (m por segundo)")]
     public float GrowPerSecond = 0f;
 
-    [Tooltip("Hasta dónde crece el radio con el tiempo.")]
-    [Label("Radio máximo (m; 0 = sin tope)")]
+    [Tooltip("Hasta dónde crece con el tiempo: el radio (Círculo) o el ancho de lado a lado (Caja).")]
+    [Label("Tope (m: radio o ancho; 0 = sin tope)")]
     public float MaxRadius = 0f;
 
     [Tooltip("La invocación entera avanza hacia adelante (hacia donde mira: lejos del que la puso) " +
@@ -157,7 +158,8 @@ public class Summon_Zone : MonoBehaviour
 
     private Entity_Summon _summon;
     private GameObject    _vfx;
-    private float _vfxRadius;   // con qué radio se escaló el VFX
+    private float _vfxRadius;   // con qué radio (o ancho, con Caja) se escaló el VFX
+    private Vector3 _vfxBaseScale;
     private float _endsAt = float.MaxValue, _nextTick;
 
     // Crece y avanza: desde cuándo está prendida en ESTA pantalla, cuánto recorrió y si ya frenó.
@@ -182,6 +184,20 @@ public class Summon_Zone : MonoBehaviour
             return r + (_summon != null ? _summon.ZoneGrowth : 0f);
         }
     }
+
+    // El ancho de la caja de ahora: crece por los dos costados (20 de noviembre de 2026), hasta el tope.
+    public float CurrentBoxWidth
+    {
+        get
+        {
+            if (GrowPerSecond <= 0f || !_wasOn) return BoxWidth;
+            float w = BoxWidth + 2f * GrowPerSecond * (Time.time - _activeSince);
+            return MaxRadius > 0f ? Mathf.Min(w, Mathf.Max(BoxWidth, MaxRadius)) : w;
+        }
+    }
+
+    // Lo que mide la zona para su VFX: el radio, o el ancho con Caja.
+    private float VfxSize => Shape == EShape.Box ? CurrentBoxWidth : CurrentRadius;
 
     private static readonly Collider[] s_hits = new Collider[64];
     private readonly HashSet<AbilitySystemComponent> _seen = new HashSet<AbilitySystemComponent>();
@@ -212,7 +228,8 @@ public class Summon_Zone : MonoBehaviour
         if (on && _vfx == null && VFX != null)
         {
             _vfx = Instantiate(VFX, transform.position, transform.rotation, transform);
-            _vfxRadius = CurrentRadius;
+            _vfxRadius = VfxSize;
+            _vfxBaseScale = _vfx.transform.localScale;
             VFX_AreaVisual.Configure(_vfx, CurrentRadius, VfxScale, 0f);
         }
         else if (!on && _vfx != null)
@@ -220,7 +237,15 @@ public class Summon_Zone : MonoBehaviour
             Destroy(_vfx);
             _vfx = null;
         }
-        else if (_vfx != null && Mathf.Abs(_vfxRadius - CurrentRadius) > 0.01f)
+        else if (_vfx != null && Shape == EShape.Box && Mathf.Abs(_vfxRadius - VfxSize) > 0.01f)
+        {
+            // La caja se ensanchó: el VFX se estira de lado a lado (su X), desde el tamaño con que salió.
+            _vfxRadius = VfxSize;
+            Vector3 s = _vfxBaseScale;
+            s.x *= BoxWidth > 0f ? CurrentBoxWidth / BoxWidth : 1f;
+            _vfx.transform.localScale = s;
+        }
+        else if (_vfx != null && Shape != EShape.Box && Mathf.Abs(_vfxRadius - CurrentRadius) > 0.01f)
         {
             // La zona creció: el VFX crece con ella (solo el tamaño; sigue vivo).
             _vfxRadius = CurrentRadius;
@@ -330,7 +355,7 @@ public class Summon_Zone : MonoBehaviour
 
     // La caja: apoyada en el piso (el pivote de la invocación) y girada con ella.
     private Vector3 BoxCenter      => transform.position + transform.up * (BoxHeight * 0.5f);
-    private Vector3 BoxHalfExtents => new Vector3(BoxWidth * 0.5f, BoxHeight * 0.5f, BoxDepth * 0.5f);
+    private Vector3 BoxHalfExtents => new Vector3(CurrentBoxWidth * 0.5f, BoxHeight * 0.5f, BoxDepth * 0.5f);
 
     private void OnDrawGizmosSelected()
     {

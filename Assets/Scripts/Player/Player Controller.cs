@@ -5325,7 +5325,7 @@ public class PlayerController : NetworkBehaviour
         Vector3 start = transform.TransformPoint(shot.SpawnOffset);
         Vector3 dir   = GetLaunchDirection(start, shot.MinConvergeDistance);
         _trajectory.Show(start, dir * shot.LaunchForce, shot.ProjectileUsesGravity, shot.StraightFlightTime,
-                         shot.FlightSeconds, transform.root);
+                         shot.FlightSeconds, transform.root, shot.WallBounces);
     }
 
     // Va en LateUpdate y no en Update: el Animator escribe las poses en Update, así que

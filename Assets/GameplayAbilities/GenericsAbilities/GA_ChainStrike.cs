@@ -104,7 +104,8 @@ public class GA_ChainStrike : GameplayAbility
 
             if (MaxTargets > 0 && hit.Count >= MaxTargets) break;
 
-            yield return new WaitForSeconds(StayTime);
+            yield return WaitSeconds(StayTime, Guard(EStopWhen.Dies));
+            if (ShouldStop(EStopWhen.Dies)) break;
 
             current = FindNext(current.transform.position, hit);
         }

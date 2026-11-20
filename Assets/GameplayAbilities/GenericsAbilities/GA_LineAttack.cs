@@ -93,7 +93,10 @@ public class GA_LineAttack : GameplayAbility
         // ni EndAbility — el fin lo manda la habilidad que lo cortó.
         if (WasCancelled) yield break;
 
-        yield return new WaitForSeconds(0.5f / speedMultiplier);
+        // El remate: lo corta otra habilidad (sin EndAbility: el fin lo manda la que lo cortó) o morir.
+        AbilityGuard backswing = Guard(EStopWhen.Dies | EStopWhen.Interrupted);
+        yield return WaitSeconds(0.5f / speedMultiplier, backswing);
+        if (backswing.Stopped && !ShouldStop(EStopWhen.Dies)) yield break;
 
         EndAbility();
     }

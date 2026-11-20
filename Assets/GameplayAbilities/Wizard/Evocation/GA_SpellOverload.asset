@@ -14,15 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AbilityName: Spell Overload
   AbilityNameEs: Sobrecarga de hechizos
-  Description: "ULTIMATE. For 8 s you levitate, resist damage, your mana refills and your next 3 Spell Powers fire instantly."
-  DescriptionEs: "DEFINITIVA. Por 8 s levitas, resistes daño, el maná se te llena y tus 3 próximos Poderes del hechizo salen al instante."
   AbilityIcon: {fileID: 21300000, guid: 41f758ea086079f46982a1c82bc19a3a, type: 3}
+  Description: ULTIMATE. For 8 s you levitate, resist damage, your mana refills and
+    your next 3 Spell Powers fire instantly.
+  DescriptionEs: "DEFINITIVA. Por 8 s levitas, resistes da\xF1o, el man\xE1 se te
+    llena y tus 3 pr\xF3ximos Poderes del hechizo salen al instante."
   CostEffect: {fileID: 0}
   CooldownEffect: {fileID: 11400000, guid: 4165da9d9de274a4aa511261df047340, type: 2}
   CooldownDuration: 0
   UseAttackSpeedAsCooldown: 0
   UltimateChargeAmount: 0
-  ActivationBlockedTags: 010000000300000059000000
+  ActivationBlockedTags: 01000000030000005900000002000000
   ActivationRequiredTags: 
   UsableWhileChanneling: 0
   UsableWhileHolding: 0
@@ -52,6 +54,8 @@ MonoBehaviour:
     TargetStacksTag: 0
     TargetScaling: 0
     TargetPerStack: 0
+    TargetMinimum: 0
+    TargetMaximum: 0
     ConsumeTargetStacks: 0
   - When: 2
     ApplyTo: 2
@@ -63,6 +67,8 @@ MonoBehaviour:
     TargetStacksTag: 0
     TargetScaling: 0
     TargetPerStack: 0
+    TargetMinimum: 0
+    TargetMaximum: 0
     ConsumeTargetStacks: 0
   - When: 2
     ApplyTo: 2
@@ -74,6 +80,8 @@ MonoBehaviour:
     TargetStacksTag: 0
     TargetScaling: 0
     TargetPerStack: 0
+    TargetMinimum: 0
+    TargetMaximum: 0
     ConsumeTargetStacks: 0
   - When: 2
     ApplyTo: 2
@@ -85,6 +93,8 @@ MonoBehaviour:
     TargetStacksTag: 0
     TargetScaling: 0
     TargetPerStack: 0
+    TargetMinimum: 0
+    TargetMaximum: 0
     ConsumeTargetStacks: 0
   - When: 2
     ApplyTo: 2
@@ -96,6 +106,8 @@ MonoBehaviour:
     TargetStacksTag: 0
     TargetScaling: 0
     TargetPerStack: 0
+    TargetMinimum: 0
+    TargetMaximum: 0
     ConsumeTargetStacks: 0
   Visuals: []
   IsInterruptible: 1
@@ -111,6 +123,12 @@ MonoBehaviour:
   CastLoopAnimation: {fileID: 0}
   CastReleaseAnimation: {fileID: 0}
   MaxCharges: 1
+  TriggerEvent: 0
+  TriggerOnlyIfOwnerHas: 0
+  TriggerMinMagnitude: 0
+  TriggerIncludePeriodic: 0
+  TriggerChance: 1
+  TriggerAimsAtOther: 1
   EndTag: 0
   BuffEffect: {fileID: 0}
   AdditionalEffects: []

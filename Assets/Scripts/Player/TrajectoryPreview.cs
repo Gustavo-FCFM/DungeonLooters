@@ -61,9 +61,10 @@ public class TrajectoryPreview : MonoBehaviour
 
     // velocity: la de salida. straightTime: los segundos que vuela recto antes de que la
     // gravedad la baje (el Vuelo recto de la flecha). maxSeconds: cuánto vuela antes de
-    // desaparecer (la curva no pasa de ahí). ignoreRoot: el que lanza (no choca consigo).
+    // desaparecer (la curva no pasa de ahí). ignoreRoot: el que lanza (no choca consigo). bounces: cuántas veces rebota
+    // contra lo que toca antes de quedarse (el "Rebota en paredes" del proyectil; 20 de noviembre de 2026).
     public void Show(Vector3 start, Vector3 velocity, bool gravity, float straightTime, float maxSeconds,
-                     Transform ignoreRoot)
+                     Transform ignoreRoot, int bounces = 0)
     {
         if (Line == null) return;
 
@@ -88,6 +89,16 @@ public class TrajectoryPreview : MonoBehaviour
                 (ignoreRoot == null || info.transform.root != ignoreRoot))
             {
                 _points[count++] = info.point;
+
+                // Rebota: sigue reflejada desde un pelito afuera de la cara (como GC_Projectile.BounceVelocity).
+                if (bounces > 0)
+                {
+                    bounces--;
+                    velocity = Vector3.Reflect(velocity, info.normal);
+                    point = info.point + info.normal * 0.02f;
+                    continue;
+                }
+
                 hit = true;
                 hitPoint  = info.point;
                 hitNormal = info.normal;

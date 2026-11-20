@@ -69,7 +69,8 @@ public class GA_HeroicLeap : GA_Teleport
     private IEnumerator LeapRoutine(PlayerController pc, NetworkAbilitySystemComponent netAsc,
                                     Vector3 landing, Vector3 faceDir)
     {
-        if (JumpDelay > 0f) yield return new WaitForSeconds(JumpDelay);
+        AbilityGuard guard = Guard(EStopWhen.Dies);   // morir en el despegue: no llega (la cuenta de abajo)
+        if (JumpDelay > 0f) yield return WaitSeconds(JumpDelay, guard);
         if (OwnerASC == null) yield break;
 
         // Si lo mataron en el despegue, no llega.
@@ -89,7 +90,7 @@ public class GA_HeroicLeap : GA_Teleport
         HitAround(landing);
         PlantBanner(landing);
 
-        if (LandRecovery > 0f) yield return new WaitForSeconds(LandRecovery);
+        if (LandRecovery > 0f) yield return WaitSeconds(LandRecovery, guard);
         EndAbility();
     }
 

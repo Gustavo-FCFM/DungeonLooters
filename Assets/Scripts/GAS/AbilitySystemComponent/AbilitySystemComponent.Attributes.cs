@@ -98,6 +98,24 @@ public partial class AbilitySystemComponent
     // de clase; solo lo usa ese método.
     private readonly List<EAttributeType> _clearedAttributeKeys = new List<EAttributeType>();
 
+    // El primer efecto activo que burla a la muerte: lo gasta (cuenta como quitado: encadena) y dice con cuánta vida queda.
+    private bool TryCheatDeath(out float health)
+    {
+        health = 0f;
+        ActiveGameplayEffect saver = null;
+        foreach (ActiveGameplayEffect active in ActiveEffects)
+            if (active.Definition.PreventsDeath) { saver = active; break; }
+        if (saver == null) return false;
+
+        float max = GetAttributeValue(EAttributeType.MaxHealth);
+        health = Mathf.Max(1f, max * Mathf.Clamp01(saver.Definition.PreventDeathHealth));
+
+        BeginHold();   // lo que encadena sale después de escribir la vida (no en medio de esta escritura)
+        try { RemoveActiveEffect(saver, EEffectEnd.Removed); }
+        finally { EndHold(); }
+        return true;
+    }
+
     // Lee el valor actual de un atributo (0 si el personaje no lo tiene).
     public float GetAttributeValue(EAttributeType type)
         => Attributes.ContainsKey(type) ? Attributes[type].CurrentValue : 0f;
@@ -109,6 +127,11 @@ public partial class AbilitySystemComponent
     {
         if (type == EAttributeType.Health && val < 1f && HasTag(EGameplayTag.Status_Immortal))
             val = 1f;
+
+        // BURLAR A LA MUERTE (GameplayEffect "Burla a la muerte"): el golpe que lo mataría lo deja con vida y gasta el efecto.
+        if (type == EAttributeType.Health && val <= 0f && !HasTag(EGameplayTag.State_Dead) &&
+            GetAttributeValue(EAttributeType.Health) > 0f && TryCheatDeath(out float saved))
+            val = saved;
 
         // Clampeo de "pools": la vida (y el maná) nunca quedan en negativo ni
         // superan su máximo. Sin esto, un golpe fuerte dejaba la Vida en negativo

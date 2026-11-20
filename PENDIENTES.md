@@ -1086,6 +1086,11 @@ gris de la esquina, dibujado aparte y sin control); y poder jugar con 3 instanci
    - **`Showcase.bat`:** cada build de Windows lo deja al lado del .exe (`MercShowcaseBuildBat`, corre solo).
      Abre tres ventanas, una por monitor (`-monitor 1/2/3`): la 1 con `-kbm` (es la que suena) y la 2 y la 3
      con `-pad -mute`. Cada una deja su log al lado (`Showcase_1.log`, …).
+   - **`Controles.bat`** (20 de noviembre, pedido de Gustavo): sale al lado del `Showcase.bat`. X ventanas con X
+     controles (+ una con teclado y mouse si se quiere); pregunta cuántas (o `Controles.bat 4 s`), las reparte entre
+     los monitores y, si sobran ventanas, las abre en 960×540. Suena la primera; logs `Ventana_1.log`, …
+     Probado en seco (sin abrir el juego); ya está en B9 y salió solo en B10.
+     - [ ] Abrirlo con 2 o más controles y ver que cada ventana se queda con el suyo.
    **Antes de probar:** correr `Mercenarios ▸ Una vez ▸ Cartel Aprieta A (showcase 3)` (solo el prefab de
    menús: una vez alcanza). **Corrida y borrada (28 de octubre).** Y hacer una build nueva (para el .bat y lo demás).
    **En el showcase, el orden:** abrir `Showcase.bat`; clic en la ventana 2 y A en su control; clic en la 3 y

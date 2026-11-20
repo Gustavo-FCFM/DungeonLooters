@@ -519,7 +519,15 @@ campos ya no se ponen a escribir solos al elegirlos (`shouldActivateOnSelect` ap
 (`MercShowcaseBuildBat`) que abre tres ventanas, una por monitor: la 1 con teclado y mouse (`-kbm`), la 2 y
 la 3 con `-pad -mute`. Una ventana `-pad` pide "Aprieta A en tu control" (`UI_PadClaim`) y se queda con el
 control que aprieta A mientras ella tiene el foco; desde ahí lo lee aunque no tenga el foco (el Input System
-está en Ignore Focus). Ver `LocalSeat`.
+está en Ignore Focus). Ver `LocalSeat`. Al lado sale también **`Controles.bat`** (desde el 20 de noviembre de
+2026): X ventanas con X controles, y si se quiere una más con teclado y mouse; pregunta cuántas al abrirlo (o
+`Controles.bat 4 s`), las reparte entre los monitores y, si son más que monitores, las abre en ventana de 960×540.
+Para jugar en la misma PC o en la misma red no hace falta playit: la lista de partidas las encuentra (o `127.0.0.1`).
+
+**Si la build falla con "Una directiva de Control de aplicaciones bloqueó este archivo"** (`Bee.NativeProgramSupport.dll`):
+es Smart App Control de Windows bloqueando una DLL sin firma del propio Unity (20 de noviembre de 2026, en la PC de
+trabajo). No es del proyecto: se apaga en Seguridad de Windows ▸ Control de aplicaciones y navegador (no se puede
+volver a prender sin reinstalar Windows), o se hace la build en otra máquina.
 
 ---
 

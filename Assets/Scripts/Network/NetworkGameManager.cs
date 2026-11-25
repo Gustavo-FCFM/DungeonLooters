@@ -357,7 +357,11 @@ public class NetworkGameManager : NetworkBehaviour
         if (pc != null && cls != null) pc.ServerEquipClassAsBot(cls);
 
         BotController brain = botObj.GetComponent<BotController>();
-        if (brain == null) brain = botObj.AddComponent<BotController>();
+        if (brain == null)
+        {
+            brain = botObj.AddComponent<BotController>();
+            brain.ApplySettings();   // los números del molde Resources/BotSettings (ver BotController)
+        }
         brain.ServerInitialize(team);
 
         if (pc != null) _bots.Add(pc);

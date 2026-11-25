@@ -209,6 +209,11 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   principal se llama EXACTAMENTE como la clase y no se renombra**: con la clase repartida, Unity solo le asocia el componente
   a ese archivo (el del ASC se llamaba "Ability System Component.cs" y, al repartirlo, los prefabs lo vieron como script
   perdido hasta renombrarlo conservando su GUID).
+  **Igual quedaron `PlayerController`, `NetworkAbilitySystemComponent` y `BotController`** (25 de noviembre de 2026; tenían
+  5 500, 2 700 y 3 000 líneas): en el principal, los campos, eventos y tipos (en el de red, todas las SyncVars); los métodos,
+  por sección, en `Player/PlayerController/`, `Network/NetworkAbilitySystemComponent/` y `GameMode/Mercenaries/BotController/`.
+  Se movió el texto sin cambiarlo. "Player Controller.cs" pasó a `PlayerController.cs` con su mismo GUID. Las RPC de FishNet
+  pueden ir en cualquier parte (el codegen trabaja sobre la clase compilada).
 - **El cursor tiene un solo dueño: `UICursor`.** Ningún menú toca `Cursor.lockState` ni
   `PlayerInputProvider.SetUIMode` por su cuenta — los pide con `UICursor.Request(this)` y
   los suelta con `Release`. Si no, gana el último en cerrarse.
@@ -334,8 +339,15 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   solo cura o ayuda a los suyos no se anota (`HasEnemyHitEffects`). Del mismo modo miran los proyectiles en vuelo
   (`GC_Projectile.Flying`), los escudos levantados (`Entity_ShieldBarrier.RaisedNow`) y los botiquines (`HealthPack.All`): listas
   estáticas del servidor que se vacían al arrancar (`SubsystemRegistration`). **`BotController` es `partial`** (como el ASC): el
-  instinto va en su parte y un campo nuevo del Inspector, en el archivo principal. El componente se agrega al nacer el bot (no
-  está en ningún prefab): sus números son los del código.
+  instinto va en su parte y un campo nuevo del Inspector, en el archivo principal. El componente se agrega al nacer el bot, y
+  **sus números salen del molde `Resources/BotSettings`** (desde el 25 de noviembre de 2026): un prefab con solo un
+  `BotController` ajustado a mano, que cada bot copia al nacer (`ApplySettings`, por `JsonUtility`). Un campo nuevo del bot
+  sale en el molde solo. Por eso `BotController` no lleva `RequireComponent(PlayerController)`. Sin el molde, valen los del código.
+
+- **Qué pesa en la build: `Mercenarios ▸ Build ▸ Qué pesa en la build`** (`MercBuildSizeReport`, desde el 25 de noviembre de
+  2026; CLI: `MercBuildSizeReport.Report()`, escribe `Logs/BuildSizeReport.txt`). Mide texturas (comprimidas), mallas y audio
+  de las escenas de la build y de toda carpeta `Resources`, y marca lo que entra SOLO por estar en una `Resources` (la demo de
+  un pack). GitHub no acepta archivos de más de 100 MB: la B10 ya no entró (su `sharedassets0.assets.resS` pesa 194 MB).
 
 - **Un tag con dos fuentes en el cliente** (el espejo de `NetTags` y algo local) cuenta
   dos veces. `State_Dead` es así: la vida en 0 llega por su SyncVar y el cliente se muere

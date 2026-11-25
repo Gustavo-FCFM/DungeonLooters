@@ -7,12 +7,37 @@ siguen abiertas, más el plan.
 El proyecto compila limpio: 0 errores y 0 warnings en código propio (los 312 warnings
 del log son todos de packs importados).
 
+## ★ Mejoras de código (25 de noviembre, pedido de Gustavo): los números de los bots y qué pesa en la build
+
+- **Los números de los bots se ajustan en el Inspector**: molde `Assets/Resources/BotSettings` (un prefab con solo un
+  `BotController`). Cada bot copia sus campos al nacer (`BotController.ApplySettings`, lo llama `NetworkGameManager`). Tocarlo
+  en Play cambia a los bots que nazcan después. Sin el molde, valen los del código. Comprobado en el editor (un bot con otro
+  número queda con el del molde).
+  - [ ] En Play: cambiar un número del molde (p. ej. "Error de puntería a 10 m") y ver que el bot nuevo lo usa.
+- **`Mercenarios ▸ Build ▸ Qué pesa en la build`** (`MercBuildSizeReport`): informe en consola y `Logs/BuildSizeReport.txt`.
+  Lo que encontró (25 de noviembre; ~266 MB entre texturas 207, mallas 51 y audio 7):
+  - El cielo `8K Skybox Pack Free/.../sky-10.png`: **48 MB** (4096, Max Size 8192). Con Max Size 2048, unos 12.
+  - La demo de Vefects (`Vefects/Trails VFX URP/Demo/Resources`): **~31 MB** que ninguna escena usa; entran por ser
+    `Resources`. Renombrar esa carpeta (p. ej. `Resources_Demo`) los saca.
+  - Los 8 atlas de clase (5.3 MB cada uno, 2048 en CompressedHQ) y las mallas de Blender (Paladina 8.4, Clérigo 6.5,
+    Explorador 5.8 MB).
+  - [x] **Hecho (25 de noviembre, pedido de Gustavo):** el cielo en Max Size 2048 y la carpeta de la demo renombrada a
+        `Demo/Resources_Demo`. Medido: de ~266 a ~199 MB.
+  - [ ] Ver en Play que el cielo de noche no se ve borroso (si sí: Max Size 4096, unos 12 MB más).
+  - [ ] Hacer otra build: ¿`sharedassets0.assets.resS` baja de 100 MB? Si no: Crunch en las texturas grandes.
+
+- **Los tres archivos gigantes, repartidos por tema** (25 de noviembre): `PlayerController` (5 500 líneas → principal de
+  ~1 030, casi todo campos, + 13 partes), `NetworkAbilitySystemComponent` (2 700 → 430 + 6) y `BotController` (3 000 → 680 + 6,
+  más el Instinto, que pasó a su carpeta). Solo se movió texto: cada método entero a su parte, los campos se quedan. Comprobado:
+  compila con Unity (codegen de FishNet incluido), 68/68 pruebas, validador sin errores, el GUID del jugador intacto y 68
+  prefabs sin scripts perdidos.
+  - [ ] Una partida normal con un cliente y bots: todo igual que antes (si algo falla, es de esto).
+
 ## ★ Bots más humanos y más listos (20 de noviembre, pedido de Gustavo): HECHO Y PROBADO ✅ (20 de noviembre: "se ven bien")
 
 "Que sean más humanos y más inteligentes: escapar del daño, afrontar los problemas, rodear el escudo." Va en
 `BotController.Instinct.cs`, una parte nueva de `BotController` (que pasó a `partial`). Sus números son la sección "Instinto" de
-`BotController.cs`: el componente se agrega al nacer el bot, así que valen los del código (en Play se pueden mover en el Inspector
-del bot para probar; se pierden al salir). Para que vean lo que antes era solo un VFX, cuatro listas del servidor, sin red nueva:
+`BotController.cs`; desde el 25 de noviembre se ajustan en el molde `Assets/Resources/BotSettings`. Para que vean lo que antes era solo un VFX, cuatro listas del servidor, sin red nueva:
 `AreaThreats` (las zonas de daño: la espera de `GA_InstantAoE`, la zona de `GA_ContinuousAoE` y las `Summon_Zone` que pegan),
 `GC_Projectile.Flying`, `Entity_ShieldBarrier.RaisedNow` y `HealthPack.All`. 1 prueba nueva (68).
 - [x] (visto en Play el 20 nov) **Esquivan proyectiles**: un paso al costado. Los mejores notan casi 8 de cada 10 y los peores 1 de cada 4; si ya lo tienen
@@ -4140,10 +4165,8 @@ que cerrar es eso, no el bot.
   Las subclases sí los usan. Si querés que los bots muestren un kit completo desde el
   nivel 1, ahí falta contenido — son habilidades que hay que diseñar, no código.
 
-- **Las perillas del bot no salen en el inspector.** El componente se agrega en runtime,
-  así que los valores son los defaults del código (`BotController.cs`). Si vas a iterar
-  mucho el comportamiento, conviene moverlas a un ScriptableObject cableado en el
-  `NetworkGameManager`.
+- **Las perillas del bot no salen en el inspector.** RESUELTO (25 de noviembre): se ajustan en el molde
+  `Assets/Resources/BotSettings` (ver la sección "Mejoras de código" de arriba).
 - **Los señuelos del Ilusionista se acumulan.** No tienen límite de tiempo (es el diseño),
   pero un bot activa la habilidad apenas sale de cooldown y la arena se llena. Tres
   caminos: dejarlo, ponerle vida útil a la copia (cambia el balance para todos), o que los

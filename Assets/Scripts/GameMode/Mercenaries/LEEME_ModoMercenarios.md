@@ -881,8 +881,9 @@ vacío media partida.
 
 ## Los bots: el instinto (20 de noviembre de 2026)
 
-El `BotController` se agrega al nacer el bot (no está en ningún prefab), así que valen los números del código: la sección
-"Instinto" de `BotController.cs`. En Play se pueden mover en el Inspector de un bot para probar, pero se pierden al salir.
+Se ajustan en el **molde `Assets/Resources/BotSettings`** (25 de noviembre de 2026): un prefab con solo un `BotController`,
+que cada bot copia al nacer. Ahí están estos y todos los demás números del bot. Tocarlo en Play cambia a los bots que nazcan
+después. Sin el molde, valen los del código.
 
 | Qué | Campo | Hoy |
 |---|---|---|

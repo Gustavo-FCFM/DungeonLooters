@@ -20,7 +20,7 @@ public class DeathZone : MonoBehaviour
         if (player != null)
         {
             // El NetworkTransform del jugador es client-authoritative (ver
-            // notas en Player Controller.cs), así que TeleportToSpawn() debe
+            // notas en PlayerController), así que TeleportToSpawn() debe
             // correr solo en la copia dueña. Este trigger existe en la escena
             // de todos los peers (no es un NetworkBehaviour), así que sin esta
             // guardia, cualquier otro peer que vea al jugador remoto caer en

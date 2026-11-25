@@ -203,7 +203,7 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   Desde el 25 de noviembre de 2026 también prueban las cuentas del instinto de los bots ("Bots_…": la esquiva, adelantarse,
   la puntería, superado en número), que son funciones estáticas de `BotController.Instinct` para poder probarlas sin escena.
   Y las reglas del modo ("Modo_…": nivel de la bolsa, barrita, experiencia pasiva, bajas, quién gana, aviso de eliminado;
-  sección "LAS CUENTAS" de `MercenariesGameMode`) y de la sala ("Sala_…": nombre repetido, equipo lleno, cuándo arrancar;
+  sección "LAS CUENTAS", en `MercenariesGameMode.Rules.cs`) y de la sala ("Sala_…": nombre repetido, equipo lleno, cuándo arrancar;
   estáticas de `LobbyManager`). **Un cambio de regla del modo va en esas funciones**, no en el código de red que las llama.
 
 - **Guía sencilla para Gustavo: `Assets/Scripts/LEEME_ScriptsPartidos.md`** (qué es `partial`, las 3 reglas y una tabla
@@ -221,7 +221,12 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   por sección, en `Player/PlayerController/`, `Network/NetworkAbilitySystemComponent/` y `GameMode/Mercenaries/BotController/`.
   Se movió el texto sin cambiarlo. "Player Controller.cs" pasó a `PlayerController.cs` con su mismo GUID. Las RPC de FishNet
   pueden ir en cualquier parte (el codegen trabaja sobre la clase compilada). Más tarde ese día, igual: `GC_Projectile`
-  (`GAS/Entities/GC_Projectile/`) y `UI_LobbyPanel` (`UI/UI_LobbyPanel/`).
+  (`GAS/Entities/GC_Projectile/`) y `UI_LobbyPanel` (`UI/UI_LobbyPanel/`). Y al final del día, las medianas:
+  `MercenariesGameMode` y `MercEnemyAI` (`GameMode/Mercenaries/<Clase>/`), `Entity_Companion` y `Entity_ShieldBarrier`
+  (`GAS/Entities/<Clase>/`) y `GA_ProjectileShoot` (`GameplayAbilities/GenericsAbilities/GA_ProjectileShoot/`; antes se le
+  agregaron los títulos de sección IMPACTO, ACTIVAR, DISPARO y GIZMOS, que no tenía). Son 12 clases partidas.
+- **Desde otro script, los componentes de un jugador salen de `pc.AbilitySystem` y `pc.NetAbilitySystem`** (ya guardados
+  en `Awake`), no de `pc.GetComponent<…>()`, sobre todo en algo que corre cada frame (25 de noviembre de 2026).
 
 - **Las búsquedas de física van por `PhysicsQuery`, no por `Physics.OverlapSphere` / `OverlapBox` / `OverlapCapsule` /
   `RaycastAll` / `SphereCastAll`** (desde el 25 de noviembre de 2026): esas crean un arreglo nuevo en cada golpe. `PhysicsQuery`

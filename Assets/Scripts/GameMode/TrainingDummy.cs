@@ -151,8 +151,8 @@ public class TrainingDummy : MonoBehaviour
         // El aliado sigue al equipo del jugador local (por si cambia de equipo en la sala).
         if (AllyOfLocalPlayer && PlayerController.LocalPlayer != null)
         {
-            var net = PlayerController.LocalPlayer.GetComponent<NetworkAbilitySystemComponent>();
-            int team = net != null ? net.NetTeamID : PlayerController.LocalPlayer.GetComponent<AbilitySystemComponent>().TeamID;
+            var net = PlayerController.LocalPlayer.NetAbilitySystem;
+            int team = net != null ? net.NetTeamID : PlayerController.LocalPlayer.AbilitySystem.TeamID;
             if (team > 0) _asc.TeamID = team;
         }
 

@@ -1,7 +1,7 @@
 # Los scripts partidos: cómo encontrar las cosas
 
 Algunos scripts crecieron hasta tener 2 000, 3 000 y hasta 5 500 líneas. Ahí ya era difícil encontrar algo, así que
-se partieron en varios archivos más chicos, uno por tema. **El juego funciona exactamente igual**: para Unity
+se partieron en varios archivos más chicos, uno por tema (12 clases, todas el 17 y el 25 de noviembre de 2026). **El juego funciona exactamente igual**: para Unity
 y para C# siguen siendo una sola clase. Solo cambió dónde está escrito cada pedazo.
 
 ## La idea en un ejemplo
@@ -136,6 +136,54 @@ Los **números** de los bots (puntería, reacción, etc.) no se cambian en el c�
 | Lo que el panel le pide a la sala (equipo, clase, bots, Start) | `UI_LobbyPanel.Requests` |
 | Cómo se dibujan los lugares, columnas y clases            | `UI_LobbyPanel.Draw`        |
 | Cómo se conectan las piezas del prefab al empezar         | `UI_LobbyPanel.Wiring`      |
+
+### `MercenariesGameMode`: las reglas de la partida (`Scripts/GameMode/Mercenaries/`)
+
+| Si quieres ver o cambiar…                                 | Abre                              |
+|-----------------------------------------------------------|-----------------------------------|
+| Preparación, empezar, terminar y volver a la sala         | `MercenariesGameMode.Phases`      |
+| Cuándo aparece el Objetivo, levantarlo y entregarlo       | `MercenariesGameMode.Objective`   |
+| La bolsa de experiencia del equipo y las bajas            | `MercenariesGameMode.Experience`  |
+| La lista de jugadores, no salir de la base, eliminados    | `MercenariesGameMode.Players`     |
+| **Las cuentas** (niveles, puntos, quién gana)             | `MercenariesGameMode.Rules`       |
+
+Si cambias una regla, va en `Rules`: ahí la vigilan las pruebas "Modo_…".
+
+### `MercEnemyAI`: los monstruos del mapa (`Scripts/GameMode/Mercenaries/`)
+
+| Si quieres ver o cambiar…                                 | Abre                    |
+|-----------------------------------------------------------|-------------------------|
+| A quién ve, perseguir y volver a su puesto                | `MercEnemyAI.Brain`     |
+| El bloqueo después de atacar y qué habilidad usa          | `MercEnemyAI.Combat`    |
+| Morir y dar la experiencia                                | `MercEnemyAI.Death`     |
+| Lo que ven todos (animación, barra de vida)               | `MercEnemyAI.Visuals`   |
+
+### `Entity_Companion`: el compañero del Maestro de bestias (`Scripts/GAS/Entities/`)
+
+| Si quieres ver o cambiar…                                 | Abre                          |
+|-----------------------------------------------------------|-------------------------------|
+| Las órdenes, qué hace en cada momento y la muerte         | `Entity_Companion.Brain`      |
+| Moverse y saltar                                          | `Entity_Companion.Movement`   |
+| El búho, la presencia bestial y el aullido                | `Entity_Companion.Skills`     |
+| Lo que ven todos                                          | `Entity_Companion.Visuals`    |
+
+### `Entity_ShieldBarrier`: los escudos (`Scripts/GAS/Entities/`)
+
+| Si quieres ver o cambiar…                                 | Abre                              |
+|-----------------------------------------------------------|-----------------------------------|
+| Levantarlo, bajarlo y a quién cubre                       | `Entity_ShieldBarrier.Cover`      |
+| Cuánto daño para y devolverlo (Guardián)                  | `Entity_ShieldBarrier.Block`      |
+| El destello al bloquear                                   | `Entity_ShieldBarrier.Visuals`    |
+
+### `GA_ProjectileShoot`: la habilidad de disparar (`GameplayAbilities/GenericsAbilities/`)
+
+| Si quieres ver o cambiar…                                 | Abre                          |
+|-----------------------------------------------------------|-------------------------------|
+| Apuntar antes de lanzar (mantener y soltar)               | `GA_ProjectileShoot.Aim`      |
+| La secuencia de disparo y el lanzamiento                  | `GA_ProjectileShoot.Shoot`    |
+| Lo que pasa al chocar (explosión, zona)                   | `GA_ProjectileShoot.Impact`   |
+| La curva dibujada en el editor                            | `GA_ProjectileShoot.Gizmos`   |
+| Pasar datos viejos al formato nuevo                       | `GA_ProjectileShoot.Legacy`   |
 
 ## Trucos para buscar
 

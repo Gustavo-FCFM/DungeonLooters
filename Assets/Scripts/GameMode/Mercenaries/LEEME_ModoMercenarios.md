@@ -174,7 +174,8 @@ segundo después el servidor te devuelve el nivel del equipo.
 
 **Las cuentas de todo esto** (cuánta experiencia pide cada nivel, la pasiva, lo que da una
 baja, quién gana si se acaba el tiempo, el aviso de "equipo eliminado") están juntas en la
-sección "LAS CUENTAS" al final de `MercenariesGameMode.cs`, y las reglas de la sala (nombre
+sección "LAS CUENTAS" de `MercenariesGameMode` (el archivo `MercenariesGameMode/MercenariesGameMode.Rules.cs`:
+la clase está partida por tema, ver `Assets/Scripts/LEEME_ScriptsPartidos.md`), y las reglas de la sala (nombre
 repetido, equipo lleno, cuándo se puede arrancar) en `LobbyManager`. Las vigilan las pruebas
 "Modo_…" y "Sala_…" (25 de noviembre de 2026): si cambias una regla a propósito, cambia
 también su prueba.

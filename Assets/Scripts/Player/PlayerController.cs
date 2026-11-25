@@ -47,6 +47,12 @@ public partial class PlayerController : NetworkBehaviour
     private NetworkAbilitySystemComponent NetASC;
     private CharacterController           characterController;
 
+    // Los dos componentes de habilidades de este jugador, ya guardados (Awake): para leerlos desde
+    // otro script cada frame sin GetComponent (25 de noviembre de 2026). Si se piden antes de Awake,
+    // se buscan esa vez.
+    public AbilitySystemComponent        AbilitySystem    => ASC    != null ? ASC    : (ASC    = GetComponent<AbilitySystemComponent>());
+    public NetworkAbilitySystemComponent NetAbilitySystem => NetASC != null ? NetASC : (NetASC = GetComponent<NetworkAbilitySystemComponent>());
+
     // Lee el input del jugador vía el Input System nuevo (acciones Move, Look,
     // PrimaryAttack, ...). Solo el dueño local lo inicializa (ver OnStartClient).
     private PlayerInputProvider           _input;

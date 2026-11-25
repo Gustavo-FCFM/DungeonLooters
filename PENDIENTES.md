@@ -33,6 +33,18 @@ del log son todos de packs importados).
   prefabs sin scripts perdidos.
   - [x] Una partida normal con un cliente y bots: todo igual que antes. **Probado ✅ (25 de noviembre: "funciona").**
 
+- **Partir los 5 medianos y dos búsquedas por frame** (25 de noviembre, pedido de Gustavo: "haz la 1 y la 2"):
+  - Partidos como los otros (solo se movió el texto): `MercenariesGameMode` (955 → 459 + 5 partes), `Entity_Companion`
+    (960 → 334 + 4), `GA_ProjectileShoot` (900 → 332 + 5), `MercEnemyAI` (805 → 358 + 4), `Entity_ShieldBarrier`
+    (732 → 310 + 3). La guía `Assets/Scripts/LEEME_ScriptsPartidos.md` tiene sus tablas.
+  - `PlayerController.AbilitySystem` / `NetAbilitySystem`: los marcadores de vida aliados y el muñeco de práctica ya no
+    hacen `GetComponent` en cada frame.
+  - Comprobado: compila con Unity, 82/82, validador sin errores, 68 prefabs sin scripts perdidos, los 36
+    `GA_ProjectileShoot` cargan, consola sin errores.
+  - [ ] Una partida con un cliente y bots: la partida corre entera (preparación, Objetivo, entrega, niveles, fin y vuelta a
+        la sala); los monstruos persiguen, atacan y mueren; el compañero del Maestro de bestias sigue, salta y ataca;
+        los escudos bloquean y el del Guardián devuelve; disparos con y sin apuntar (arco, Bola de fuego); el Clérigo ve los
+        marcadores de vida de aliados heridos.
 - **Pruebas del modo y lista de jugadores** (25 de noviembre, pedido de Gustavo: "haz la 1 y la 2"):
   - Las reglas de Mercenarios y de la sala salieron a funciones estáticas (`MercenariesGameMode`, sección "LAS CUENTAS";
     `LobbyManager`) sin cambiar lo que hacen, y tienen 9 pruebas nuevas ("Modo_…", "Sala_…"): 82 en total.

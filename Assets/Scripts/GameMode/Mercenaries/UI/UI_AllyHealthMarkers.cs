@@ -95,7 +95,7 @@ public class UI_AllyHealthMarkers : MonoBehaviour
                 _players.AddRange(PlayerController.All);
             }
 
-            NetworkAbilitySystemComponent localNet = local.GetComponent<NetworkAbilitySystemComponent>();
+            NetworkAbilitySystemComponent localNet = local.NetAbilitySystem;
             int localTeam = localNet != null ? localNet.NetTeamID : -1;
 
             if (_cam != null && localTeam > 0)
@@ -110,7 +110,7 @@ public class UI_AllyHealthMarkers : MonoBehaviour
     private bool TryPlace(PlayerController pc, PlayerController local, int localTeam, int index)
     {
         if (pc == null || pc == local) return false;
-        NetworkAbilitySystemComponent net = pc.GetComponent<NetworkAbilitySystemComponent>();
+        NetworkAbilitySystemComponent net = pc.NetAbilitySystem;
         if (net == null || net.NetTeamID != localTeam) return false;
 
         float max = net.NetMaxHealth;

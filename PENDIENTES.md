@@ -31,7 +31,7 @@ del log son todos de packs importados).
   más el Instinto, que pasó a su carpeta). Solo se movió texto: cada método entero a su parte, los campos se quedan. Comprobado:
   compila con Unity (codegen de FishNet incluido), 68/68 pruebas, validador sin errores, el GUID del jugador intacto y 68
   prefabs sin scripts perdidos.
-  - [ ] Una partida normal con un cliente y bots: todo igual que antes (si algo falla, es de esto).
+  - [x] Una partida normal con un cliente y bots: todo igual que antes. **Probado ✅ (25 de noviembre: "funciona").**
 
 ## ★ Bots más humanos y más listos (20 de noviembre, pedido de Gustavo): HECHO Y PROBADO ✅ (20 de noviembre: "se ven bien")
 

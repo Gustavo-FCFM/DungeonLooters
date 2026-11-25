@@ -118,7 +118,7 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
 | `Assets/Scripts/Audio/` | Sonido: `AudioManager`, `MusicPlayer`, `AudioLibrary` y `SfxCue`. |
 | `Assets/Scripts/GameMode/` | Lo que sirve a CUALQUIER modo: `DeathZone`, `FloatingVisual`, `NPC_Target`, `HealthPack`, `TrainingDummy` (el muñeco de práctica). |
 | `Assets/Scripts/GameMode/Mercenaries/` | **El modo Mercenarios**, y solo él: el modo, la arena, bases, objetivo, NPCs, bots y su HUD (`UI/`). Ver su `LEEME_ModoMercenarios.md`. Un modo nuevo (FFA) va en su propia carpeta al lado. |
-| `Assets/Scripts/Editor/` | Todas las herramientas de editor (menú `Mercenarios ▸ …`, el inspector de habilidades y `ClassModels/`, que genera los modelos de relleno). Tiene que llamarse `Editor` para que Unity no las meta en la build. |
+| `Assets/Scripts/Editor/` | Todas las herramientas de editor (menú `Mercenarios ▸ …`, el inspector de habilidades y `ClassModels/`, que importa los modelos de Blender). Tiene que llamarse `Editor` para que Unity no las meta en la build. |
 | `Assets/Resources/` | Lo que se carga por nombre: los dos registros de red, el catálogo de enemigos, la biblioteca de audio y la tabla de textos (`Localization.csv`). |
 | `Assets/48toPlay/` | Restos de la game jam: los fantasmas y sus stats. Se reusan como NPCs. |
 | `Assets/AssetsExtra/` | Packs comprados: FishNet, animaciones de Kevin Iglesias, Medieval Cute Series, Vefects, VFX. |
@@ -393,8 +393,8 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   se queda en pose T. **FishNet, en el host, prende y apaga los renderers que anotó al nacer el objeto** (el cuerpo del Dummy): por eso
   `ClassModelSwap` escucha `OnHostVisibilityUpdated` y vuelve a apagar el cuerpo (9 de noviembre de 2026: las copias del Ilusionista
   salían con los dos modelos). Si se generan mallas por código, una normal en cero se ve bien en la vista previa pero en juego sale una bola
-  blanca: por eso `ClassModelKit.Unit` y no `.normalized`, y un modelo nuevo se prueba en Play. **La Paladina, el Clérigo (leonino) y el Explorador (elfo) salen de Blender** (`Blender/paladin.py`, `cleric.py`, `ranger.py` → `Mercenarios ▸ Modelos de clase ▸ Importar los modelos de Blender`, que arma la malla con los bindposes del jugador y no pasa por FBX; ver `Blender/LEEME.md`): la receta de Unity de la Paladina ya no se usa, y los prefabs `Model_Cleric` y `Model_Ranger` se ponen a mano en el campo "Modelo" de su clase. Los de relleno salen de
-  `Scripts/Editor/ClassModels`: una receta por clase sobre `ClassModelRecipe`; con `ModelFinish.Polished`, el alfa de cada color es el pulido, así que una clase que
+  blanca: por eso `ClassModelKit.Unit` y no `.normalized`, y un modelo nuevo se prueba en Play. **La Paladina, el Clérigo (leonino) y el Explorador (elfo) salen de Blender** (`Blender/paladin.py`, `cleric.py`, `ranger.py` → `Mercenarios ▸ Modelos de clase ▸ Importar los modelos de Blender`, que arma la malla con los bindposes del jugador y no pasa por FBX; ver `Blender/LEEME.md`): la receta de Unity de la Paladina ya no se usa, y los prefabs `Model_Cleric` y `Model_Ranger` se ponen a mano en el campo "Modelo" de su clase. Los de relleno salieron de
+  recetas por clase en `Scripts/Editor/ClassModels` (borradas el 25 de noviembre de 2026 con los modelos ya hechos; están en el historial de git). Con `ModelFinish.Polished`, el alfa de cada color es el pulido, así que una clase que
   se pueda hacer invisible va en `Matte` (`PlayerVisibility` multiplica por ese alfa y el fantasma saldría a parches). Lo que brilla con luz
   propia (los ojos de la Paladina) va en una segunda textura, `ModelAtlas.PaintGlow`, que el kit pone como emisión. **El juego no tiene
   bloom ni tonemapping** (9 de noviembre de 2026: ninguna escena tiene Volume, el perfil por defecto `Settings/DefaultVolumeProfile` los

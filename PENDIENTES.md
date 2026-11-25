@@ -41,8 +41,8 @@ del log son todos de packs importados).
   - Borradas las 13 herramientas "de una vez" ya corridas (Campanas, Enemigos, Jefe, Mapa, Orbes, Santuarios, la biblioteca
     de audio). Quedó "Guardar las habilidades en el formato nuevo": sirve cada vez que cambia el tipo de un campo.
   - Comprobado: compila con Unity, 73/73, validador sin errores, 68 prefabs sin scripts perdidos.
-  - [ ] Una partida con un cliente y bots: los golpes de área, los conos, la estocada, el dash, el gancho, el rayo, las
-        cadenas y el apuntado del jugador siguen pegando igual (todos pasaron a `PhysicsQuery`).
+  - [x] Una partida con un cliente y bots: los golpes de área, los conos, la estocada, el dash, el gancho, el rayo, las
+        cadenas y el apuntado del jugador siguen pegando igual (todos pasaron a `PhysicsQuery`). **Probado ✅ (25 de noviembre).**
 
 ## ★ Bots más humanos y más listos (20 de noviembre, pedido de Gustavo): HECHO Y PROBADO ✅ (20 de noviembre: "se ven bien")
 
@@ -96,13 +96,13 @@ clase es un personaje con su modelo y sus animaciones, sobre el mismo esqueleto 
 ya viaja por la red, así que no agrega nada. Con modelo, el Animator va en Always Animate; si no, se queda en pose T.
 - **La Bárbara de relleno** (`Prefabs/Player/Classes/Model_Barbarian`, arte en `Art/Models/Classes/Barbarian`): generada por código
   con `Scripts/Editor/ClassModels` (`ClassModelKit` + la receta `BarbarianModel`), desde las imágenes que eligió Gustavo. Para cambiarla
-  se edita la receta y se corre `Mercenarios ▸ Modelos de clase ▸ Generar la Bárbara`. Unos 20 mil triángulos, casi el doble del Dummy.
+  se edita la receta y se corre `Mercenarios ▸ Modelos de clase ▸ Generar la Bárbara` (receta borrada el 25 de noviembre de 2026; está en el historial de git). Unos 20 mil triángulos, casi el doble del Dummy.
   - [x] Camina, ataca y ya no sale la bola blanca (eran normales en cero; no era bloom, el juego no tiene). **Probado ✅ (6 de noviembre).**
   - [x] Dedos más gruesos y pulgar unido a la palma: ver en juego cómo agarra el hacha. Si siguen raras, guantes o dedos más cortos
         (el `length` de `BuildFinger`, como la Pícara: no toca los huesos). **Probado ✅ (9 de noviembre).**
 - **El Guerrero de relleno** (`Prefabs/Player/Classes/Model_Fighter`, arte en `Art/Models/Classes/Fighter`): receta `FighterModel`, con lo
   común en `ClassModelRecipe`. Armadura pesada, capa y barba, con el aire de Aragorn que pidió Gustavo, sin copiarlo. Se rehace con
-  `Mercenarios ▸ Modelos de clase ▸ Generar el Guerrero`. Unos 18 mil triángulos. Lleva acabado Polished: el acero brilla de verdad (el alfa
+  `Mercenarios ▸ Modelos de clase ▸ Generar el Guerrero` (receta borrada el 25 de noviembre de 2026; está en el historial de git). Unos 18 mil triángulos. Lleva acabado Polished: el acero brilla de verdad (el alfa
   de la textura dice cuánto). Sus tres subclases lo heredan. Revisado en fotos con guardia, correr, ataque y bloqueo; **falta verlo en Play**.
   - [x] En Play: sin destellos raros. Si el brillo del acero se ve exagerado, bajar `_SpecColor` y `_Smoothness` en `Mat_Fighter` (y en `ClassModelKit`). **Probado ✅ (9 de noviembre).**
   - [x] Con la luz de la arena, el acero no se ve ni pálido ni negro. **Probado ✅ (9 de noviembre).**
@@ -111,7 +111,7 @@ ya viaja por la red, así que no agrega nada. Con modelo, el Animator va en Alwa
 - **La Pícara de relleno** (`Prefabs/Player/Classes/Model_Rogue`, arte en `Art/Models/Classes/Rogue`): receta `RogueModel`, una gata tabaxi con
   pelaje tuxedo. Capucha con las orejas afuera, bufanda, capa corta, chaleco de cuero, guantes sin dedos, patas con garras y almohadillas, y
   cola. Ropa oscura, a pedido de Gustavo: los siete colores están al inicio de la receta. Se rehace con
-  `Mercenarios ▸ Modelos de clase ▸ Generar la Pícara`. Unos 13 mil triángulos. Sus tres subclases la heredan. Revisada en fotos con reposo,
+  `Mercenarios ▸ Modelos de clase ▸ Generar la Pícara` (receta borrada el 25 de noviembre de 2026; está en el historial de git). Unos 13 mil triángulos. Sus tres subclases la heredan. Revisada en fotos con reposo,
   correr, ataque con dos armas y aturdido; **falta verla en Play**.
   - [x] Con la luz de la arena la ropa no se vuelve una mancha negra, sobre todo de espaldas, y se leen los ojos. Si no, subir esos colores. **Probado ✅ (9 de noviembre).**
   - [x] Las dagas quedan bien en las manos, ahora que los dedos son más cortos. **Probado ✅ (9 de noviembre).**
@@ -136,7 +136,7 @@ ya viaja por la red, así que no agrega nada. Con modelo, el Animator va en Alwa
 - **El Monje de relleno** (`Prefabs/Player/Classes/Model_Monk`, arte en `Art/Models/Classes/Monk`): receta `MonkModel`, un yuan-ti de cara
   humana. Piel amarillenta con escamas solo a los costados (sienes, cuello, antebrazos), ojos de serpiente y pelo blanco; gi negro con
   solapas, faja y faldones ocre, cuentas de oración (un mala) con borla roja, hombrera de bronce, vendas y zapatos de tela. Sin cola. A
-  Gustavo le gustó mucho (9 de noviembre). Se rehace con `Mercenarios ▸ Modelos de clase ▸ Generar el Monje`. Unos 16 mil triángulos, en
+  Gustavo le gustó mucho (9 de noviembre). Se rehace con `Mercenarios ▸ Modelos de clase ▸ Generar el Monje` (receta borrada el 25 de noviembre de 2026; está en el historial de git). Unos 16 mil triángulos, en
   Matte por el Shinobi. Sus tres subclases lo heredan. Revisado en fotos con guardia, correr, patada, puñetazo y aturdido; **falta verlo en Play**.
   - [x] Con la luz de la arena el gi negro se lee bien. **Probado ✅ (9 de noviembre).**
   - [x] Las patadas no rompen los faldones (cada mitad sigue a su pierna). **Probado ✅ (9 de noviembre).**
@@ -150,7 +150,7 @@ ya viaja por la red, así que no agrega nada. Con modelo, el Animator va en Alwa
   detrás de la cabeza (`WithHalo` la quita). Pelo rubio largo. Sin alas por ahora. Los símbolos son genéricos (flor de lis, sol), nada de
   Warhammer. Los ojos dorados brillan con luz propia: una segunda textura (`Paladin_Glow`, con `ModelAtlas.PaintGlow`) que el kit pone
   como emisión; cuánto brillan es `EyeGlow`. A Gustavo le gustó mucho (9 de noviembre). Se rehace con
-  `Mercenarios ▸ Modelos de clase ▸ Generar la Paladina`. Unos 24 mil triángulos, la más pesada. En Polished (el Paladín no se hace
+  `Mercenarios ▸ Modelos de clase ▸ Generar la Paladina` (receta borrada el 25 de noviembre de 2026; está en el historial de git). Unos 24 mil triángulos, la más pesada. En Polished (el Paladín no se hace
   invisible). Sus tres subclases la heredan. Revisada en fotos con guardia, correr, ataque y bloqueo; **falta verla en Play**.
   - [x] La aureola no tapa la vista con la cámara al hombro. Si estorba, `WithHalo = false` y regenerar. **Probado ✅ (9 de noviembre).**
   - [x] Con la luz de la arena el blanco no se ve quemado y los ojos se ven dorados, no blancos (si no, bajar `EyeGlow`). **Probado ✅ (9 de noviembre).**
@@ -162,7 +162,7 @@ ya viaja por la red, así que no agrega nada. Con modelo, el Animator va en Alwa
 - **La Maga de relleno** (`Prefabs/Player/Classes/Model_Wizard`, arte en `Art/Models/Classes/Wizard`): receta `WizardModel`. Morena, pelo
   largo rizado (rizos en espiral, `Ringlet`), lentes redondos, sombrero de bruja enorme, abrigo índigo con mangas de campana y bordados de
   oro, y un toque de bibliotecaria: suéter de cuello de tortuga, corsé, libro en la cadera, frascos y pluma al cuello. A Gustavo le gustó mucho
-  (9 de noviembre). Se rehace con `Mercenarios ▸ Modelos de clase ▸ Generar la Maga`. Unos 27 mil triángulos, la más pesada. En Polished.
+  (9 de noviembre). Se rehace con `Mercenarios ▸ Modelos de clase ▸ Generar la Maga` (receta borrada el 25 de noviembre de 2026; está en el historial de git). Unos 27 mil triángulos, la más pesada. En Polished.
   Sus tres subclases la heredan. Revisada en fotos con guardia de hechizo, correr, lanzamientos y aturdido; **falta verla en Play**.
   - [x] El sombrero no tapa la vista con la cámara al hombro (si estorba: `BrimRadius`, `HatHeight`, `HatTilt` al inicio de la receta). **Probado ✅ (11 de noviembre).**
   - [x] Volando, el sombrero y el abrigo se ven bien. **Probado ✅ (11 de noviembre).**

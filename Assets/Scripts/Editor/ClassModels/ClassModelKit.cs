@@ -16,7 +16,9 @@ using UnityEngine;
 //     las animaciones, los sockets y el ragdoll son los de siempre (ver ClassModelSwap).
 //   · ModelAtlas: UNA textura para todo el personaje, pintada con funciones (cada parte tiene su
 //     rectángulo, ModelRegion).
-//   · Una receta por clase (BarbarianModel) que dice qué forma tiene y de qué color es.
+//   · Antes, una receta por clase (BarbarianModel…) decía qué forma tenía y de qué color era. Se
+//     borraron el 25 de noviembre de 2026 con los modelos ya hechos (están en el historial de git);
+//     hoy el kit lo usa BlenderModelImport.
 //
 // Las piezas se sombrean con facetas o suaves según su ángulo de quiebre (BeginPiece).
 // ============================================================

@@ -28,6 +28,7 @@ public class GasDamagePipelineTests
     {
         foreach (Object o in _made) if (o != null) Object.DestroyImmediate(o);
         _made.Clear();
+        AbilitySystemComponent.ForgetDestroyedForTests();
         AbilitySystemComponent.TraceDamage = false;
         AbilitySystemComponent.DamageContext = null;
     }
@@ -52,6 +53,7 @@ public class GasDamagePipelineTests
         var asc = go.AddComponent<AbilitySystemComponent>();
         asc.CharacterRoleDefinition = def;
         asc.InitializeAttributes(false);
+        AbilitySystemComponent.TrackForTests(asc);   // lo que mira AbilitySystemComponent.All (en el editor no hay OnEnable)
         return asc;
     }
 
@@ -1200,11 +1202,10 @@ public class GasDamagePipelineTests
     }
     // ---- Revivir (GA_Revive) ----
 
-    // Un aliado (equipo 1) que FindObjectsByType encuentra (sin HideAndDontSave: TearDown lo borra igual).
+    // Un aliado (equipo 1). Revivir lo encuentra en AbilitySystemComponent.All (lo anota Character).
     private AbilitySystemComponent Teammate(Vector3 at)
     {
         var asc = Character(100f, (EAttributeType.MaxHealth, 100f));
-        asc.gameObject.hideFlags = HideFlags.None;
         asc.TeamID = 1;
         asc.transform.position = at;
         return asc;
@@ -1230,7 +1231,6 @@ public class GasDamagePipelineTests
         var near = Teammate(new Vector3(3f, 0f, 0f));
         var far = Teammate(new Vector3(20f, 0f, 0f));
         var enemy = Character(100f, (EAttributeType.MaxHealth, 100f));
-        enemy.gameObject.hideFlags = HideFlags.None;
         enemy.TeamID = 2;
         enemy.transform.position = new Vector3(0f, 0f, 3f);
         foreach (var asc in new[] { near, far, enemy }) asc.ApplyGameplayEffect(Hit(500f), owner);
@@ -1310,7 +1310,6 @@ public class GasDamagePipelineTests
     private AbilitySystemComponent OnMap(int team, Vector3 at)
     {
         var asc = Character(100f);
-        asc.gameObject.hideFlags = HideFlags.None;   // FindObjectsByType no ve los HideAndDontSave (TearDown lo borra igual)
         asc.TeamID = team;
         asc.transform.position = at;
         return asc;
@@ -1540,5 +1539,109 @@ public class GasDamagePipelineTests
         Assert.IsTrue(BotController.IsOutnumbered(4, 1), "dos contra 4: sí");
         Assert.IsFalse(BotController.IsOutnumbered(3, 1), "dos contra 3: no");
         Assert.IsFalse(BotController.IsOutnumbered(0, 0), "nadie: no");
+    }
+
+    // ---- Las reglas de Mercenarios (MercenariesGameMode, "LAS CUENTAS") ----
+
+    private static readonly float[] Steps = { 100f, 150f };   // los del Inspector: 100 para el 2, 150 más para el 3
+
+    [Test]
+    public void Modo_Nivel_SubeConLaBolsaYSeQuedaEnElMaximo()
+    {
+        Assert.AreEqual(1, MercenariesGameMode.LevelFromXp(0f, Steps, 3), "sin nada, nivel 1");
+        Assert.AreEqual(1, MercenariesGameMode.LevelFromXp(99.9f, Steps, 3), "casi, todavía no");
+        Assert.AreEqual(2, MercenariesGameMode.LevelFromXp(100f, Steps, 3), "100 justos: nivel 2");
+        Assert.AreEqual(2, MercenariesGameMode.LevelFromXp(249f, Steps, 3), "el 3 pide 100 + 150");
+        Assert.AreEqual(3, MercenariesGameMode.LevelFromXp(250f, Steps, 3));
+        Assert.AreEqual(3, MercenariesGameMode.LevelFromXp(10000f, Steps, 3), "no pasa del máximo");
+        Assert.AreEqual(2, MercenariesGameMode.LevelFromXp(10000f, Steps, 2), "con máximo 2, tampoco");
+        Assert.AreEqual(1, MercenariesGameMode.LevelFromXp(10000f, null, 3), "sin lista de saltos, no sube");
+        Assert.AreEqual(2, MercenariesGameMode.LevelFromXp(1f, new[] { 0f, 0f }, 3), "un 0 en el Inspector pide 1 (no sube todo de golpe)");
+    }
+
+    [Test]
+    public void Modo_Barrita_EsElProgresoDentroDelNivel()
+    {
+        Assert.AreEqual(0.5f, MercenariesGameMode.XpProgressWithinLevel(50f, 1, Steps, 3), 0.001f, "50 de 100");
+        Assert.AreEqual(0.5f, MercenariesGameMode.XpProgressWithinLevel(175f, 2, Steps, 3), 0.001f, "en el 2 cuenta lo que pasó de 100: 75 de 150");
+        Assert.AreEqual(1f, MercenariesGameMode.XpProgressWithinLevel(250f, 3, Steps, 3), 0.001f, "en el máximo, llena");
+        Assert.AreEqual(150f, MercenariesGameMode.XpNeededForLevel(2, Steps), 0.001f);
+        Assert.AreEqual(100f, MercenariesGameMode.XpNeededForLevel(5, Steps), 0.001f, "sin dato, 100");
+    }
+
+    [Test]
+    public void Modo_ExperienciaPasiva_LlevaAlMaximoEnLosMinutosPuestos()
+    {
+        Assert.AreEqual(250f, MercenariesGameMode.XpToMaxLevel(Steps, 3), 0.001f, "100 + 150");
+        Assert.AreEqual(250f, MercenariesGameMode.XpToMaxLevel(new[] { 100f, 150f, 999f }, 3), 0.001f, "lo que pasa del máximo no cuenta");
+        Assert.AreEqual(250f / 600f, MercenariesGameMode.PassiveXpRate(Steps, 3, 10f, 0f), 0.0001f, "en 10 minutos");
+        Assert.AreEqual(5f, MercenariesGameMode.PassiveXpRate(Steps, 3, 10f, 5f), 0.0001f, "con una fija, la fija");
+        Assert.AreEqual(250f / 30f, MercenariesGameMode.PassiveXpRate(Steps, 3, 0.1f, 0f), 0.0001f, "nunca en menos de 30 s");
+    }
+
+    [Test]
+    public void Modo_Bajas_UnJugadorDaLoDelModoYUnNPCLoSuyo()
+    {
+        Assert.AreEqual(50f, MercenariesGameMode.KillXp(true, 999f, 50f, 15f), 0.001f, "un jugador: lo del modo");
+        Assert.AreEqual(15f, MercenariesGameMode.KillXp(false, 0f, 50f, 15f), 0.001f, "un NPC sin recompensa propia: lo del modo");
+        Assert.AreEqual(80f, MercenariesGameMode.KillXp(false, 80f, 50f, 15f), 0.001f, "un jefe con la suya: la suya");
+    }
+
+    [Test]
+    public void Modo_Gana_ElQueLlegaALosPuntosOElQueVaPrimero()
+    {
+        Assert.IsTrue(MercenariesGameMode.HasWon(2, 2), "2 entregas de 2: gana");
+        Assert.IsFalse(MercenariesGameMode.HasWon(1, 2));
+        Assert.AreEqual(2, MercenariesGameMode.LeaderOf(new[] { 0, 2, 1 }), "se acaba el tiempo: el que va primero");
+        Assert.AreEqual(3, MercenariesGameMode.LeaderOf(new[] { 0, 0, 1 }));
+        Assert.AreEqual(0, MercenariesGameMode.LeaderOf(new[] { 2, 2, 0 }), "empatados arriba: empate");
+        Assert.AreEqual(1, MercenariesGameMode.LeaderOf(new[] { 2, 1, 1 }), "el empate de abajo no importa");
+        Assert.AreEqual(0, MercenariesGameMode.LeaderOf(new[] { 0, 0, 0 }), "nadie entregó: empate");
+    }
+
+    [Test]
+    public void Modo_EquipoEliminado_AvisaUnaVezYSeRearmaAlRevivir()
+    {
+        bool wiped = false;
+        Assert.IsTrue(MercenariesGameMode.WipeStep(3, 0, ref wiped), "caen los tres: aviso");
+        Assert.IsFalse(MercenariesGameMode.WipeStep(3, 0, ref wiped), "siguen muertos: no se repite");
+        Assert.IsFalse(MercenariesGameMode.WipeStep(3, 1, ref wiped), "revive uno: sin aviso…");
+        Assert.IsFalse(wiped, "…pero se rearma");
+        Assert.IsTrue(MercenariesGameMode.WipeStep(3, 0, ref wiped), "vuelven a caer todos: aviso otra vez");
+        Assert.IsFalse(MercenariesGameMode.WipeStep(0, 0, ref wiped), "un equipo vacío no está eliminado");
+        Assert.IsFalse(wiped);
+    }
+
+    // ---- Las reglas de la sala (LobbyManager) ----
+
+    [Test]
+    public void Sala_MismoNombre_SinMayusculasNiEspacios()
+    {
+        Assert.IsTrue(LobbyManager.SameName("Gus", "gus "), "\"Gus\" y \"gus \" se leen igual");
+        Assert.IsFalse(LobbyManager.SameName("Gus", "Gustavo"));
+        Assert.IsFalse(LobbyManager.SameName(null, "Gus"), "un lugar sin nombre no choca");
+        Assert.IsFalse(LobbyManager.SameName("  ", "  "), "dos vacíos tampoco");
+    }
+
+    [Test]
+    public void Sala_EquipoLleno_ConTope()
+    {
+        Assert.IsTrue(LobbyManager.IsFull(3, 3), "3 de 3: lleno");
+        Assert.IsFalse(LobbyManager.IsFull(2, 3));
+        Assert.IsFalse(LobbyManager.IsFull(99, 0), "tope 0: sin tope");
+    }
+
+    [Test]
+    public void Sala_Arranca_ConTodosLosQueJueganListos()
+    {
+        LobbyEntry Ready(bool ready, bool spectator = false) => new LobbyEntry { Ready = ready, Spectator = spectator };
+
+        Assert.IsTrue(LobbyManager.ReadyToStart(new LobbyEntry[0], false, 1), "sin el requisito, siempre");
+        Assert.IsFalse(LobbyManager.ReadyToStart(new LobbyEntry[0], true, 1), "con el requisito y nadie: no");
+        Assert.IsTrue(LobbyManager.ReadyToStart(new[] { Ready(true), Ready(false, spectator: true) }, true, 1),
+                      "el que mira no frena");
+        Assert.IsFalse(LobbyManager.ReadyToStart(new[] { Ready(true), Ready(false) }, true, 1), "falta uno: no");
+        Assert.IsFalse(LobbyManager.ReadyToStart(new[] { Ready(true) }, true, 2), "listos, pero menos del mínimo: no");
+        Assert.IsTrue(LobbyManager.ReadyToStart(new[] { Ready(true), Ready(true) }, true, 2));
     }
 }

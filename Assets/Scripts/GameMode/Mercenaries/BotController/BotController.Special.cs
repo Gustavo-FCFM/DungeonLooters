@@ -24,7 +24,7 @@ public partial class BotController
 
         float best = ReviveSearchRadius * ReviveSearchRadius;
         bool found = false;
-        foreach (PlayerController pc in FindObjectsByType<PlayerController>(FindObjectsSortMode.None))
+        foreach (PlayerController pc in PlayerController.All)
         {
             AbilitySystemComponent asc = pc.GetComponent<AbilitySystemComponent>();
             if (asc == null || asc == _asc || !asc.HasTag(EGameplayTag.State_Dead)) continue;

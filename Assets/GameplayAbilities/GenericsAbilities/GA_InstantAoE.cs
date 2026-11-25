@@ -236,7 +236,7 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
     // invocaciones; con "No a los invisibles", sin enemigos ocultos. Se busca una vez por golpe, no cada frame.
     private IEnumerable<AbilitySystemComponent> GlobalTargets()
     {
-        foreach (AbilitySystemComponent asc in Object.FindObjectsByType<AbilitySystemComponent>(FindObjectsSortMode.None))
+        foreach (AbilitySystemComponent asc in new List<AbilitySystemComponent>(AbilitySystemComponent.All))
         {
             if (asc == null || ReferenceEquals(asc, OwnerASC) || asc.Strikeable != null) continue;
             if (asc.HasTag(EGameplayTag.State_Dead)) continue;

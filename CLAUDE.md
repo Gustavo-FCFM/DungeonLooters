@@ -202,6 +202,9 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   regla distinta dé OTRO resultado (con 20 de daño, armadura 10 da lo mismo con dos fórmulas: la prueba no vigilaba nada).
   Desde el 25 de noviembre de 2026 también prueban las cuentas del instinto de los bots ("Bots_…": la esquiva, adelantarse,
   la puntería, superado en número), que son funciones estáticas de `BotController.Instinct` para poder probarlas sin escena.
+  Y las reglas del modo ("Modo_…": nivel de la bolsa, barrita, experiencia pasiva, bajas, quién gana, aviso de eliminado;
+  sección "LAS CUENTAS" de `MercenariesGameMode`) y de la sala ("Sala_…": nombre repetido, equipo lleno, cuándo arrancar;
+  estáticas de `LobbyManager`). **Un cambio de regla del modo va en esas funciones**, no en el código de red que las llama.
 
 - **Guía sencilla para Gustavo: `Assets/Scripts/LEEME_ScriptsPartidos.md`** (qué es `partial`, las 3 reglas y una tabla
   "si quieres cambiar X, abre Y" por clase). Si se parte otra clase o se agrega una parte, se actualiza también ahí.
@@ -226,6 +229,14 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   foreach, `[i]`, `Length`, `Sort`) o, para un solo foreach, `foreach (... in PhysicsQuery.OverlapSphere(...).Once())`. Es una
   reserva y no un arreglo compartido porque un golpe puede disparar otra búsqueda mientras se recorre la primera. El resultado
   no se guarda ni se pasa a otro lado: se devuelve al terminar el bloque. Si llena el arreglo, repite con uno del doble.
+- **Para recorrer personajes, las listas de prendidos, no `FindObjectsByType`** (desde el 25 de noviembre de 2026):
+  `PlayerController.All` (personas y bots), `AbilitySystemComponent.All` (todo lo que tiene GAS: también NPCs e
+  invocaciones) y `Entity_Companion.All`, como ya tenían `HealthPack.All` y los proyectiles. Entran en `OnEnable` y salen en
+  `OnDisable`, así que dan lo mismo que el barrido. **Si lo de adentro del foreach puede dañar, matar, crear o destruir**
+  (un golpe a todo el mapa, la marca del Cazador), se recorre una copia: `new List<…>(X.All)`; si solo lee, directo. En las
+  pruebas de editor Unity no llama `OnEnable`: el ayudante `Character` de las pruebas anota a mano
+  (`AbilitySystemComponent.TrackForTests`). `FindFirstObjectByType` para buscar UNA cosa al arrancar (un panel, el
+  administrador de partida) sigue bien.
 - **Las herramientas de editor "de una vez" se borran cuando ya se corrieron** (el 25 de noviembre de 2026 se fueron las 13
   de "armar": campanas, enemigos, jefe, mapa, orbes, santuarios, biblioteca de audio). Quedan en el historial de git. En el
   menú `Mercenarios` solo queda lo que se usa seguido.

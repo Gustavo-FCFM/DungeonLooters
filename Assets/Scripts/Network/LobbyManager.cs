@@ -229,22 +229,17 @@ public class LobbyManager : NetworkBehaviour
         return n;
     }
 
-    public bool IsTeamFull(int team)
-        => MaxPlayersPerTeam > 0 && CountInTeam(team) >= MaxPlayersPerTeam;
+    public bool IsTeamFull(int team) => IsFull(CountInTeam(team), MaxPlayersPerTeam);
 
-    // Nombre ya usado por OTRO. Se compara sin distinguir mayúsculas ni espacios de
-    // los bordes: "Gus" y "gus " son el mismo nombre para cualquiera que los lea en
-    // pantalla, y esa es la confusión que queremos evitar.
+    // Nombre ya usado por OTRO (ver SameName).
     public bool IsNameTaken(string playerName, int exceptClientId)
     {
         if (string.IsNullOrWhiteSpace(playerName)) return false;
 
-        string wanted = playerName.Trim();
         for (int i = 0; i < _entries.Count; i++)
         {
             if (_entries[i].ClientId == exceptClientId) continue;
-            if (string.Equals(_entries[i].PlayerName?.Trim(), wanted,
-                              System.StringComparison.OrdinalIgnoreCase)) return true;
+            if (SameName(_entries[i].PlayerName, playerName)) return true;
         }
         return false;
     }
@@ -263,21 +258,34 @@ public class LobbyManager : NetworkBehaviour
     // True si la partida puede arrancar: hay suficientes jugadores y TODOS los que no
     // son espectadores están listos. Con RequireAllReady apagado siempre da true, así
     // la escena de pruebas y las demos rápidas no dependen del gate.
-    public bool AllReady
-    {
-        get
-        {
-            if (!RequireAllReady) return true;
+    public bool AllReady => ReadyToStart(_entries, RequireAllReady, MinPlayersToStart);
 
-            int players = 0;
-            for (int i = 0; i < _entries.Count; i++)
-            {
-                if (_entries[i].Spectator) continue;
-                if (!_entries[i].Ready) return false;
-                players++;
-            }
-            return players >= Mathf.Max(1, MinPlayersToStart);
+    // ---- Las cuentas de la sala (25 de noviembre de 2026) ----
+    // Estáticas, sin red: las prueban las pruebas de editor ("Sala_…" en GasDamagePipelineTests).
+
+    // Dos nombres son el mismo sin distinguir mayúsculas ni espacios de los bordes: "Gus"
+    // y "gus " son el mismo para cualquiera que los lea en pantalla.
+    public static bool SameName(string a, string b)
+        => !string.IsNullOrWhiteSpace(a) && !string.IsNullOrWhiteSpace(b)
+           && string.Equals(a.Trim(), b.Trim(), System.StringComparison.OrdinalIgnoreCase);
+
+    // Un equipo está lleno si hay tope (más de 0) y ya lo alcanzó.
+    public static bool IsFull(int count, int maxPerTeam) => maxPerTeam > 0 && count >= maxPerTeam;
+
+    // ¿Se puede arrancar? Todos los que no miran, listos, y al menos 'minPlayers' (nunca
+    // menos de 1). Sin el requisito, siempre.
+    public static bool ReadyToStart(IEnumerable<LobbyEntry> entries, bool requireAllReady, int minPlayers)
+    {
+        if (!requireAllReady) return true;
+
+        int players = 0;
+        foreach (LobbyEntry e in entries)
+        {
+            if (e.Spectator) continue;
+            if (!e.Ready) return false;
+            players++;
         }
+        return players >= Mathf.Max(1, minPlayers);
     }
 
     // =========================================================

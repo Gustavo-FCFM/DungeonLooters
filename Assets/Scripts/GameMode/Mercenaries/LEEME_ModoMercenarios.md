@@ -172,6 +172,13 @@ sola bolsa de experiencia, y de ahí sale el nivel de los tres. Consecuencia bus
 **cambiar de clase no te cuesta progreso** — te reinicia el personaje a nivel 1 y medio
 segundo después el servidor te devuelve el nivel del equipo.
 
+**Las cuentas de todo esto** (cuánta experiencia pide cada nivel, la pasiva, lo que da una
+baja, quién gana si se acaba el tiempo, el aviso de "equipo eliminado") están juntas en la
+sección "LAS CUENTAS" al final de `MercenariesGameMode.cs`, y las reglas de la sala (nombre
+repetido, equipo lleno, cuándo se puede arrancar) en `LobbyManager`. Las vigilan las pruebas
+"Modo_…" y "Sala_…" (25 de noviembre de 2026): si cambias una regla a propósito, cambia
+también su prueba.
+
 **Reaparición.** 5 segundos, en tu propia base.
 
 ---

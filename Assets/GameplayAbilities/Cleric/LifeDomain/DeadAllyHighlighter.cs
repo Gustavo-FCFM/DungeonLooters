@@ -118,7 +118,7 @@ public class DeadAllyHighlighter : MonoBehaviour
         Vector3 me  = _pc.transform.position;
 
         _seen.Clear();
-        foreach (PlayerController other in Object.FindObjectsByType<PlayerController>(FindObjectsSortMode.None))
+        foreach (PlayerController other in PlayerController.All)
         {
             if (other == _pc) continue;
 

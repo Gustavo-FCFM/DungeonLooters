@@ -19,6 +19,13 @@ public partial class PlayerController
     // =========================================================
 
     // Cachea las referencias a los demás componentes del mismo GameObject.
+    // La lista de los jugadores prendidos (ver All en el archivo principal).
+    void OnEnable()  { if (!s_all.Contains(this)) s_all.Add(this); }
+    void OnDisable() => s_all.Remove(this);
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetAllList() => s_all.Clear();
+
     void Awake()
     {
         ASC                = GetComponent<AbilitySystemComponent>();

@@ -258,6 +258,17 @@ public class Entity_Companion : Entity_Summon
     private Vector3 _visualRest;
     private float   _lungeUntil;
 
+    // Los compañeros prendidos en este proceso, en lugar de FindObjectsByType (25 de
+    // noviembre de 2026; los busca CompanionManager). Se lee con un foreach directo.
+    public static IReadOnlyList<Entity_Companion> All => s_all;
+    private static readonly List<Entity_Companion> s_all = new List<Entity_Companion>();
+
+    private void OnEnable()  { if (!s_all.Contains(this)) s_all.Add(this); }
+    private void OnDisable() => s_all.Remove(this);
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetAllList() => s_all.Clear();
+
     protected override void Awake()
     {
         base.Awake();

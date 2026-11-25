@@ -130,8 +130,8 @@ public class GA_Revive : TargetImpactAbility
         AbilitySystemComponent best = null;
         float bestAlign = Mathf.Cos(SelectionAngle * Mathf.Deg2Rad);
 
-        // Se busca al usarla, no cada frame de juego: recorrer los personajes de la escena no pesa.
-        foreach (AbilitySystemComponent asc in Object.FindObjectsByType<AbilitySystemComponent>(FindObjectsSortMode.None))
+        // Se busca al usarla, en la lista de personajes prendidos (AbilitySystemComponent.All).
+        foreach (AbilitySystemComponent asc in AbilitySystemComponent.All)
         {
             if (asc == null || ReferenceEquals(asc, OwnerASC) || !IsRevivable(asc)) continue;
             if (!asc.HasTag(EGameplayTag.State_Dead) || !IsAlly(asc, includeSelf: false)) continue;

@@ -57,6 +57,13 @@ public partial class PlayerController : NetworkBehaviour
     // Ver PlayerVisibility.
     public static PlayerController LocalPlayer { get; private set; }
 
+    // TODOS los jugadores (personas y bots) prendidos en este proceso, en lugar de recorrer
+    // la escena con FindObjectsByType (25 de noviembre de 2026). Entra en OnEnable y sale en
+    // OnDisable (ver Lifecycle): es lo mismo que encontraba el barrido. Se lee, no se guarda:
+    // un foreach directo, sin agregar ni sacar nada mientras se recorre.
+    public static IReadOnlyList<PlayerController> All => s_all;
+    private static readonly List<PlayerController> s_all = new List<PlayerController>();
+
     [Header("Cámara de Red")]
     // Prefab de cámara que se instancia solo para el dueño local (ver
     // OnStartClient).

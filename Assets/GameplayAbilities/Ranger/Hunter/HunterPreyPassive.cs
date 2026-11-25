@@ -248,7 +248,7 @@ public class HunterPreyPassive : MonoBehaviour, IDamageModifier
         if (seconds <= 0.05f) return;
         float until = Time.time + seconds;
 
-        foreach (AbilitySystemComponent other in FindObjectsByType<AbilitySystemComponent>(FindObjectsSortMode.None))
+        foreach (AbilitySystemComponent other in new List<AbilitySystemComponent>(AbilitySystemComponent.All))
         {
             if (other == null || other == _asc || other.HasTag(EGameplayTag.State_Dead)) continue;
             if (!_asc.IsEnemyOf(other)) continue;

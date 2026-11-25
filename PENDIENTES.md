@@ -33,6 +33,17 @@ del log son todos de packs importados).
   prefabs sin scripts perdidos.
   - [x] Una partida normal con un cliente y bots: todo igual que antes. **Probado ✅ (25 de noviembre: "funciona").**
 
+- **Pruebas del modo y lista de jugadores** (25 de noviembre, pedido de Gustavo: "haz la 1 y la 2"):
+  - Las reglas de Mercenarios y de la sala salieron a funciones estáticas (`MercenariesGameMode`, sección "LAS CUENTAS";
+    `LobbyManager`) sin cambiar lo que hacen, y tienen 9 pruebas nuevas ("Modo_…", "Sala_…"): 82 en total.
+  - `PlayerController.All`, `AbilitySystemComponent.All` y `Entity_Companion.All` reemplazan los 10 recorridos de escena
+    (`FindObjectsByType`) del modo, la sala, el espectador, los marcadores de vida, las estadísticas, los bots, Revivir,
+    el resaltado de aliados caídos, el golpe a todo el mapa, la marca del Cazador y el compañero del Maestro de bestias.
+  - Comprobado: compila con Unity, 82/82, validador sin errores.
+  - [ ] Una partida con un cliente y bots: el marcador, los niveles del equipo y el aviso de "equipo eliminado" como antes;
+        la lista de espectador recorre a todos; el Clérigo de la vida ve y revive a los caídos (y los bots Clérigo van a
+        revivir); una definitiva a todo el mapa le llega a todos; el Cazador marca a todos; el compañero del Maestro de
+        bestias sale en su panel.
 - **El resto de las mejoras de código** (25 de noviembre, pedido de Gustavo: "haz todas"):
   - Las 34 búsquedas de física que creaban un arreglo por golpe van por `PhysicsQuery` (arreglos prestados de una reserva).
   - `ShieldBlockFlash` ya no tira ~100 errores si se recompila con el juego en Play.

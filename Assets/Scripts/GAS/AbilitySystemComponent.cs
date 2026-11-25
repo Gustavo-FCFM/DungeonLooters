@@ -235,6 +235,26 @@ public partial class AbilitySystemComponent : MonoBehaviour
         InitializeAttributes();
     }
 
+    // TODOS los personajes con GAS prendidos en este proceso (jugadores, bots, NPCs,
+    // invocaciones), en lugar de recorrer la escena con FindObjectsByType (25 de noviembre
+    // de 2026). Entra en OnEnable y sale en OnDisable: es lo mismo que encontraba el barrido.
+    // Se lee con un foreach directo, sin agregar ni sacar nada mientras se recorre.
+    public static IReadOnlyList<AbilitySystemComponent> All => s_all;
+    private static readonly List<AbilitySystemComponent> s_all = new List<AbilitySystemComponent>();
+
+    void OnEnable()  { if (!s_all.Contains(this)) s_all.Add(this); }
+    void OnDisable() => s_all.Remove(this);
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetAllList() => s_all.Clear();
+
+#if UNITY_EDITOR
+    // Para las pruebas de editor: ahí Unity no llama OnEnable/OnDisable, así que los personajes
+    // que arman se anotan a mano y, al terminar, se sacan los que ya se borraron.
+    public static void TrackForTests(AbilitySystemComponent asc) { if (asc != null && !s_all.Contains(asc)) s_all.Add(asc); }
+    public static void ForgetDestroyedForTests() => s_all.RemoveAll(a => a == null);
+#endif
+
     // Hace avanzar el cronómetro de todos los efectos activos cada frame.
     void Update()
     {

@@ -514,16 +514,7 @@ public class MercenariesGameMode : NetworkBehaviour
     }
 
     // Quién va ganando (0 si hay empate). Se usa si se acaba el tiempo.
-    private int ResolveLeader()
-    {
-        int best = 0, bestScore = -1; bool tie = false;
-        for (int i = 0; i < TeamCount; i++)
-        {
-            if (_teamScore[i] > bestScore) { bestScore = _teamScore[i]; best = i + 1; tie = false; }
-            else if (_teamScore[i] == bestScore) tie = true;
-        }
-        return tie ? 0 : best;
-    }
+    private int ResolveLeader() => LeaderOf(_teamScore);
 
     // =========================================================
     // OBJETIVO
@@ -633,7 +624,7 @@ public class MercenariesGameMode : NetworkBehaviour
 
         DespawnObjective();
 
-        if (_teamScore[i] >= PointsToWin) { ServerEndMatch(team); return; }
+        if (HasWon(_teamScore[i], PointsToWin)) { ServerEndMatch(team); return; }
 
         ScheduleObjective(ObjectiveRespawnDelay);
     }
@@ -648,29 +639,13 @@ public class MercenariesGameMode : NetworkBehaviour
     // =========================================================
 
     // Experiencia total para llegar al nivel máximo (suma de todos los saltos).
-    public float TotalXpForMaxLevel
-    {
-        get
-        {
-            float total = 0f;
-            if (XpPerLevel != null)
-                for (int i = 0; i < XpPerLevel.Length && i < MaxTeamLevel - 1; i++) total += XpPerLevel[i];
-            return Mathf.Max(1f, total);
-        }
-    }
+    public float TotalXpForMaxLevel => XpToMaxLevel(XpPerLevel, MaxTeamLevel);
 
     // Experiencia pasiva por segundo. Por defecto sale sola de
     // MinutesToGuaranteedMaxLevel: es el piso que garantiza que NADIE se quede en
     // nivel 1 aunque no pelee.
     public float PassiveXpPerSecond
-    {
-        get
-        {
-            if (PassiveXpPerSecondOverride > 0f) return PassiveXpPerSecondOverride;
-            float seconds = Mathf.Max(30f, MinutesToGuaranteedMaxLevel * 60f);
-            return TotalXpForMaxLevel / seconds;
-        }
-    }
+        => PassiveXpRate(XpPerLevel, MaxTeamLevel, MinutesToGuaranteedMaxLevel, PassiveXpPerSecondOverride);
 
     [Server]
     private void ServerTickSharedExperience()
@@ -705,37 +680,10 @@ public class MercenariesGameMode : NetworkBehaviour
     }
 
     // Nivel que corresponde a una cantidad de experiencia acumulada.
-    private int LevelFromXp(float xp)
-    {
-        int level = 1;
-        float remaining = xp;
-        if (XpPerLevel != null)
-        {
-            for (int i = 0; i < XpPerLevel.Length && level < MaxTeamLevel; i++)
-            {
-                float need = Mathf.Max(1f, XpPerLevel[i]);
-                if (remaining < need) break;
-                remaining -= need;
-                level++;
-            }
-        }
-        return Mathf.Min(level, MaxTeamLevel);
-    }
+    private int LevelFromXp(float xp) => LevelFromXp(xp, XpPerLevel, MaxTeamLevel);
 
     // Progreso 0..1 DENTRO del nivel actual (para la barrita del HUD).
-    private float XpProgressWithinLevel(float xp, int level)
-    {
-        if (level >= MaxTeamLevel) return 1f;
-
-        float consumed = 0f;
-        for (int i = 0; i < level - 1 && XpPerLevel != null && i < XpPerLevel.Length; i++)
-            consumed += Mathf.Max(1f, XpPerLevel[i]);
-
-        float need = (XpPerLevel != null && level - 1 < XpPerLevel.Length)
-            ? Mathf.Max(1f, XpPerLevel[level - 1]) : 100f;
-
-        return Mathf.Clamp01((xp - consumed) / need);
-    }
+    private float XpProgressWithinLevel(float xp, int level) => XpProgressWithinLevel(xp, level, XpPerLevel, MaxTeamLevel);
 
     // Una baja: el equipo del que remató se lleva la experiencia. La llama
     // NetworkAbilitySystemComponent.AwardKillExperience, que es el único punto del
@@ -746,15 +694,11 @@ public class MercenariesGameMode : NetworkBehaviour
         if (killer == null || victim == null) return;
 
         bool victimIsPlayer = victim.GetComponent<PlayerController>() != null;
-        float amount = victimIsPlayer ? XpPerPlayerTakedown : XpPerNpcKill;
 
         // Un NPC puede valer más que el resto (un jefe no da lo mismo que un fantasma):
         // si trae su propia recompensa, esa manda sobre el valor general del modo.
-        if (!victimIsPlayer)
-        {
-            MercEnemyAI enemy = victim.GetComponent<MercEnemyAI>();
-            if (enemy != null && enemy.ExperienceReward > 0f) amount = enemy.ExperienceReward;
-        }
+        MercEnemyAI enemy = victimIsPlayer ? null : victim.GetComponent<MercEnemyAI>();
+        float amount = KillXp(victimIsPlayer, enemy != null ? enemy.ExperienceReward : 0f, XpPerPlayerTakedown, XpPerNpcKill);
 
         ServerAddTeamXp(killer.TeamID, amount);
 
@@ -795,8 +739,7 @@ public class MercenariesGameMode : NetworkBehaviour
             int i = asc.TeamID - 1;
             asc.SetLevelTo(_teamLevel[i]);
 
-            float need  = (XpPerLevel != null && _teamLevel[i] - 1 < XpPerLevel.Length)
-                ? Mathf.Max(1f, XpPerLevel[_teamLevel[i] - 1]) : 100f;
+            float need  = XpNeededForLevel(_teamLevel[i], XpPerLevel);
             float shown = _netXpNorm[i] * need;
 
             if (!Mathf.Approximately(asc.GetAttributeValue(EAttributeType.MaxExp), need))
@@ -810,15 +753,14 @@ public class MercenariesGameMode : NetworkBehaviour
     // JUGADORES Y WIPES
     // =========================================================
 
-    // Rescanea los jugadores de la escena. Se hace por barrido y no con altas/bajas
-    // explícitas a propósito: los personajes los crea NetworkGameManager y los destruye
-    // la desconexión, y un barrido de 9 objetos dos veces por segundo es más barato que
-    // mantener suscripciones que se pueden desincronizar.
+    // Copia la lista de jugadores prendidos (PlayerController.All, que se mantiene sola al
+    // prenderse y apagarse cada uno). Se copia porque lo de abajo teletransporta y cambia
+    // niveles mientras la recorre.
     [Server]
     private void RefreshPlayers()
     {
         _players.Clear();
-        _players.AddRange(FindObjectsByType<PlayerController>(FindObjectsSortMode.None));
+        _players.AddRange(PlayerController.All);
     }
 
     // SEGURO DE LA PREPARACIÓN: nadie sale de su base antes de tiempo. Las rejas frenan
@@ -898,12 +840,105 @@ public class MercenariesGameMode : NetworkBehaviour
         for (int team = 1; team <= TeamCount; team++)
         {
             int i = team - 1;
-            if (CountMembers(team) == 0) { _teamWiped[i] = false; continue; }
-
-            bool wiped = CountAlive(team) == 0;
-            if (wiped && !_teamWiped[i]) Announce(EMatchAnnouncement.TeamWiped, team, 0);
-            _teamWiped[i] = wiped;
+            if (WipeStep(CountMembers(team), CountAlive(team), ref _teamWiped[i]))
+                Announce(EMatchAnnouncement.TeamWiped, team, 0);
         }
+    }
+
+    // =========================================================
+    // LAS CUENTAS (25 de noviembre de 2026)
+    //
+    // Las reglas del modo como funciones estáticas, sin red ni escena: así las prueban
+    // las pruebas de editor ("Modo_…" en GasDamagePipelineTests). Lo de arriba solo las
+    // llama con los números del Inspector. Un cambio de regla va ACÁ.
+    // =========================================================
+
+    // Cuánta experiencia pide subir DESDE 'level' al siguiente. Sin dato, 100 (y nunca
+    // menos de 1, para que un 0 en el Inspector no suba todos los niveles de golpe).
+    public static float XpNeededForLevel(int level, float[] xpPerLevel)
+        => xpPerLevel != null && level >= 1 && level - 1 < xpPerLevel.Length ? Mathf.Max(1f, xpPerLevel[level - 1]) : 100f;
+
+    // La experiencia total para llegar al nivel máximo (la suma de los saltos).
+    public static float XpToMaxLevel(float[] xpPerLevel, int maxLevel)
+    {
+        float total = 0f;
+        if (xpPerLevel != null)
+            for (int i = 0; i < xpPerLevel.Length && i < maxLevel - 1; i++) total += xpPerLevel[i];
+        return Mathf.Max(1f, total);
+    }
+
+    // La experiencia pasiva por segundo: la que lleva al nivel máximo en 'minutes' minutos
+    // (nunca en menos de 30 s), salvo que el Inspector ponga una fija.
+    public static float PassiveXpRate(float[] xpPerLevel, int maxLevel, float minutes, float overridePerSecond)
+    {
+        if (overridePerSecond > 0f) return overridePerSecond;
+        return XpToMaxLevel(xpPerLevel, maxLevel) / Mathf.Max(30f, minutes * 60f);
+    }
+
+    // El nivel que corresponde a la experiencia acumulada de un equipo.
+    public static int LevelFromXp(float xp, float[] xpPerLevel, int maxLevel)
+    {
+        int level = 1;
+        float remaining = xp;
+        if (xpPerLevel != null)
+        {
+            for (int i = 0; i < xpPerLevel.Length && level < maxLevel; i++)
+            {
+                float need = Mathf.Max(1f, xpPerLevel[i]);
+                if (remaining < need) break;
+                remaining -= need;
+                level++;
+            }
+        }
+        return Mathf.Min(level, maxLevel);
+    }
+
+    // El progreso 0..1 DENTRO del nivel (la barrita del HUD). En el máximo, llena.
+    public static float XpProgressWithinLevel(float xp, int level, float[] xpPerLevel, int maxLevel)
+    {
+        if (level >= maxLevel) return 1f;
+
+        float consumed = 0f;
+        for (int i = 0; i < level - 1 && xpPerLevel != null && i < xpPerLevel.Length; i++)
+            consumed += Mathf.Max(1f, xpPerLevel[i]);
+
+        return Mathf.Clamp01((xp - consumed) / XpNeededForLevel(level, xpPerLevel));
+    }
+
+    // Lo que da una baja: un jugador, lo del modo; un NPC, su propia recompensa si trae
+    // (un jefe vale más que un fantasma) o si no, lo del modo.
+    public static float KillXp(bool victimIsPlayer, float npcReward, float perPlayer, float perNpc)
+    {
+        if (victimIsPlayer) return perPlayer;
+        return npcReward > 0f ? npcReward : perNpc;
+    }
+
+    // ¿Esta entrega gana la partida?
+    public static bool HasWon(int score, int pointsToWin) => score >= pointsToWin;
+
+    // Quién va primero en puntos (equipo 1, 2 o 3), o 0 si los de arriba empatan.
+    public static int LeaderOf(int[] scores)
+    {
+        int best = 0, bestScore = -1; bool tie = false;
+        for (int i = 0; i < scores.Length; i++)
+        {
+            if (scores[i] > bestScore) { bestScore = scores[i]; best = i + 1; tie = false; }
+            else if (scores[i] == bestScore) tie = true;
+        }
+        return tie ? 0 : best;
+    }
+
+    // Un paso del aviso de "equipo eliminado": avisa UNA vez cuando caen todos y se rearma
+    // cuando alguien revive. Un equipo sin nadie no cuenta como eliminado.
+    // 'wiped' guarda si ya se avisó; devuelve true si hay que avisar ahora.
+    public static bool WipeStep(int members, int alive, ref bool wiped)
+    {
+        if (members == 0) { wiped = false; return false; }
+
+        bool now = alive == 0;
+        bool announce = now && !wiped;
+        wiped = now;
+        return announce;
     }
 
     // =========================================================

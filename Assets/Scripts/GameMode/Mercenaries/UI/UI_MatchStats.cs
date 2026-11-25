@@ -118,7 +118,7 @@ public class UI_MatchStats : MonoBehaviour
 
         foreach (List<PlayerController> team in _members) team.Clear();
 
-        foreach (PlayerController pc in FindObjectsByType<PlayerController>(FindObjectsSortMode.None))
+        foreach (PlayerController pc in PlayerController.All)
         {
             int team = TeamOf(pc);
             if (team >= 1 && team <= _members.Length) _members[team - 1].Add(pc);

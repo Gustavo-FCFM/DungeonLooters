@@ -359,7 +359,7 @@ public class CompanionManager : MonoBehaviour
         _nextSearch = Time.time + 0.5f;
 
         NetworkObject me = OwnerObject;
-        foreach (Entity_Companion c in FindObjectsByType<Entity_Companion>(FindObjectsSortMode.None))
+        foreach (Entity_Companion c in Entity_Companion.All)
             if (c.OwnerObject != null && c.OwnerObject == me && c.OptionIndex == active) { _cachedCompanion = c; return c; }
         return null;
     }

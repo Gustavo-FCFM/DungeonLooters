@@ -334,7 +334,7 @@ public class SpectatorCamera : MonoBehaviour
         PlayerController current = _following;
 
         _players.Clear();
-        foreach (PlayerController pc in FindObjectsByType<PlayerController>(FindObjectsSortMode.None))
+        foreach (PlayerController pc in PlayerController.All)
             if (pc != null) _players.Add(pc);
 
         // Se ordenan por equipo y nombre para que el recorrido sea SIEMPRE el mismo: sin

@@ -92,7 +92,7 @@ public class UI_AllyHealthMarkers : MonoBehaviour
             {
                 _nextScan = Time.unscaledTime + 0.5f;
                 _players.Clear();
-                _players.AddRange(FindObjectsByType<PlayerController>(FindObjectsSortMode.None));
+                _players.AddRange(PlayerController.All);
             }
 
             NetworkAbilitySystemComponent localNet = local.GetComponent<NetworkAbilitySystemComponent>();

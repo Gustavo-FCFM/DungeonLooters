@@ -203,6 +203,8 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   Desde el 25 de noviembre de 2026 también prueban las cuentas del instinto de los bots ("Bots_…": la esquiva, adelantarse,
   la puntería, superado en número), que son funciones estáticas de `BotController.Instinct` para poder probarlas sin escena.
 
+- **Guía sencilla para Gustavo: `Assets/Scripts/LEEME_ScriptsPartidos.md`** (qué es `partial`, las 3 reglas y una tabla
+  "si quieres cambiar X, abre Y" por clase). Si se parte otra clase o se agrega una parte, se actualiza también ahí.
 - **El ASC y `GameplayAbility` son `partial class` repartidas por tema** (desde el 17 de noviembre de 2026). La cabecera del
   archivo principal (`GAS/AbilitySystemComponent.cs`, `GAS/GameplayAbility.cs`) dice qué tiene cada parte
   (`GAS/AbilitySystemComponent/`, `GAS/GameplayAbility/`). Lo nuevo va en la parte de su tema; un tema nuevo grande, en una

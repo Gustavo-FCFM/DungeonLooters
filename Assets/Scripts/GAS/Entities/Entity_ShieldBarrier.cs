@@ -350,7 +350,7 @@ public class Entity_ShieldBarrier : MonoBehaviour, IIncomingDamageModifier
         _scanBuffer.Clear();
         _scanBuffer.Add(_ownerASC);
 
-        Collider[] cols = Physics.OverlapSphere(_ownerASC.transform.position, AllyScanRange, CharacterLayer);
+        using var cols = PhysicsQuery.OverlapSphere(_ownerASC.transform.position, AllyScanRange, CharacterLayer);
         foreach (var c in cols)
         {
             AbilitySystemComponent asc = c.GetComponentInParent<AbilitySystemComponent>();

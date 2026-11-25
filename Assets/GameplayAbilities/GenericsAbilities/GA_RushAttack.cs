@@ -176,10 +176,10 @@ public class GA_RushAttack : GameplayAbility, IChanneledAbility, IGroundTargetAb
     private bool HitAround(HashSet<AbilitySystemComponent> hit)
     {
         Vector3 center = OwnerASC.transform.position + Vector3.up;
-        Collider[] cols = Physics.OverlapSphere(center, HitRadius, TargetLayer);
+        using var cols = PhysicsQuery.OverlapSphere(center, HitRadius, TargetLayer);
 
         // El más cercano primero: con StopAtFirstEnemy es a ese al que le pega.
-        System.Array.Sort(cols, (a, b) =>
+        cols.Sort((a, b) =>
             (a.transform.position - center).sqrMagnitude.CompareTo((b.transform.position - center).sqrMagnitude));
 
         bool any = false;

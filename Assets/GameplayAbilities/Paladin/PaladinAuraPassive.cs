@@ -217,7 +217,7 @@ public class PaladinAuraPassive : MonoBehaviour, IPassiveTargetVFX
     {
         _buffer.Clear();
 
-        Collider[] cols = Physics.OverlapSphere(_asc.transform.position, radius, CharacterLayer);
+        using var cols = PhysicsQuery.OverlapSphere(_asc.transform.position, radius, CharacterLayer);
         foreach (var c in cols)
         {
             AbilitySystemComponent other = c.GetComponentInParent<AbilitySystemComponent>();

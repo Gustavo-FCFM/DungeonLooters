@@ -168,12 +168,12 @@ public class GA_ConeAttack : GameplayAbility
         Vector3 origin = OwnerASC.transform.TransformPoint(OriginOffset);
 
         // El alcance crece con MeleeRangeBonus (el Avatar del Guardián).
-        Collider[] potentialTargets = Physics.OverlapSphere(origin, Range * MeleeReach, TargetLayer);
+        using var potentialTargets = PhysicsQuery.OverlapSphere(origin, Range * MeleeReach, TargetLayer);
 
         // Del más cercano al más lejano: así "el primer golpe" (los efectos al primer
         // golpe) cae en el que de verdad está adelante, y no en uno al azar
         // (OverlapSphere no devuelve los colliders en ningún orden garantizado).
-        System.Array.Sort(potentialTargets, (a, b) =>
+        potentialTargets.Sort((a, b) =>
             (a.transform.position - origin).sqrMagnitude.CompareTo((b.transform.position - origin).sqrMagnitude));
 
         // Hacia dónde apunta el cono. Se resuelve UNA vez por frame de impacto, no por

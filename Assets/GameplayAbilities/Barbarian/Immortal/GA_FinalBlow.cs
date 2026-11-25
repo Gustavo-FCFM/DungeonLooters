@@ -163,7 +163,7 @@ public class GA_FinalBlow : GameplayAbility, IChanneledAbility
         Vector3    hitboxCenter = owner.position
                                    + owner.forward * HitboxOffsetZ
                                    + Vector3.up * HitboxOffsetY;
-        Collider[] hitColliders = Physics.OverlapBox(hitboxCenter, HitboxHalfExtents, owner.rotation, TargetLayer);
+        using var hitColliders = PhysicsQuery.OverlapBox(hitboxCenter, HitboxHalfExtents, owner.rotation, TargetLayer);
 
         HashSet<AbilitySystemComponent> enemiesHit = new HashSet<AbilitySystemComponent>();
 

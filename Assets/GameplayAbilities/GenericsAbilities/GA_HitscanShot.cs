@@ -186,7 +186,7 @@ public class GA_HitscanShot : GameplayAbility
 
         // 2) Primer enemigo dentro de ese tramo. SphereCastAll no viene ordenado, así
         // que buscamos el de menor distancia a mano.
-        RaycastHit[] hits = Physics.SphereCastAll(origin, Mathf.Max(0.01f, BulletRadius), dir,
+        using var hits = PhysicsQuery.SphereCastAll(origin, Mathf.Max(0.01f, BulletRadius), dir,
                                                   distance, TargetLayer, QueryTriggerInteraction.Collide);
 
         AbilitySystemComponent victim = null;

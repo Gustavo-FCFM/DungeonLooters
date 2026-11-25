@@ -443,7 +443,7 @@ public class GA_ContinuousAoE : GameplayAbility, IGroundTargetAbility
             while (timeElapsed < TotalDuration)
             {
                 Vector3 center = ShouldFollowOwner ? OwnerASC.transform.position : spawnPoint;
-                Collider[] hits = Physics.OverlapSphere(center, Radius, TargetLayer);
+                using var hits = PhysicsQuery.OverlapSphere(center, Radius, TargetLayer);
 
                 foreach (var hit in hits)
                 {

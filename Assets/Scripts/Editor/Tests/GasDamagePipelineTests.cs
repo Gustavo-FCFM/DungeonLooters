@@ -1467,4 +1467,78 @@ public class GasDamagePipelineTests
 
         Assert.IsFalse(AreaThreats.IsDangerous(new Vector3(1f, 0f, 0f), enemy), "borrada, ya no está");
     }
+
+    // ---- Las cuentas del instinto de los bots (BotController.Instinct, "LAS CUENTAS") ----
+
+    [Test]
+    public void Bots_Esquiva_VeVenirElProyectilYPorDondePasa()
+    {
+        Vector3 me = new Vector3(0f, 1.1f, 0f);
+        Vector3 fast = new Vector3(20f, 0f, 0f);
+
+        Assert.IsTrue(BotController.PredictPass(me, new Vector3(-10f, 1.1f, 0f), fast, false, out float t, out Vector3 miss),
+                      "derecho al pecho: lo ve venir");
+        Assert.AreEqual(0.5f, t, 0.001f, "10 m a 20 m/s: llega en 0.5 s");
+        Assert.AreEqual(0f, miss.magnitude, 0.001f, "y le pega de lleno");
+
+        Assert.IsTrue(BotController.PredictPass(me, new Vector3(-10f, 1.1f, 3f), fast, false, out _, out miss));
+        Assert.AreEqual(3f, miss.magnitude, 0.001f, "tirado 3 m al costado, pasa a 3 m");
+
+        Assert.IsFalse(BotController.PredictPass(me, new Vector3(5f, 1.1f, 0f), fast, false, out _, out _),
+                       "uno que ya pasó y se aleja no cuenta");
+        Assert.IsFalse(BotController.PredictPass(me, new Vector3(0f, 10f, 0f), new Vector3(1f, -20f, 0f), false, out _, out _),
+                       "uno que cae casi derecho (sin avanzar en el plano) no cuenta");
+    }
+
+    [Test]
+    public void Bots_Esquiva_ElQueCaeEnCurvaSeCalculaConLaCaida()
+    {
+        // Una flecha apuntada con la curva: sube un poco y baja justo en el pecho a los 0.5 s.
+        float g = -Physics.gravity.y;
+        Vector3 me = new Vector3(0f, 1.1f, 0f);
+        Vector3 from = new Vector3(-10f, 1.1f, 0f);
+        Vector3 lob = new Vector3(20f, g * 0.25f, 0f);   // sube vy·t y cae g·t²/2: a los 0.5 s, lo mismo
+
+        Assert.IsTrue(BotController.PredictPass(me, from, lob, true, out float t, out Vector3 miss));
+        Assert.AreEqual(0.5f, t, 0.001f);
+        Assert.AreEqual(0f, miss.magnitude, 0.01f, "con la caída, se ve que le pega");
+
+        BotController.PredictPass(me, from, lob, false, out _, out Vector3 straight);
+        Assert.Greater(straight.magnitude, 1f, "en línea recta parecía pasarle por arriba (lo que no esquivaban antes)");
+    }
+
+    [Test]
+    public void Bots_SeAdelantanALoQueCorre_SegunSuDestreza()
+    {
+        Vector3 run = new Vector3(5f, 3f, 0f);   // corre de costado a 5 m/s (y salta: lo vertical no cuenta)
+
+        Assert.AreEqual(2.5f, BotController.LeadOffset(run, 10f, 20f, 1f).x, 0.001f, "el bueno, todo: 5 m/s × 0.5 s");
+        Assert.AreEqual(1.25f, BotController.LeadOffset(run, 10f, 20f, 0f).x, 0.001f, "el malo, la mitad");
+        Assert.AreEqual(0f, BotController.LeadOffset(run, 10f, 20f, 1f).y, 0.001f, "no apunta arriba porque salte");
+        Assert.AreEqual(7.5f, BotController.LeadOffset(run, 100f, 20f, 1f).x, 0.001f, "como mucho lo que corre en 1.5 s");
+        Assert.AreEqual(Vector3.zero, BotController.LeadOffset(run, 10f, 0.5f, 1f), "sin velocidad de proyectil, nada");
+    }
+
+    [Test]
+    public void Bots_Punteria_ElBuenoFallaMenos_YDeLejosMas()
+    {
+        float good = BotController.AimSpread(1.2f, 0.85f, 10f);
+        float bad  = BotController.AimSpread(1.2f, 0.45f, 10f);
+
+        Assert.AreEqual(0.36f, good, 0.001f, "destreza 0.85 a 10 m: 1.2 × 0.3");
+        Assert.AreEqual(0.84f, bad, 0.001f, "destreza 0.45 a 10 m: 1.2 × 0.7");
+        Assert.AreEqual(good * 2f, BotController.AimSpread(1.2f, 0.85f, 20f), 0.001f, "al doble de distancia, el doble");
+        Assert.AreEqual(good * 2.5f, BotController.AimSpread(1.2f, 0.85f, 100f), 0.001f, "con tope (×2.5)");
+        Assert.AreEqual(good * 0.3f, BotController.AimSpread(1.2f, 0.85f, 1f), 0.001f, "y con piso de cerca (×0.3)");
+    }
+
+    [Test]
+    public void Bots_SuperadoEnNumero_DosJugadoresMasQueLosMios()
+    {
+        Assert.IsTrue(BotController.IsOutnumbered(3, 0), "solo contra 3: sí");
+        Assert.IsFalse(BotController.IsOutnumbered(2, 0), "solo contra 2: no");
+        Assert.IsTrue(BotController.IsOutnumbered(4, 1), "dos contra 4: sí");
+        Assert.IsFalse(BotController.IsOutnumbered(3, 1), "dos contra 3: no");
+        Assert.IsFalse(BotController.IsOutnumbered(0, 0), "nadie: no");
+    }
 }

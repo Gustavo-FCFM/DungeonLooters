@@ -331,8 +331,8 @@ public class ArcaneProtectionPassive : MonoBehaviour, IAbilityEchoSource
             if (_scanTimer > 0f) return;
             _scanTimer = Mathf.Max(0.05f, ScanInterval);
 
-            foreach (Collider col in Physics.OverlapSphere(_asc.transform.position, MaximumProtectionRange,
-                                                           CharacterLayer, QueryTriggerInteraction.Collide))
+            foreach (Collider col in PhysicsQuery.OverlapSphere(_asc.transform.position, MaximumProtectionRange,
+                                                           CharacterLayer, QueryTriggerInteraction.Collide).Once())
             {
                 AbilitySystemComponent other = col.GetComponentInParent<AbilitySystemComponent>();
                 if (other == null || other == _asc || _ultTouched.Contains(other)) continue;

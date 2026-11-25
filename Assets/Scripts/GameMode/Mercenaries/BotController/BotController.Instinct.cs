@@ -147,8 +147,7 @@ public partial class BotController
     {
         if (Time.time >= _aimOffsetUntil)
         {
-            float spread = AimErrorAt10m * Mathf.Clamp01(1.15f - _skill) * Mathf.Clamp(dist / 10f, 0.3f, 2.5f);
-            Vector2 r = Random.insideUnitCircle * spread;
+            Vector2 r = Random.insideUnitCircle * AimSpread(AimErrorAt10m, _skill, dist);
             _aimOffset = transform.right * r.x + Vector3.up * (r.y * 0.5f);
             _aimOffsetUntil = Time.time + Random.Range(0.25f, 0.6f);
         }
@@ -158,12 +157,48 @@ public partial class BotController
     // Cuánto se adelanta a lo que corre con un proyectil de esta velocidad (el bueno, casi todo; el malo, la mitad).
     private Vector3 LeadFor(float projectileSpeed)
     {
-        if (_target == null || projectileSpeed <= 1f) return Vector3.zero;
-        float t = Vector3.Distance(transform.position, _target.transform.position) / projectileSpeed;
-        Vector3 v = _targetVelocity;
-        v.y = 0f;
-        return v * (Mathf.Min(t, 1.5f) * Mathf.Lerp(0.5f, 1f, _skill));
+        if (_target == null) return Vector3.zero;
+        return LeadOffset(_targetVelocity, Vector3.Distance(transform.position, _target.transform.position), projectileSpeed, _skill);
     }
+
+    // =========================================================
+    // LAS CUENTAS (estáticas y sin escena: las prueban GasDamagePipelineTests, "Bots: …")
+    // =========================================================
+
+    // Cuánto se puede alejar su mira del pecho (m): el bueno menos, más lejos más.
+    public static float AimSpread(float aimErrorAt10m, float skill, float dist)
+        => aimErrorAt10m * Mathf.Clamp01(1.15f - skill) * Mathf.Clamp(dist / 10f, 0.3f, 2.5f);
+
+    // Cuánto adelantarse a uno que corre a 'targetVelocity' con un proyectil de 'projectileSpeed' (solo en el plano;
+    // como mucho lo que corre en 1.5 s; el bueno, todo, el malo, la mitad).
+    public static Vector3 LeadOffset(Vector3 targetVelocity, float dist, float projectileSpeed, float skill)
+    {
+        if (projectileSpeed <= 1f) return Vector3.zero;
+        float t = dist / projectileSpeed;
+        targetVelocity.y = 0f;
+        return targetVelocity * (Mathf.Min(t, 1.5f) * Mathf.Lerp(0.5f, 1f, skill));
+    }
+
+    // Por dónde le pasa un proyectil: cuándo pasa más cerca en el plano ('t', s) y a cuánto de 'me' pasa en ese momento
+    // (con la caída si 'falls'). false = se va, casi no avanza en el plano, o ya pasó.
+    public static bool PredictPass(Vector3 me, Vector3 from, Vector3 velocity, bool falls, out float t, out Vector3 miss)
+    {
+        t = 0f;
+        miss = Vector3.zero;
+        Vector3 flatV = new Vector3(velocity.x, 0f, velocity.z);
+        float flat2 = flatV.sqrMagnitude;
+        if (flat2 < 9f) return false;   // casi quieto, o cayendo derecho
+        Vector3 toMe = me - from;
+        t = (toMe.x * flatV.x + toMe.z * flatV.z) / flat2;
+        if (t <= 0f) return false;
+        Vector3 at = from + velocity * t;
+        if (falls) at += Physics.gravity * (0.5f * t * t);
+        miss = me - at;
+        return true;
+    }
+
+    // ¿Superado en número? Dos jugadores enemigos más que los míos, contándome ('allies' sin contarme).
+    public static bool IsOutnumbered(int enemies, int allies) => enemies >= allies + 3;
 
     // ¿Esta mira apunta a su objetivo? (para adelantarse solo con lo que va a él, no a un aliado o al piso)
     private bool AimsAtTarget(Vector3 aim)
@@ -224,20 +259,12 @@ public partial class BotController
             AbilitySystemComponent shooter = p.Shooter;
             if (shooter == null || shooter == _asc || !shooter.IsEnemyOf(_asc)) continue;
 
-            Vector3 v = p.Velocity;
-            Vector3 flatV = new Vector3(v.x, 0f, v.z);
-            float flat2 = flatV.sqrMagnitude;
-            if (flat2 < 9f) continue;   // casi quieto, o cayendo derecho
-
             // Cuándo pasa más cerca (en el plano) y por dónde pasa en ese momento: con la caída, si cae en curva (una
             // flecha o un hacha apuntadas con la curva bajan justo sobre él; derecho, la cuenta las veía pasar arriba).
-            Vector3 from = p.transform.position;
-            Vector3 toMe = me - from;
-            float t = (toMe.x * flatV.x + toMe.z * flatV.z) / flat2;
+            Vector3 v = p.Velocity;
+            Vector3 flatV = new Vector3(v.x, 0f, v.z);
+            if (!PredictPass(me, p.transform.position, v, p.Falls, out float t, out Vector3 miss)) continue;
             if (t <= 0.12f || t > 1.2f) continue;   // ya lo tiene encima (no llega), o falta mucho
-            Vector3 at = from + v * t;
-            if (p.Falls) at += Physics.gravity * (0.5f * t * t);
-            Vector3 miss = me - at;
             if (miss.magnitude > p.HitRadius + 0.6f) continue;
 
             // Cada proyectil se juzga UNA vez: o lo vio, o no.
@@ -439,7 +466,7 @@ public partial class BotController
     // ¿Estoy superado en número acá? (dos JUGADORES enemigos más que los míos, contándome; los fantasmas no cuentan: de
     // tres NPC débiles no se huye)
     private bool Outnumbered()
-        => EnemyPlayersNear(transform.position, 10f) >= AlliesNear(transform.position, 10f) + 3;
+        => IsOutnumbered(EnemyPlayersNear(transform.position, 10f), AlliesNear(transform.position, 10f));
 
     // Cuántos jugadores enemigos (y bots) hay alrededor de un punto, vivos y a la vista.
     private int EnemyPlayersNear(Vector3 center, float radius)

@@ -227,7 +227,7 @@ public class GA_InstantAoE : GameplayAbility, IGroundTargetAbility
     // Los de adentro del radio (por cada collider: Detonate descarta los repetidos).
     private IEnumerable<AbilitySystemComponent> TargetsInRadius(Vector3 center)
     {
-        foreach (Collider hit in Physics.OverlapSphere(center, Radius, TargetLayer))
+        foreach (Collider hit in PhysicsQuery.OverlapSphere(center, Radius, TargetLayer).Once())
             yield return hit.GetComponentInParent<AbilitySystemComponent>();
     }
 

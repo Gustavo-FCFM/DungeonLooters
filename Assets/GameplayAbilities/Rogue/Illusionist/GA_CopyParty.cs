@@ -82,7 +82,7 @@ public class GA_CopyParty : GameplayAbility
         if (OwnerASC.GetComponent<PlayerController>() != null && seen.Add(OwnerASC))
             sources.Add(OwnerASC);
 
-        Collider[] cols = Physics.OverlapSphere(OwnerASC.transform.position, Range, CharacterLayer);
+        using var cols = PhysicsQuery.OverlapSphere(OwnerASC.transform.position, Range, CharacterLayer);
         foreach (var col in cols)
         {
             AbilitySystemComponent asc = col.GetComponentInParent<AbilitySystemComponent>();

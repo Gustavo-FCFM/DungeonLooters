@@ -223,7 +223,7 @@ public class GA_Dash : GameplayAbility
         Vector3 p0 = origin + Vector3.up * 0.5f;
         Vector3 p1 = p0 + dir * dist;
 
-        Collider[] cols = Physics.OverlapCapsule(p0, p1, HitRadius, TargetLayer);
+        using var cols = PhysicsQuery.OverlapCapsule(p0, p1, HitRadius, TargetLayer);
         var seen = new HashSet<AbilitySystemComponent>();
 
         foreach (var c in cols)

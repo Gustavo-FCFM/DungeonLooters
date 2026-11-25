@@ -117,7 +117,7 @@ public class GA_LeapAttack : GameplayAbility, ILeapAbility
         // le avisa a los demás peers que hagan lo mismo con su propia copia.
         BroadcastImpactVFX(impactCenter);
 
-        Collider[] hitColliders = Physics.OverlapSphere(impactCenter, AbilityRadius, TargetLayer);
+        using var hitColliders = PhysicsQuery.OverlapSphere(impactCenter, AbilityRadius, TargetLayer);
         HashSet<AbilitySystemComponent> enemiesHit = new HashSet<AbilitySystemComponent>();
 
         foreach (var hitCollider in hitColliders)

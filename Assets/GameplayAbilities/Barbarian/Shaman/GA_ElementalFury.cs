@@ -138,7 +138,7 @@ public class GA_ElementalFury : GameplayAbility
         while (timeElapsed < Duration)
         {
             Vector3 currentCenter = FollowPlayer ? OwnerASC.transform.position : centerPos;
-            Collider[] hits = Physics.OverlapSphere(currentCenter, DamageRadius, TargetLayer);
+            using var hits = PhysicsQuery.OverlapSphere(currentCenter, DamageRadius, TargetLayer);
             foreach (var hitCol in hits)
             {
                 AbilitySystemComponent targetASC = hitCol.GetComponentInParent<AbilitySystemComponent>();

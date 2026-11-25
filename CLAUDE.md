@@ -137,7 +137,7 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   los menús. Tres instancias de `Prefabs/Map/Graveyard_Sector` giradas 120°: lo que se
   cambie en el prefab cambia en los tres sectores. La generó una herramienta una sola
   vez; desde ahí se edita a mano (Gustavo ya le sacó muros y agrandó el centro). **Es de noche** (desde el 12 de
-  noviembre de 2026): la luz ambiente y la niebla son ajustes de la escena (`Mercenarios ▸ Mapa ▸ Poner la noche…`), y lo
+  noviembre de 2026): la luz ambiente y la niebla son ajustes de la escena (los puso una herramienta de una vez, ya borrada; se cambian en Window ▸ Rendering ▸ Lighting ▸ Environment), y lo
   que se ve lo alumbran la luna y las antorchas del sector (`Prefabs/Map/Torch`; solo las más cercanas a la cámara hacen
   sombra, `TorchShadows`). Alrededor hay una ciudad de decorado (`Graveyard_Sector ▸ City`, sin colliders ni NavMesh). Abajo,
   las catacumbas tienen un anillo y osarios con rampas a la superficie (13 de noviembre de 2026). **El NavMesh se hornea en la
@@ -200,6 +200,8 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   las defensas, el escudo o los efectos, correr `unity command test run --mode editor --filter GasDamagePipeline`. Si una
   regla cambia A PROPÓSITO, su prueba cambia en el mismo commit. Los números de una prueba nueva se eligen para que una
   regla distinta dé OTRO resultado (con 20 de daño, armadura 10 da lo mismo con dos fórmulas: la prueba no vigilaba nada).
+  Desde el 25 de noviembre de 2026 también prueban las cuentas del instinto de los bots ("Bots_…": la esquiva, adelantarse,
+  la puntería, superado en número), que son funciones estáticas de `BotController.Instinct` para poder probarlas sin escena.
 
 - **El ASC y `GameplayAbility` son `partial class` repartidas por tema** (desde el 17 de noviembre de 2026). La cabecera del
   archivo principal (`GAS/AbilitySystemComponent.cs`, `GAS/GameplayAbility.cs`) dice qué tiene cada parte
@@ -213,7 +215,18 @@ GameplayAbilities, código en Scripts.** Todo va por lo que ES, no por quién lo
   5 500, 2 700 y 3 000 líneas): en el principal, los campos, eventos y tipos (en el de red, todas las SyncVars); los métodos,
   por sección, en `Player/PlayerController/`, `Network/NetworkAbilitySystemComponent/` y `GameMode/Mercenaries/BotController/`.
   Se movió el texto sin cambiarlo. "Player Controller.cs" pasó a `PlayerController.cs` con su mismo GUID. Las RPC de FishNet
-  pueden ir en cualquier parte (el codegen trabaja sobre la clase compilada).
+  pueden ir en cualquier parte (el codegen trabaja sobre la clase compilada). Más tarde ese día, igual: `GC_Projectile`
+  (`GAS/Entities/GC_Projectile/`) y `UI_LobbyPanel` (`UI/UI_LobbyPanel/`).
+
+- **Las búsquedas de física van por `PhysicsQuery`, no por `Physics.OverlapSphere` / `OverlapBox` / `OverlapCapsule` /
+  `RaycastAll` / `SphereCastAll`** (desde el 25 de noviembre de 2026): esas crean un arreglo nuevo en cada golpe. `PhysicsQuery`
+  hace lo mismo sobre un arreglo PRESTADO de una reserva: `using var cols = PhysicsQuery.OverlapSphere(...)` (se recorre igual:
+  foreach, `[i]`, `Length`, `Sort`) o, para un solo foreach, `foreach (... in PhysicsQuery.OverlapSphere(...).Once())`. Es una
+  reserva y no un arreglo compartido porque un golpe puede disparar otra búsqueda mientras se recorre la primera. El resultado
+  no se guarda ni se pasa a otro lado: se devuelve al terminar el bloque. Si llena el arreglo, repite con uno del doble.
+- **Las herramientas de editor "de una vez" se borran cuando ya se corrieron** (el 25 de noviembre de 2026 se fueron las 13
+  de "armar": campanas, enemigos, jefe, mapa, orbes, santuarios, biblioteca de audio). Quedan en el historial de git. En el
+  menú `Mercenarios` solo queda lo que se usa seguido.
 - **El cursor tiene un solo dueño: `UICursor`.** Ningún menú toca `Cursor.lockState` ni
   `PlayerInputProvider.SetUIMode` por su cuenta — los pide con `UICursor.Request(this)` y
   los suelta con `Release`. Si no, gana el último en cerrarse.

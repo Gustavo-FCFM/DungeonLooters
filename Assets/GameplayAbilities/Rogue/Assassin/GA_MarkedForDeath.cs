@@ -74,7 +74,7 @@ public class GA_MarkedForDeath : TargetImpactAbility, IGroundTargetAbility
         // Daño a todos los enemigos de la zona (autoridad de servidor). ApplyHitEffects
         // es síncrono: si el golpe mata, aplica en el acto lo de "al matar" (la
         // invisibilidad de vuelta).
-        Collider[] cols = Physics.OverlapSphere(zoneCenter, ZoneRadius, TargetLayer);
+        using var cols = PhysicsQuery.OverlapSphere(zoneCenter, ZoneRadius, TargetLayer);
         var seen = new HashSet<AbilitySystemComponent>();
 
         foreach (var c in cols)

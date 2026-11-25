@@ -137,7 +137,9 @@ public class ShieldBlockFlash : MonoBehaviour
     // Mezcla el color base con el de destello según 'amount' (0 = base, 1 = destello).
     private void ApplyTint(float amount)
     {
-        if (_renderers == null) return;
+        // _block en null: una recompilación con el juego en Play vacía lo que no se guarda (el MaterialPropertyBlock) y
+        // OnDisable llegaba acá al salir: ~100 errores en la consola (20 de noviembre de 2026).
+        if (_renderers == null || _block == null) return;
 
         for (int i = 0; i < _renderers.Length; i++)
         {

@@ -112,7 +112,7 @@ public class GA_HeroicLeap : GA_Teleport
 
         var done = new HashSet<AbilitySystemComponent>();
         bool first = true;
-        foreach (Collider c in Physics.OverlapSphere(center, ImpactRadius, TargetLayer))
+        foreach (Collider c in PhysicsQuery.OverlapSphere(center, ImpactRadius, TargetLayer).Once())
         {
             AbilitySystemComponent target = c.GetComponentInParent<AbilitySystemComponent>();
             if (target == null || !done.Add(target)) continue;

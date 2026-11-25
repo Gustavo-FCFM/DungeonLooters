@@ -59,7 +59,7 @@ public class GA_ImmortalWrath : GameplayAbility
 
             // Un personaje puede tener varios colliders: cada uno recibe la explosión una vez.
             var seen = new HashSet<AbilitySystemComponent>();
-            foreach (Collider hit in Physics.OverlapSphere(center, AbilityRadius, TargetLayer))
+            foreach (Collider hit in PhysicsQuery.OverlapSphere(center, AbilityRadius, TargetLayer).Once())
             {
                 AbilitySystemComponent targetASC = hit.GetComponentInParent<AbilitySystemComponent>();
                 if (targetASC == null || !IsEnemy(targetASC) || !seen.Add(targetASC)) continue;

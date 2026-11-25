@@ -122,7 +122,7 @@ public class GA_ChainStrike : GameplayAbility
         bool  bestIsPlayer = false;
         float bestMissing  = -1f;
 
-        foreach (Collider c in Physics.OverlapSphere(from, JumpRange, TargetLayer))
+        foreach (Collider c in PhysicsQuery.OverlapSphere(from, JumpRange, TargetLayer).Once())
         {
             AbilitySystemComponent asc = c.GetComponentInParent<AbilitySystemComponent>();
             if (asc == null || ReferenceEquals(asc, OwnerASC) || hit.Contains(asc) || !IsEnemy(asc)) continue;

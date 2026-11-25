@@ -77,7 +77,7 @@ public class IllusoryBladesPassive : MonoBehaviour
     private AbilitySystemComponent FindBladeTarget(AbilitySystemComponent victim)
     {
         Vector3 origin = _asc.transform.position;
-        Collider[] cols = Physics.OverlapSphere(origin, SearchRadius, CharacterLayer);
+        using var cols = PhysicsQuery.OverlapSphere(origin, SearchRadius, CharacterLayer);
         AbilitySystemComponent best = null;
         float bestDist = float.MaxValue;
 

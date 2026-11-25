@@ -541,7 +541,7 @@ public partial class BotController : MonoBehaviour
         // SphereCastAll y no SphereCast: hay que poder SALTEAR lo que no me frena a mí —la
         // pared de mi propia sala segura— y quedarme con lo primero que sí. Con un solo
         // hit, toparse con la pared de casa habría dejado pasar la pared de atrás.
-        RaycastHit[] hits = Physics.SphereCastAll(origin, CollisionProbeRadius, dir,
+        using var hits = PhysicsQuery.SphereCastAll(origin, CollisionProbeRadius, dir,
                                                   distance + 0.1f, CollisionMask,
                                                   QueryTriggerInteraction.Ignore);
 

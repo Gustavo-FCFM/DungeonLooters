@@ -92,7 +92,7 @@ public class GA_ChainLightning : GA_HitscanShot
         rod.OnStruck();   // la Cadena de relámpagos: cada golpe la agranda (si crece)
 
         var found = new List<AbilitySystemComponent>();
-        foreach (Collider col in Physics.OverlapSphere(at, rod.CurrentStrikeRange, TargetLayer, QueryTriggerInteraction.Collide))
+        foreach (Collider col in PhysicsQuery.OverlapSphere(at, rod.CurrentStrikeRange, TargetLayer, QueryTriggerInteraction.Collide).Once())
         {
             AbilitySystemComponent asc = col.GetComponentInParent<AbilitySystemComponent>();
             if (asc == null || asc == OwnerASC || found.Contains(asc)) continue;
@@ -155,7 +155,7 @@ public class GA_ChainLightning : GA_HitscanShot
     private List<AbilitySystemComponent> Candidates(Vector3 from, HashSet<AbilitySystemComponent> exclude)
     {
         var found = new List<AbilitySystemComponent>();
-        foreach (Collider col in Physics.OverlapSphere(from, JumpRange, TargetLayer, QueryTriggerInteraction.Collide))
+        foreach (Collider col in PhysicsQuery.OverlapSphere(from, JumpRange, TargetLayer, QueryTriggerInteraction.Collide).Once())
         {
             AbilitySystemComponent asc = col.GetComponentInParent<AbilitySystemComponent>();
             if (asc == null || asc == OwnerASC || exclude.Contains(asc) || found.Contains(asc)) continue;

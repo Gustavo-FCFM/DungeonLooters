@@ -462,7 +462,7 @@ public class MercEnemyAI : NetworkBehaviour
         bool otherThanTaunterOwner = false;   // hay algún jugador cerca que no es el dueño del Oso
         var playersNear = new System.Collections.Generic.List<AbilitySystemComponent>();
 
-        Collider[] hits = Physics.OverlapSphere(transform.position, DetectionRadius,
+        using var hits = PhysicsQuery.OverlapSphere(transform.position, DetectionRadius,
                                                 CharacterLayer, QueryTriggerInteraction.Collide);
         foreach (Collider col in hits)
         {

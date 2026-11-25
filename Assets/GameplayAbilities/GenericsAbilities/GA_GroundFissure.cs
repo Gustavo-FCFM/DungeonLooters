@@ -223,7 +223,7 @@ public class GA_GroundFissure : GameplayAbility
         Vector3 center = (from + to) * 0.5f + Vector3.up * (Height * 0.5f);
         Vector3 half   = new Vector3(Width * 0.5f, Height * 0.5f, Mathf.Max(step, 0.2f) * 0.5f + 0.1f);
 
-        foreach (Collider col in Physics.OverlapBox(center, half, rotation, TargetLayer, QueryTriggerInteraction.Collide))
+        foreach (Collider col in PhysicsQuery.OverlapBox(center, half, rotation, TargetLayer, QueryTriggerInteraction.Collide).Once())
         {
             AbilitySystemComponent target = col.GetComponentInParent<AbilitySystemComponent>();
             if (target == null || target == OwnerASC || struck.Contains(target)) continue;

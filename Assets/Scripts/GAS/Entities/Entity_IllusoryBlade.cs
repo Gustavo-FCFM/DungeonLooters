@@ -146,7 +146,7 @@ public class Entity_IllusoryBlade : Entity_Summon
         transform.position += _travelDir * step;
 
         // Primer enemigo vivo dentro del radio → Herida (sin daño) y se disipa.
-        Collider[] cols = Physics.OverlapSphere(transform.position, HitRadius, CharacterLayer);
+        using var cols = PhysicsQuery.OverlapSphere(transform.position, HitRadius, CharacterLayer);
         foreach (Collider c in cols)
         {
             AbilitySystemComponent asc = c.GetComponentInParent<AbilitySystemComponent>();

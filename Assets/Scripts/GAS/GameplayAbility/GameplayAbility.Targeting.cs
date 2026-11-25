@@ -169,7 +169,7 @@ public abstract partial class GameplayAbility
             selectionAngle = Mathf.Min(selectionAngle + ServerAngleGrace, 89f);
         }
 
-        Collider[] cols = Physics.OverlapSphere(origin, maxRange, TargetLayer);
+        using var cols = PhysicsQuery.OverlapSphere(origin, maxRange, TargetLayer);
         AbilitySystemComponent best = null;
         // Umbral de "está dentro del cono": comparar cosenos evita un Acos por candidato.
         float bestAlign = Mathf.Cos(selectionAngle * Mathf.Deg2Rad);

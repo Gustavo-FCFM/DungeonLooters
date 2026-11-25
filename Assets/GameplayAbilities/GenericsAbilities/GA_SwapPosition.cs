@@ -109,8 +109,8 @@ public class GA_SwapPosition : GameplayAbility
 
         AbilitySystemComponent best = null;
         float bestDist = float.MaxValue;
-        foreach (RaycastHit h in Physics.SphereCastAll(origin, AimRadius, dir, wallDist, 1 << CharacterLayer,
-                                                        QueryTriggerInteraction.Collide))
+        foreach (RaycastHit h in PhysicsQuery.SphereCastAll(origin, AimRadius, dir, wallDist, 1 << CharacterLayer,
+                                                        QueryTriggerInteraction.Collide).Once())
         {
             AbilitySystemComponent asc = h.collider.GetComponentInParent<AbilitySystemComponent>();
             if (!IsValidTarget(asc)) continue;

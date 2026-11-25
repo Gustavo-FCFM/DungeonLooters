@@ -353,7 +353,7 @@ Las piezas:
   que exista un solo archivo de audio.
 - **`AudioLibrary`** (`Resources/AudioLibrary.asset`): los sonidos que no son de una
   habilidad ni de un efecto — pasos, golpes, muerte, avisos, UI, el loop de ambiente y
-  las dos pistas de música. Lo crea `Mercenarios ▸ Crear la biblioteca de audio`, que
+  las dos pistas de música. Lo crea `Mercenarios ▸ Crear la biblioteca de audio` (herramienta de una vez: ya corrida y borrada el 25 de noviembre de 2026; si hace falta, está en el historial de git), que
   además le pone el `AudioListener` a la cámara de la sala.
 - **`AudioManager`**: se crea solo al arrancar (nada que poner en la escena). Un pool
   de AudioSources; `AudioManager.Play(cue, posición)` para 3D, `PlayUI(cue)` para 2D.
@@ -715,7 +715,7 @@ muy poco: cualquier ataque los borra).
 ### El resto del bestiario
 
 **Desde el 12 de noviembre de 2026 están todos en red** (`Mercenarios ▸ Enemigos ▸ Armar los magos de hielo y roca y las
-Banshees`, `MercJamEnemiesSetup`: variantes de `Net_Mage` y `Net_Boss`, teñidas). Los "jefes" de campamento se llaman
+Banshees` (herramienta de una vez: ya corrida y borrada el 25 de noviembre de 2026; si hace falta, está en el historial de git), `MercJamEnemiesSetup`: variantes de `Net_Mage` y `Net_Boss`, teñidas). Los "jefes" de campamento se llaman
 **Banshees**; el del evento de mitad de partida sigue siendo "el jefe" (y es la Banshee de curación, más grande).
 
 | Tipo (`EMercEnemyType`) | Prefab | Qué hace |
@@ -817,7 +817,7 @@ lugar** del ataque básico de ese turno; se revisan en orden, así que arriba va
 
 - **Dentro del prefab del sector** (`Graveyard_Sector ▸ Camps`, ×3): `Camp_Ramp_R/L` (arriba de las rampas de los nichos, magos)
   y `Camp_Catacomb_Tower` / `Camp_Catacomb_Fosa` (pasillos subterráneos, fantasmas, zombis y esqueletos). Herramienta:
-  `Mercenarios ▸ Enemigos ▸ Agregar campamentos al Cementerio`.
+  `Mercenarios ▸ Enemigos ▸ Agregar campamentos al Cementerio` (herramienta de una vez: ya corrida y borrada el 25 de noviembre de 2026; si hace falta, está en el historial de git).
 - **Dentro de un santuario** ("Solo con su santuario activo") y **dentro de un NPC** ("Solo mientras su dueño viva" + "Solo si su
   dueño pelea": los invocados del Nigromante). Es el mismo `MercEnemySpawner`: tabla de tipos, pesos y "Máximo vivos" por tipo.
 
@@ -1000,7 +1000,7 @@ escena se comporta como antes (la arena vieja sigue con el Objetivo a los 60 s y
   (`ShrineActivated`, `ShrineCaptured`, al final de `EMatchAnnouncement`).
 - **Red:** `MatchEvent_Shrines` sincroniza cuál está activo, el tipo, quién está dentro (un bit por equipo), el
   % de cada equipo y cuánto falta para el siguiente. Las bajas le llegan por `MercenariesGameMode.OnServerKill`.
-- **Herramienta:** `Mercenarios ▸ Santuarios ▸ Armar santuarios y eventos de partida` (no duplica nada).
+- **Herramienta:** `Mercenarios ▸ Santuarios ▸ Armar santuarios y eventos de partida` (herramienta de una vez: ya corrida y borrada el 25 de noviembre de 2026; si hace falta, está en el historial de git) (no duplica nada).
 - **Bots** (12 de noviembre de 2026): con un santuario activo y sin Objetivo que atender, van a la zona y pelean dentro (`BotController.Think`, "2d"; "Santuario: pelea con lo que esté a (m)").
 
 ## Las campanas (11 de noviembre de 2026)
@@ -1021,7 +1021,7 @@ escena se comporta como antes (la arena vieja sigue con el Objetivo a los 60 s y
   la campana ("Sonido" en el prefab, 3D a 150 m; vacío hasta cargar el clip). La campana se balancea en todas las pantallas.
 - **Lista o no:** lista brilla un poco y se prende su luz; descansando, nada. Lo sincronizado es hasta qué tick descansa cada
   una.
-- **Herramienta:** `Mercenarios ▸ Campanas ▸ Armar las campanas de las torres` (no duplica nada).
+- **Herramienta:** `Mercenarios ▸ Campanas ▸ Armar las campanas de las torres` (herramienta de una vez: ya corrida y borrada el 25 de noviembre de 2026; si hace falta, está en el historial de git) (no duplica nada).
 - **Bots:** no las tocan; desde el 12 de noviembre de 2026 tampoco las toman por "objetivo" (`Strikeable` se saltea en sus búsquedas).
 
 ## Los orbes de definitiva (11 de noviembre de 2026)
@@ -1037,7 +1037,7 @@ escena se comporta como antes (la arena vieja sigue con el Objetivo a los 60 s y
   puede tomar. Una clase base, sin definitiva, la guarda para su subclase (como lo que se conserva al cambiar de clase).
 - **Pantalla:** el modelo `Prefabs/GameMode/UltOrb` (núcleo negro, cáscara casi transparente y dos anillos blancos) lo pone
   cada pantalla sobre el sarcófago. El aviso `OrbsSpawned` al aparecer y el sonido al tomarlo ("Sonido al tomarlo", vacío).
-- **Herramienta:** `Mercenarios ▸ Orbes ▸ Armar los orbes de definitiva` (no duplica nada).
+- **Herramienta:** `Mercenarios ▸ Orbes ▸ Armar los orbes de definitiva` (herramienta de una vez: ya corrida y borrada el 25 de noviembre de 2026; si hace falta, está en el historial de git) (no duplica nada).
 - **Bots** (12 de noviembre de 2026): si su definitiva no está llena y hay un orbe a 25 m sin nadie encima, van a tomarlo ("Busca orbes hasta (m)").
 
 ## El jefe de mitad de partida (11 de noviembre de 2026)
@@ -1054,7 +1054,7 @@ escena se comporta como antes (la arena vieja sigue con el Objetivo a los 60 s y
   menos daño recibido; se pierde al morir), además de los 175 de experiencia que ya da el jefe. "Experiencia extra" está en 0
   desde el 12 de noviembre de 2026: a los 7 minutos los equipos ya son nivel 3.
 - **Avisos:** `BossSpawned`, `BossSlain` (Extra = minutos de bendición) y `BossLeft`, al final de `EMatchAnnouncement`.
-- **Herramienta:** `Mercenarios ▸ Jefe ▸ Armar el jefe de mitad de partida` (no duplica nada).
+- **Herramienta:** `Mercenarios ▸ Jefe ▸ Armar el jefe de mitad de partida` (herramienta de una vez: ya corrida y borrada el 25 de noviembre de 2026; si hace falta, está en el historial de git) (no duplica nada).
 - **Bots** (12 de noviembre de 2026): sin santuario activo ni nadie a quien pegarle, van por él ("Van por el jefe del evento"; `MatchEvent_Boss.Instance.ActiveBoss`).
 - **Oscurece mientras vive** (12 de noviembre de 2026): ver "La noche y las antorchas", abajo.
 
@@ -1090,13 +1090,13 @@ El nivel de abajo (−6 m) era la cripta con pasillos rectos. Ahora, dentro de `
 El Cementerio es de noche. Tres piezas:
 
 - **El cielo y la luna los puso Gustavo** a mano en la escena (skybox nocturno y la direccional fría y débil).
-- **La luz ambiente, la niebla y los reflejos:** `Mercenarios ▸ Mapa ▸ Poner la noche en la escena abierta` (`MercNightSetup`).
+- **La luz ambiente, la niebla y los reflejos:** `Mercenarios ▸ Mapa ▸ Poner la noche en la escena abierta` (herramienta de una vez: ya corrida y borrada el 25 de noviembre de 2026; si hace falta, está en el historial de git) (`MercNightSetup`).
   Pone la luz ambiente en degradado azul oscuro (con la del cielo a intensidad 1, todo se veía como de día nublado), niebla
   exponencial azul casi negra (densidad 0.012) y los reflejos del cielo en 0.4. No toca la luna ni el cielo y no guarda la escena.
   Son ajustes de la ESCENA (Window ▸ Rendering ▸ Lighting ▸ Environment): una escena copiada los trae, una nueva no.
 - **Las antorchas:** `Prefabs/Map/Torch` (poste, copa, llama de dos capas sin luz propia y una luz puntual cálida de 10 m, sin
   sombras; mallas en `Art/Models/Torch`, materiales en `Art/Materials/Torch`). `TorchFlicker` titila la luz y la llama con ruido,
-  cada una desde otro punto (adorno: no es de red). `Mercenarios ▸ Mapa ▸ Armar y repartir las antorchas del Cementerio`
+  cada una desde otro punto (adorno: no es de red). `Mercenarios ▸ Mapa ▸ Armar y repartir las antorchas del Cementerio` (herramienta de una vez: ya corrida y borrada el 25 de noviembre de 2026; si hace falta, está en el historial de git)
   (`MercTorchSetup`) las reparte dentro de `Graveyard_Sector ▸ Torches`, así salen en los tres sectores. Mide el sector de la
   escena abierta: un punto sirve si hay NavMesh, piso plano y techo libre; las de pared (al lado de un muro, cada 5.5 m, hasta 70),
   las de lo abierto (la plaza, cada 10 m, hasta 25) y las de abajo (las catacumbas, pocas: hasta 4). Quedaron 78 por sector.
@@ -1108,7 +1108,7 @@ El Cementerio es de noche. Tres piezas:
   pasan el turno al caminar; la que ya la tiene cuenta como un 15 % más cerca, para que no tiemble entre dos. La sombra es de
   resolución baja (en la luz del prefab: en juego URP no deja cambiarla), porque 4 cubos de sombra en alta no entran en el atlas
   de 2048. Ajustes ▸ Pantalla ▸ "Sombras de las antorchas" las apaga (`GameSettings.TorchShadows`). No es de red.
-- **La ciudad de afuera** (`MercCitySetup`, `Mercenarios ▸ Mapa ▸ Armar la ciudad de afuera del Cementerio`): mide el borde del
+- **La ciudad de afuera** (`MercCitySetup`, `Mercenarios ▸ Mapa ▸ Armar la ciudad de afuera del Cementerio` (herramienta de una vez: ya corrida y borrada el 25 de noviembre de 2026; si hace falta, está en el historial de git)): mide el borde del
   mapa con rayos y arma en la cuña de Sector_Team1 el suelo, filas de casas (con calles, callejones, chimeneas y ventanas, unas
   encendidas), torres, una iglesia con campanario y una torre del reloj; delante de la base deja una plaza. Todo junto en una malla
   por material (`Art/Models/City`, `Art/Materials/City`) dentro de `Graveyard_Sector ▸ City`: sale en los tres sectores. Es

@@ -33,6 +33,17 @@ del log son todos de packs importados).
   prefabs sin scripts perdidos.
   - [x] Una partida normal con un cliente y bots: todo igual que antes. **Probado ✅ (25 de noviembre: "funciona").**
 
+- **El resto de las mejoras de código** (25 de noviembre, pedido de Gustavo: "haz todas"):
+  - Las 34 búsquedas de física que creaban un arreglo por golpe van por `PhysicsQuery` (arreglos prestados de una reserva).
+  - `ShieldBlockFlash` ya no tira ~100 errores si se recompila con el juego en Play.
+  - `GC_Projectile` (1 200 → 388 + 5 partes) y `UI_LobbyPanel` (1 200 → 487 + 3) repartidos como los otros tres.
+  - 5 pruebas nuevas de las cuentas de los bots (esquiva, también en curva; adelantarse; puntería; superado en número): 73.
+  - Borradas las 13 herramientas "de una vez" ya corridas (Campanas, Enemigos, Jefe, Mapa, Orbes, Santuarios, la biblioteca
+    de audio). Quedó "Guardar las habilidades en el formato nuevo": sirve cada vez que cambia el tipo de un campo.
+  - Comprobado: compila con Unity, 73/73, validador sin errores, 68 prefabs sin scripts perdidos.
+  - [ ] Una partida con un cliente y bots: los golpes de área, los conos, la estocada, el dash, el gancho, el rayo, las
+        cadenas y el apuntado del jugador siguen pegando igual (todos pasaron a `PhysicsQuery`).
+
 ## ★ Bots más humanos y más listos (20 de noviembre, pedido de Gustavo): HECHO Y PROBADO ✅ (20 de noviembre: "se ven bien")
 
 "Que sean más humanos y más inteligentes: escapar del daño, afrontar los problemas, rodear el escudo." Va en

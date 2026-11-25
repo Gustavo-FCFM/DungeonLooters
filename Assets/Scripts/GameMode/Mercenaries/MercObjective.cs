@@ -283,7 +283,7 @@ public class MercObjective : NetworkBehaviour
         if (Time.time < _pickupUnlockTime) return;
         if (_gm != null && _gm.State != EMatchState.Playing) return;
 
-        Collider[] hits = Physics.OverlapSphere(_netGroundPos.Value, PickupRadius,
+        using var hits = PhysicsQuery.OverlapSphere(_netGroundPos.Value, PickupRadius,
                                                 CharacterLayer, QueryTriggerInteraction.Collide);
         foreach (Collider col in hits)
         {

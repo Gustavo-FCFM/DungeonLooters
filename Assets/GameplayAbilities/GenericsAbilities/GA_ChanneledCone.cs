@@ -257,10 +257,10 @@ public class GA_ChanneledCone : GameplayAbility, IChanneledAbility
         Vector3 origin    = OwnerASC.transform.TransformPoint(OriginOffset);
         Vector3 direction = ConeDirection(origin, aimPoint);
 
-        Collider[] found = Physics.OverlapSphere(origin, Range, TargetLayer);
+        using var found = PhysicsQuery.OverlapSphere(origin, Range, TargetLayer);
 
         // Del más cercano al más lejano: "el primer golpe" cae en el que está adelante.
-        System.Array.Sort(found, (a, b) =>
+        found.Sort((a, b) =>
             (a.bounds.center - origin).sqrMagnitude.CompareTo((b.bounds.center - origin).sqrMagnitude));
 
         var hit = new HashSet<AbilitySystemComponent>();
@@ -296,9 +296,9 @@ public class GA_ChanneledCone : GameplayAbility, IChanneledAbility
             length = wall.distance;
         Vector3 end = origin + dir * length;
 
-        RaycastHit[] hits = Physics.SphereCastAll(origin, Mathf.Max(0.05f, BeamWidth * 0.5f), dir, length, TargetLayer,
+        using var hits = PhysicsQuery.SphereCastAll(origin, Mathf.Max(0.05f, BeamWidth * 0.5f), dir, length, TargetLayer,
                                                   QueryTriggerInteraction.Collide);
-        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+        hits.Sort((a, b) => a.distance.CompareTo(b.distance));
 
         var seen = new HashSet<AbilitySystemComponent>();
         int applied = 0;

@@ -83,7 +83,7 @@ public partial class PlayerController
             return transform.position + transform.forward * 10f;
 
         Ray          ray  = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-        RaycastHit[] hits = Physics.RaycastAll(ray, maxRange);
+        using var hits = PhysicsQuery.RaycastAll(ray, maxRange);
         float   bestDist  = float.MaxValue;
         Vector3 bestPoint = ray.GetPoint(maxRange);
 

@@ -87,8 +87,8 @@ public class DefensiveDancePassive : MonoBehaviour
     {
         _seen.Clear();
         int points = 0;
-        foreach (Collider col in Physics.OverlapSphere(_asc.transform.position, Range, CharacterLayer,
-                                                       QueryTriggerInteraction.Collide))
+        foreach (Collider col in PhysicsQuery.OverlapSphere(_asc.transform.position, Range, CharacterLayer,
+                                                       QueryTriggerInteraction.Collide).Once())
         {
             AbilitySystemComponent other = col.GetComponentInParent<AbilitySystemComponent>();
             if (other == null || other == _asc || !_seen.Add(other)) continue;

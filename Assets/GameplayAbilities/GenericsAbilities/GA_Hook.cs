@@ -146,8 +146,8 @@ public class GA_Hook : GameplayAbility
         bool wall = HooksTerrain && wallInPath;
 
         float best = float.MaxValue;
-        foreach (RaycastHit h in Physics.SphereCastAll(origin, HookRadius, dir, wallDist, 1 << CharacterLayer,
-                                                        QueryTriggerInteraction.Collide))
+        foreach (RaycastHit h in PhysicsQuery.SphereCastAll(origin, HookRadius, dir, wallDist, 1 << CharacterLayer,
+                                                        QueryTriggerInteraction.Collide).Once())
         {
             AbilitySystemComponent asc = h.collider.GetComponentInParent<AbilitySystemComponent>();
             if (asc == null || asc == OwnerASC || asc.HasTag(EGameplayTag.State_Dead)) continue;

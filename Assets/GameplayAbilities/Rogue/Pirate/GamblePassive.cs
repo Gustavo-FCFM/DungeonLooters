@@ -232,7 +232,7 @@ public class GamblePassive : MonoBehaviour, IDamageModifier
     // más cercano) que no tenga ya una apuesta viva. Devuelve null si no hay ninguno.
     private AbilitySystemComponent PickRandomNearbyEnemy()
     {
-        Collider[] cols = Physics.OverlapSphere(_asc.transform.position, SearchRadius, CharacterLayer);
+        using var cols = PhysicsQuery.OverlapSphere(_asc.transform.position, SearchRadius, CharacterLayer);
 
         List<AbilitySystemComponent> candidates = new List<AbilitySystemComponent>();
         HashSet<AbilitySystemComponent> seen = new HashSet<AbilitySystemComponent>();

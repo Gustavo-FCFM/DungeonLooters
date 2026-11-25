@@ -121,10 +121,10 @@ public class GA_LineAttack : GameplayAbility
         // seguiría golpeando al frente.
         Quaternion boxRotation = Quaternion.LookRotation(direction, Vector3.up);
 
-        Collider[] hits = Physics.OverlapBox(center, halfExtents, boxRotation, TargetLayer);
+        using var hits = PhysicsQuery.OverlapBox(center, halfExtents, boxRotation, TargetLayer);
 
         // En el orden en que la estocada los alcanza: el "primer golpe" es el de adelante.
-        System.Array.Sort(hits, (a, b) =>
+        hits.Sort((a, b) =>
             Vector3.Dot(a.transform.position - origin, direction)
             .CompareTo(Vector3.Dot(b.transform.position - origin, direction)));
 

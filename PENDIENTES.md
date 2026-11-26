@@ -7,6 +7,16 @@ siguen abiertas, más el plan.
 El proyecto compila limpio: 0 errores y 0 warnings en código propio (los 312 warnings
 del log son todos de packs importados).
 
+## ★ EN CADA MÁQUINA: el proyecto pasa a llamarse DungeonLooters (25 de noviembre de 2026)
+
+Una sola vez por máquina, con Unity CERRADO. El repo de GitHub se renombra una vez, desde la web.
+- [ ] **GitHub** (una vez): `Gustavo-FCFM/GasTest` ▸ Settings ▸ General ▸ Repository name → `DungeonLooters`.
+- [ ] **Casa** (`...\SpookyScript\GasTest\GasTest`): pausar OneDrive, renombrar las dos carpetas a `DungeonLooters\DungeonLooters`,
+      reanudar OneDrive; en la carpeta interna, `git remote set-url origin https://github.com/Gustavo-FCFM/DungeonLooters.git`;
+      en Unity Hub quitar el proyecto viejo ("no encontrado") y Add ▸ Add project from disk con la carpeta nueva.
+- [ ] **Trabajo** (`.../Proyectos Gustavo/GasTest/GasTest`): lo mismo (sin OneDrive), a `.../Proyectos Gustavo/DungeonLooters/DungeonLooters`.
+- [ ] Abrir Claude Code desde la carpeta NUEVA (su memoria del proyecto ya está copiada para la ruta nueva de casa).
+
 ## ★ Mejoras de código (25 de noviembre, pedido de Gustavo): los números de los bots y qué pesa en la build
 
 - **Los números de los bots se ajustan en el Inspector**: molde `Assets/Resources/BotSettings` (un prefab con solo un
@@ -919,7 +929,7 @@ Verificado en el editor en las tres bases del Cementerio (piso, 1.9 m y la orill
 ## Cómo retomar en la otra máquina
 
 ```bash
-cd ".../Proyectos Gustavo/GasTest/GasTest"
+cd ".../Proyectos Gustavo/DungeonLooters/DungeonLooters"
 git fetch origin && git checkout main && git reset --hard origin/main
 ```
 
@@ -1209,7 +1219,7 @@ Ya se sacaron del repo otra vez y ahora el `.gitignore` las ignora, así que no 
 volver a colar. Pero hay que borrarlas del disco para que Unity deje de verlas:
 
 ```bash
-cd ".../Proyectos Gustavo/GasTest/GasTest"
+cd ".../Proyectos Gustavo/DungeonLooters/DungeonLooters"
 git fetch origin && git reset --hard origin/main
 rm -rf "Assets/FishNet" "Assets/FishNet.meta" "Assets/TextMesh Pro/Examples & Extras" "Assets/TextMesh Pro/Examples & Extras.meta"
 ```
@@ -1845,7 +1855,7 @@ los de la Furia).
   del que tira: tirar de frente pegado a una pared pega en la pared (no la cruza); de costado ya no.
 
 **3. El desatascarse queda guardado.** Cada pedido (aceptado o rechazado) se escribe en **`Unstuck.log`** del HOST:
-en el editor, `GasTest/Logs/Unstuck.log`; en una build, junto al `Player.log`. Junta las dos partes: lo que ve el
+en el editor, `DungeonLooters/Logs/Unstuck.log`; en una build, junto al `Player.log`. Junta las dos partes: lo que ve el
 que lo pidió (input, menús abiertos, cursor, si estaba atacando y con qué, movimientos especiales, el
 CharacterController, ragdoll, tags) y lo que ve el servidor (tags, efectos, cuánto lleva quieto, último golpe).
 

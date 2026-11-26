@@ -1,4 +1,4 @@
-# GasTest — contexto del proyecto
+# DungeonLooters — contexto del proyecto
 
 Juego: **Dungeon Looters** (hasta el 25 de noviembre de 2026 se llamaba Mercenaries), hero shooter en tercera persona
 (Unity 6000.0.59f2, URP). **Mercenarios** es ahora el nombre del MODO de juego (la arena 3c3c3 con el Objetivo): por eso
@@ -56,7 +56,7 @@ en `Library/Bee` el archivo con los argumentos exactos que usa para compilar. Se
 invocar directo: tarda segundos y no abre una segunda instancia.
 
 ```bash
-cd ".../Proyectos Gustavo/GasTest/GasTest"
+cd ".../Proyectos Gustavo/DungeonLooters/DungeonLooters"
 D="/c/Program Files/Unity/Hub/Editor/6000.0.59f2/Editor/Data"
 RSP=$(ls -t Library/Bee/artifacts/*.dag/Assembly-CSharp.rsp | head -1)
 sed 's|-out:.*|-out:"Temp/_check.dll"|; s|-refout:.*|-refout:"Temp/_check.ref.dll"|' "$RSP" > /tmp/check.rsp
@@ -86,7 +86,7 @@ sale con las tildes rotas.
 editor CERRADO (no entran dos instancias sobre el mismo proyecto):
 
 ```bash
-"C:/Program Files/Unity/Hub/Editor/6000.0.59f2/Editor/Unity.exe" -batchmode -quit -nographics -projectPath "C:/Users/MDyR/Desktop/Proyectos Gustavo/GasTest/GasTest" -logFile compile.log
+"C:/Program Files/Unity/Hub/Editor/6000.0.59f2/Editor/Unity.exe" -batchmode -quit -nographics -projectPath "C:/Users/MDyR/Desktop/Proyectos Gustavo/DungeonLooters/DungeonLooters" -logFile compile.log
 ```
 
 
@@ -580,8 +580,10 @@ volver a prender sin reinstalar Windows), o se hace la build en otra máquina.
 
 ## Git
 
-Repo: `.../Proyectos Gustavo/GasTest/GasTest` (la carpeta INTERNA; la de afuera no es el
-repo). Remoto: `https://github.com/Gustavo-FCFM/GasTest.git`, rama `main`.
+Repo: `.../Proyectos Gustavo/DungeonLooters/DungeonLooters` (la carpeta INTERNA; la de afuera no es el
+repo). Remoto: `https://github.com/Gustavo-FCFM/DungeonLooters.git`, rama `main`. Hasta el 25 de noviembre de 2026 el repo
+y las dos carpetas se llamaban `GasTest` (GitHub redirige el nombre viejo, pero cada máquina apunta al nuevo con
+`git remote set-url`). Las builds viejas de `Builds/` todavía abren `GasTest.exe`: es lo que eran.
 
 **Al empezar a trabajar en una máquina, mirar arriba de `PENDIENTES.md`:** si hay una
 sección "★ EN LA MÁQUINA DE CASA" (u otra máquina) con casillas sin marcar, son acciones

@@ -1,6 +1,10 @@
 # GasTest — contexto del proyecto
 
-Juego: **Mercenaries**, hero shooter en tercera persona (Unity 6000.0.59f2, URP).
+Juego: **Dungeon Looters** (hasta el 25 de noviembre de 2026 se llamaba Mercenaries), hero shooter en tercera persona
+(Unity 6000.0.59f2, URP). **Mercenarios** es ahora el nombre del MODO de juego (la arena 3c3c3 con el Objetivo): por eso
+las carpetas, clases y escenas `Mercenaries*` y el menú `Mercenarios ▸ …` siguen así y no se renombran. El nombre del juego
+está en dos lugares: la portada (`Menus_UI ▸ MainMenuCanvas ▸ Title`) y el Product Name de la build (el .exe y la ventana;
+los Ajustes de cada jugador se guardan con ese nombre, así que cambiarlo los vuelve a cero).
 Motor de habilidades **propio** (GAS) + red con **FishNet**. Desarrollador único:
 Gustavo Pedraza. Todo el código está comentado en español.
 
@@ -21,7 +25,7 @@ qué es en cada idioma. Las variables van con nombre: `Loc.T("lobby.team", ("tea
 con `Equipo {team}` en la tabla. Un texto fijo se ata con `LocalizedText` (se reescribe
 solo al cambiar de idioma); lo que se recalcula llama a `Loc.T` cada vez y escucha
 `Loc.OnLanguageChanged`. **El juego arranca en español**; el idioma se elige en Ajustes
-(`GameSettings.Language`). "Mercenaries" no se traduce. Lo que el SERVIDOR le manda a los
+(`GameSettings.Language`). "Dungeon Looters" no se traduce. Lo que el SERVIDOR le manda a los
 clientes no puede ir como texto ya escrito (cada uno lo ve en su idioma): se manda qué es
 (un enum, un índice) y cada pantalla lo escribe: el registro de bajas manda el índice de
 la clase y qué NPC es (`ENpcLabel`), el desatascarse manda la CLAVE del motivo. **El CONTENIDO no va en la

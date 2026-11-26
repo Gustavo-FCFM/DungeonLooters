@@ -33,7 +33,7 @@ using UnityEngine;
 // está en la tabla se muestra tal cual (y en el editor avisa una vez por la consola), así un
 // texto olvidado se ve enseguida en pantalla.
 //
-// "MERCENARIES" no pasa por acá: es el nombre del juego, igual en los dos idiomas.
+// "DUNGEON LOOTERS" (el título de la portada; antes MERCENARIES) no pasa por acá: es el nombre del juego, igual en los dos idiomas.
 // ============================================================
 public enum ELanguage
 {
